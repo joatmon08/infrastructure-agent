@@ -6,35 +6,6 @@
         "className": "",
         "data": {
           "sourceHandle": {
-            "dataType": "parser",
-            "id": "parser-w95YX",
-            "name": "parsed_text",
-            "output_types": [
-              "Message"
-            ]
-          },
-          "targetHandle": {
-            "fieldName": "context",
-            "id": "Prompt-9BCjO",
-            "inputTypes": [
-              "Message",
-              "Text"
-            ],
-            "type": "str"
-          }
-        },
-        "id": "reactflow__edge-parser-w95YX{œdataTypeœ:œparserœ,œidœ:œparser-w95YXœ,œnameœ:œparsed_textœ,œoutput_typesœ:[œMessageœ]}-Prompt-9BCjO{œfieldNameœ:œcontextœ,œidœ:œPrompt-9BCjOœ,œinputTypesœ:[œMessageœ,œTextœ],œtypeœ:œstrœ}",
-        "selected": false,
-        "source": "parser-w95YX",
-        "sourceHandle": "{œdataTypeœ:œparserœ,œidœ:œparser-w95YXœ,œnameœ:œparsed_textœ,œoutput_typesœ:[œMessageœ]}",
-        "target": "Prompt-9BCjO",
-        "targetHandle": "{œfieldNameœ:œcontextœ,œidœ:œPrompt-9BCjOœ,œinputTypesœ:[œMessageœ,œTextœ],œtypeœ:œstrœ}"
-      },
-      {
-        "animated": false,
-        "className": "",
-        "data": {
-          "sourceHandle": {
             "dataType": "ExportDoclingDocument",
             "id": "ExportDoclingDocument-6Qv2M",
             "name": "data",
@@ -236,63 +207,6 @@
         "className": "",
         "data": {
           "sourceHandle": {
-            "dataType": "ChatInput",
-            "id": "ChatInput-y3zR4",
-            "name": "message",
-            "output_types": [
-              "Message"
-            ]
-          },
-          "targetHandle": {
-            "fieldName": "search_query",
-            "id": "OpenSearchVectorStoreComponent-wvytt",
-            "inputTypes": [
-              "Message"
-            ],
-            "type": "query"
-          }
-        },
-        "id": "reactflow__edge-ChatInput-y3zR4{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}-OpenSearchVectorStoreComponent-wvytt{œfieldNameœ:œsearch_queryœ,œidœ:œOpenSearchVectorStoreComponent-wvyttœ,œinputTypesœ:[œMessageœ],œtypeœ:œqueryœ}",
-        "selected": false,
-        "source": "ChatInput-y3zR4",
-        "sourceHandle": "{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}",
-        "target": "OpenSearchVectorStoreComponent-wvytt",
-        "targetHandle": "{œfieldNameœ:œsearch_queryœ,œidœ:œOpenSearchVectorStoreComponent-wvyttœ,œinputTypesœ:[œMessageœ],œtypeœ:œqueryœ}"
-      },
-      {
-        "animated": false,
-        "className": "",
-        "data": {
-          "sourceHandle": {
-            "dataType": "ChatInput",
-            "id": "ChatInput-y3zR4",
-            "name": "message",
-            "output_types": [
-              "Message"
-            ]
-          },
-          "targetHandle": {
-            "fieldName": "question",
-            "id": "Prompt-9BCjO",
-            "inputTypes": [
-              "Message",
-              "Text"
-            ],
-            "type": "str"
-          }
-        },
-        "id": "xy-edge__ChatInput-y3zR4{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}-Prompt-9BCjO{œfieldNameœ:œquestionœ,œidœ:œPrompt-9BCjOœ,œinputTypesœ:[œMessageœ,œTextœ],œtypeœ:œstrœ}",
-        "selected": false,
-        "source": "ChatInput-y3zR4",
-        "sourceHandle": "{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}",
-        "target": "Prompt-9BCjO",
-        "targetHandle": "{œfieldNameœ:œquestionœ,œidœ:œPrompt-9BCjOœ,œinputTypesœ:[œMessageœ,œTextœ],œtypeœ:œstrœ}"
-      },
-      {
-        "animated": false,
-        "className": "",
-        "data": {
-          "sourceHandle": {
             "dataType": "Agent",
             "id": "Agent-hMeVE",
             "name": "response",
@@ -317,6 +231,90 @@
         "sourceHandle": "{œdataTypeœ:œAgentœ,œidœ:œAgent-hMeVEœ,œnameœ:œresponseœ,œoutput_typesœ:[œMessageœ]}",
         "target": "ChatOutput-5VyCX",
         "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œChatOutput-5VyCXœ,œinputTypesœ:[œDataœ,œDataFrameœ,œMessageœ],œtypeœ:œotherœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "URLComponent",
+            "id": "URLComponent-0cAPf",
+            "name": "component_as_tool",
+            "output_types": [
+              "Tool"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "tools",
+            "id": "Agent-hMeVE",
+            "inputTypes": [
+              "Tool"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__URLComponent-0cAPf{œdataTypeœ:œURLComponentœ,œidœ:œURLComponent-0cAPfœ,œnameœ:œcomponent_as_toolœ,œoutput_typesœ:[œToolœ]}-Agent-hMeVE{œfieldNameœ:œtoolsœ,œidœ:œAgent-hMeVEœ,œinputTypesœ:[œToolœ],œtypeœ:œotherœ}",
+        "selected": false,
+        "source": "URLComponent-0cAPf",
+        "sourceHandle": "{œdataTypeœ:œURLComponentœ,œidœ:œURLComponent-0cAPfœ,œnameœ:œcomponent_as_toolœ,œoutput_typesœ:[œToolœ]}",
+        "target": "Agent-hMeVE",
+        "targetHandle": "{œfieldNameœ:œtoolsœ,œidœ:œAgent-hMeVEœ,œinputTypesœ:[œToolœ],œtypeœ:œotherœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "parser",
+            "id": "parser-w95YX",
+            "name": "parsed_text",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "context",
+            "id": "Prompt-9BCjO",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__parser-w95YX{œdataTypeœ:œparserœ,œidœ:œparser-w95YXœ,œnameœ:œparsed_textœ,œoutput_typesœ:[œMessageœ]}-Prompt-9BCjO{œfieldNameœ:œcontextœ,œidœ:œPrompt-9BCjOœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "parser-w95YX",
+        "sourceHandle": "{œdataTypeœ:œparserœ,œidœ:œparser-w95YXœ,œnameœ:œparsed_textœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "Prompt-9BCjO",
+        "targetHandle": "{œfieldNameœ:œcontextœ,œidœ:œPrompt-9BCjOœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ChatInput",
+            "id": "ChatInput-y3zR4",
+            "name": "message",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "search_query",
+            "id": "OpenSearchVectorStoreComponent-wvytt",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "query"
+          }
+        },
+        "id": "xy-edge__ChatInput-y3zR4{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}-OpenSearchVectorStoreComponent-wvytt{œfieldNameœ:œsearch_queryœ,œidœ:œOpenSearchVectorStoreComponent-wvyttœ,œinputTypesœ:[œMessageœ],œtypeœ:œqueryœ}",
+        "selected": false,
+        "source": "ChatInput-y3zR4",
+        "sourceHandle": "{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "OpenSearchVectorStoreComponent-wvytt",
+        "targetHandle": "{œfieldNameœ:œsearch_queryœ,œidœ:œOpenSearchVectorStoreComponent-wvyttœ,œinputTypesœ:[œMessageœ],œtypeœ:œqueryœ}"
       },
       {
         "animated": false,
@@ -351,36 +349,8 @@
         "className": "",
         "data": {
           "sourceHandle": {
-            "dataType": "ChatInput",
-            "id": "ChatInput-y3zR4",
-            "name": "message",
-            "output_types": [
-              "Message"
-            ]
-          },
-          "targetHandle": {
-            "fieldName": "system_prompt",
-            "id": "Agent-hMeVE",
-            "inputTypes": [
-              "Message"
-            ],
-            "type": "str"
-          }
-        },
-        "id": "xy-edge__ChatInput-y3zR4{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}-Agent-hMeVE{œfieldNameœ:œsystem_promptœ,œidœ:œAgent-hMeVEœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
-        "selected": false,
-        "source": "ChatInput-y3zR4",
-        "sourceHandle": "{œdataTypeœ:œChatInputœ,œidœ:œChatInput-y3zR4œ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}",
-        "target": "Agent-hMeVE",
-        "targetHandle": "{œfieldNameœ:œsystem_promptœ,œidœ:œAgent-hMeVEœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
-      },
-      {
-        "animated": false,
-        "className": "",
-        "data": {
-          "sourceHandle": {
-            "dataType": "URLComponent",
-            "id": "URLComponent-0cAPf",
+            "dataType": "MCPTools",
+            "id": "MCPTools-ICBtY",
             "name": "component_as_tool",
             "output_types": [
               "Tool"
@@ -395,10 +365,10 @@
             "type": "other"
           }
         },
-        "id": "xy-edge__URLComponent-0cAPf{œdataTypeœ:œURLComponentœ,œidœ:œURLComponent-0cAPfœ,œnameœ:œcomponent_as_toolœ,œoutput_typesœ:[œToolœ]}-Agent-hMeVE{œfieldNameœ:œtoolsœ,œidœ:œAgent-hMeVEœ,œinputTypesœ:[œToolœ],œtypeœ:œotherœ}",
+        "id": "xy-edge__MCPTools-ICBtY{œdataTypeœ:œMCPToolsœ,œidœ:œMCPTools-ICBtYœ,œnameœ:œcomponent_as_toolœ,œoutput_typesœ:[œToolœ]}-Agent-hMeVE{œfieldNameœ:œtoolsœ,œidœ:œAgent-hMeVEœ,œinputTypesœ:[œToolœ],œtypeœ:œotherœ}",
         "selected": false,
-        "source": "URLComponent-0cAPf",
-        "sourceHandle": "{œdataTypeœ:œURLComponentœ,œidœ:œURLComponent-0cAPfœ,œnameœ:œcomponent_as_toolœ,œoutput_typesœ:[œToolœ]}",
+        "source": "MCPTools-ICBtY",
+        "sourceHandle": "{œdataTypeœ:œMCPToolsœ,œidœ:œMCPTools-ICBtYœ,œnameœ:œcomponent_as_toolœ,œoutput_typesœ:[œToolœ]}",
         "target": "Agent-hMeVE",
         "targetHandle": "{œfieldNameœ:œtoolsœ,œidœ:œAgent-hMeVEœ,œinputTypesœ:[œToolœ],œtypeœ:œotherœ}"
       }
@@ -697,8 +667,8 @@
           "width": 320
         },
         "position": {
-          "x": 771.3241737324869,
-          "y": 32.62530514888421
+          "x": 630.2288482635277,
+          "y": 327.96891015594304
         },
         "positionAbsolute": {
           "x": 743.9745420290319,
@@ -721,8 +691,7 @@
             "conditional_paths": [],
             "custom_fields": {
               "template": [
-                "context",
-                "question"
+                "context"
               ]
             },
             "description": "Create a prompt template with dynamic variables.",
@@ -745,6 +714,7 @@
               "code_hash": "3bf0b511e227",
               "module": "langflow.components.prompts.prompt.PromptComponent"
             },
+            "minimized": false,
             "name": "",
             "output_types": [],
             "outputs": [
@@ -753,8 +723,12 @@
                 "cache": true,
                 "display_name": "Prompt",
                 "group_outputs": false,
+                "hidden": null,
+                "loop_types": null,
                 "method": "build_prompt",
                 "name": "prompt",
+                "options": null,
+                "required_inputs": null,
                 "selected": "Message",
                 "tool_mode": true,
                 "types": [
@@ -764,6 +738,8 @@
               }
             ],
             "pinned": false,
+            "priority": null,
+            "replacement": null,
             "template": {
               "_type": "Component",
               "code": {
@@ -793,36 +769,12 @@
                 "file_path": "",
                 "info": "",
                 "input_types": [
-                  "Message",
-                  "Text"
+                  "Message"
                 ],
                 "list": false,
                 "load_from_db": false,
                 "multiline": true,
                 "name": "context",
-                "placeholder": "",
-                "required": false,
-                "show": true,
-                "title_case": false,
-                "type": "str",
-                "value": ""
-              },
-              "question": {
-                "advanced": false,
-                "display_name": "question",
-                "dynamic": false,
-                "field_type": "str",
-                "fileTypes": [],
-                "file_path": "",
-                "info": "",
-                "input_types": [
-                  "Message",
-                  "Text"
-                ],
-                "list": false,
-                "load_from_db": false,
-                "multiline": true,
-                "name": "question",
                 "placeholder": "",
                 "required": false,
                 "show": true,
@@ -844,7 +796,7 @@
                 "title_case": false,
                 "trace_as_input": true,
                 "type": "prompt",
-                "value": "{context}\n\n---\n\nGiven the context above, answer the question as best as possible.\n\nQuestion: {question}\n\nAnswer: "
+                "value": "{context}"
               },
               "tool_placeholder": {
                 "_input_type": "MessageTextInput",
@@ -2245,7 +2197,7 @@
           "x": 627.9654063711093,
           "y": 892.7223443477179
         },
-        "selected": true,
+        "selected": false,
         "type": "genericNode"
       },
       {
@@ -2297,7 +2249,7 @@
             ],
             "frozen": false,
             "icon": "Ollama",
-            "last_updated": "2026-01-12T16:59:22.943Z",
+            "last_updated": "2026-01-12T18:50:41.227Z",
             "legacy": false,
             "lf_version": "1.7.2",
             "metadata": {
@@ -3396,7 +3348,8 @@
                   "gz"
                 ],
                 "file_path": [
-                  "14b574af-14c4-48a0-a9d2-9ddd1ffba76e/Ch4.pdf"
+                  "14b574af-14c4-48a0-a9d2-9ddd1ffba76e/Ch4.pdf",
+                  "14b574af-14c4-48a0-a9d2-9ddd1ffba76e/Ch6.pdf"
                 ],
                 "info": "Supported file extensions: adoc, asciidoc, asc, bmp, csv, dotx, dotm, docm, docx, htm, html, jpeg, json, md, pdf, png, potx, ppsx, pptm, potm, ppsm, pptx, tiff, txt, xls, xlsx, xhtml, xml, webp; optionally bundled in file extensions: zip, tar, tgz, bz2, gz",
                 "list": true,
@@ -3534,7 +3487,7 @@
         "dragging": false,
         "id": "DoclingInline-UCv8Y",
         "measured": {
-          "height": 483,
+          "height": 527,
           "width": 320
         },
         "position": {
@@ -4926,7 +4879,7 @@
             ],
             "frozen": false,
             "icon": "layout-template",
-            "last_updated": "2026-01-12T16:59:35.110Z",
+            "last_updated": "2026-01-12T18:50:41.228Z",
             "legacy": false,
             "lf_version": "1.7.2",
             "metadata": {
@@ -5377,7 +5330,7 @@
             ],
             "frozen": false,
             "icon": "bot",
-            "last_updated": "2026-01-12T16:59:22.946Z",
+            "last_updated": "2026-01-12T18:50:41.229Z",
             "legacy": false,
             "lf_version": "1.7.2",
             "metadata": {
@@ -6236,7 +6189,7 @@
                 "trace_as_metadata": true,
                 "track_in_telemetry": false,
                 "type": "str",
-                "value": "You are a helpful assistant that can use tools to answer questions and perform tasks."
+                "value": "# Agent: Generate HCL\n\n## Overview\nYou are an agent that generates HashiCorp Configuration Language (HCL) code for Terraform configurations, following best practices, security standards, and organizational conventions.\n\n## Capability Statement\nWhen invoked, the agent will:\n1. Analyze infrastructure requirements and constraints\n2. Query Terraform Registry for latest provider versions and module patterns\n3. Generate idiomatic HCL with proper resource dependencies\n4. Apply security best practices and compliance standards\n5. Include comprehensive documentation and examples\n\n## Prerequisites\n- Understanding of target infrastructure provider (AWS, Azure, GCP, etc.)\n- Access to Terraform Registry APIs\n- Knowledge of organizational naming conventions\n- Awareness of security compliance requirements (CIS, SOC2, etc.)\n\n## Input Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `provider` | string | Yes | Target cloud provider (aws, azurerm, google, etc.) |\n| `resource_types` | array | Yes | List of resource types to generate (e.g., [\"vpc\", \"subnet\", \"security_group\"]) |\n| `environment` | string | Yes | Target environment (dev, staging, prod) |\n| `compliance_framework` | string | No | Compliance standard to follow (cis, pci, hipaa) |\n| `naming_convention` | object | No | Organization-specific naming rules |\n| `terraform_version` | string | No | Target Terraform version (defaults to latest stable) |\n\n## Execution Steps\n\n### 1. Provider Discovery\n```markdown\n- Use `get_latest_provider_version` to fetch current provider release\n- Call `get_provider_capabilities` to understand available resources\n- Retrieve `get_provider_details` for specific resource documentation\n```\n\n### 2. Code Generation Strategy\n```markdown\n- Start with provider configuration block\n- Generate required_providers with version constraints\n- Create data sources before dependent resources\n- Build resources in dependency order\n- Add outputs for key resource attributes\n```\n\n### 3. Best Practices Application\n```markdown\n- Use variables for all configurable values\n- Implement local values for computed expressions\n- Add lifecycle rules where appropriate\n- Include depends_on only when implicit dependencies insufficient\n- Use for_each instead of count for resource sets\n```\n\n### 4. Security Hardening\n```markdown\n- Enable encryption at rest by default\n- Configure private networking where applicable\n- Add security group rules with principle of least privilege\n- Enable logging and monitoring\n- Tag resources for cost tracking and compliance\n```\n\n### 5. Validation\n```markdown\n- Ensure valid HCL syntax\n- Verify resource attribute compatibility\n- Check for circular dependencies\n- Validate against compliance rules\n```\n\n## Output Format\n\n### Generated File Structure\n```hcl\n# main.tf\nterraform {\n  required_version = \">= 1.5.0\"\n  \n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\n# variables.tf\nvariable \"environment\" {\n  description = \"Target deployment environment\"\n  type        = string\n  validation {\n    condition     = contains([\"dev\", \"staging\", \"prod\"], var.environment)\n    error_message = \"Environment must be dev, staging, or prod.\"\n  }\n}\n\n# locals.tf\nlocals {\n  common_tags = {\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n    CreatedAt   = timestamp()\n  }\n}\n\n# resources.tf\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = var.vpc_cidr\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n  \n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"${var.project_name}-${var.environment}-vpc\"\n    }\n  )\n}\n\n# outputs.tf\noutput \"vpc_id\" {\n  description = \"ID of the created VPC\"\n  value       = aws_vpc.main.id\n}\n```\n\n## Error Handling\n\n### Common Issues\n1. **Provider Version Conflicts**: Always pin provider versions with ~> constraint\n2. **Missing Dependencies**: Use depends_on explicitly for cross-module dependencies\n3. **State Drift**: Include lifecycle ignore_changes for attributes modified externally\n4. **Resource Naming Collisions**: Use unique prefixes with environment/region\n\n### Validation Checklist\n- [ ] All resources have descriptive names\n- [ ] Variables have descriptions and types\n- [ ] Sensitive outputs marked with `sensitive = true`\n- [ ] Tags include minimum required metadata\n- [ ] No hardcoded credentials or secrets\n- [ ] Backend configuration externalized\n\n## Examples\n\n### Example 1: S3 Bucket with Security Best Practices\n```hcl\nresource \"aws_s3_bucket\" \"data\" {\n  bucket = \"${var.project}-${var.environment}-data\"\n  \n  tags = local.common_tags\n}\n\nresource \"aws_s3_bucket_versioning\" \"data\" {\n  bucket = aws_s3_bucket.data.id\n  \n  versioning_configuration {\n    status = \"Enabled\"\n  }\n}\n\nresource \"aws_s3_bucket_server_side_encryption_configuration\" \"data\" {\n  bucket = aws_s3_bucket.data.id\n  \n  rule {\n    apply_server_side_encryption_by_default {\n      sse_algorithm     = \"aws:kms\"\n      kms_master_key_id = aws_kms_key.s3.arn\n    }\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"data\" {\n  bucket = aws_s3_bucket.data.id\n  \n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}\n```\n\n### Example 2: Compute Instance with Module Abstraction\n```hcl\nmodule \"ec2_instance\" {\n  source  = \"terraform-aws-modules/ec2-instance/aws\"\n  version = \"~> 5.0\"\n  \n  name = \"${var.project}-${var.environment}-web\"\n  \n  instance_type          = var.instance_type\n  key_name              = var.key_name\n  monitoring            = true\n  vpc_security_group_ids = [aws_security_group.web.id]\n  subnet_id             = aws_subnet.private[0].id\n  \n  user_data = templatefile(\"${path.module}/user_data.sh\", {\n    environment = var.environment\n    app_version = var.app_version\n  })\n  \n  tags = merge(\n    local.common_tags,\n    {\n      Role = \"WebServer\"\n    }\n  )\n}\n```\n\n## Related Skills\n- [Refactor Module](../refactor-module/SKILL.md) - Restructure existing code into reusable modules\n- [Validate Configuration](../validate-configuration/SKILL.md) - Run validation and compliance checks\n\n## Resources\n- [HCL Best Practices](./resources/hcl-best-practices.md)\n- [Terraform Registry Documentation](https://registry.terraform.io/)\n- [Provider Version Constraints](https://developer.hashicorp.com/terraform/language/providers/requirements)\n\n## Success Metrics\n- Code passes `terraform validate` without errors\n- Security scanner (tfsec, checkov) shows no critical issues\n- Resources follow organizational naming conventions\n- All variables have descriptions and appropriate types\n- Outputs provide necessary information for downstream consumers\n\n## Revision History\n\n| Version | Date | Changes |\n|---------|------|---------|\n| 1.0.0 | 2025-11-07 | Initial skill definition |"
               },
               "tags": {
                 "_input_type": "MessageTextInput",
@@ -6486,12 +6439,1972 @@
         },
         "selected": false,
         "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "MCPTools-ICBtY",
+          "node": {
+            "base_classes": [
+              "DataFrame"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Connect to an MCP server to use its tools.",
+            "display_name": "MCP Tools",
+            "documentation": "https://docs.langflow.org/mcp-tools",
+            "edited": false,
+            "field_order": [
+              "mcp_server",
+              "use_cache",
+              "verify_ssl",
+              "tool",
+              "tool_placeholder"
+            ],
+            "frozen": false,
+            "icon": "Mcp",
+            "last_updated": "2026-01-12T19:02:04.457Z",
+            "legacy": false,
+            "lf_version": "1.7.2",
+            "metadata": {
+              "code_hash": "5cea317b23ca",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "langchain_core",
+                    "version": "0.3.80"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": "0.2.1"
+                  },
+                  {
+                    "name": "langflow",
+                    "version": "1.7.2"
+                  }
+                ],
+                "total_dependencies": 3
+              },
+              "module": "lfx.components.models_and_agents.mcp_component.MCPToolsComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Toolset",
+                "group_outputs": false,
+                "hidden": null,
+                "loop_types": null,
+                "method": "to_toolkit",
+                "name": "component_as_tool",
+                "options": null,
+                "required_inputs": null,
+                "selected": "Tool",
+                "tool_mode": true,
+                "types": [
+                  "Tool"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_frontend_node_flow_id": {
+                "value": "ff1f3a65-6d8f-4f0d-9315-29b95fac7c37"
+              },
+              "_frontend_node_folder_id": {
+                "value": "fac20e20-a5b2-4389-89f8-cafbb866745b"
+              },
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from __future__ import annotations\n\nimport asyncio\nimport json\nimport uuid\n\nfrom langchain_core.tools import StructuredTool  # noqa: TC002\n\nfrom lfx.base.agents.utils import maybe_unflatten_dict, safe_cache_get, safe_cache_set\nfrom lfx.base.mcp.util import (\n    MCPStdioClient,\n    MCPStreamableHttpClient,\n    create_input_schema_from_json_schema,\n    update_tools,\n)\nfrom lfx.custom.custom_component.component_with_cache import ComponentWithCache\nfrom lfx.inputs.inputs import InputTypes  # noqa: TC001\nfrom lfx.io import BoolInput, DropdownInput, McpInput, MessageTextInput, Output\nfrom lfx.io.schema import flatten_schema, schema_to_langflow_inputs\nfrom lfx.log.logger import logger\nfrom lfx.schema.dataframe import DataFrame\nfrom lfx.schema.message import Message\nfrom lfx.services.deps import get_settings_service, get_storage_service, session_scope\n\n\nclass MCPToolsComponent(ComponentWithCache):\n    schema_inputs: list = []\n    tools: list[StructuredTool] = []\n    _not_load_actions: bool = False\n    _tool_cache: dict = {}\n    _last_selected_server: str | None = None  # Cache for the last selected server\n\n    def __init__(self, **data) -> None:\n        super().__init__(**data)\n        # Initialize cache keys to avoid CacheMiss when accessing them\n        self._ensure_cache_structure()\n\n        # Initialize clients with access to the component cache\n        self.stdio_client: MCPStdioClient = MCPStdioClient(component_cache=self._shared_component_cache)\n        self.streamable_http_client: MCPStreamableHttpClient = MCPStreamableHttpClient(\n            component_cache=self._shared_component_cache\n        )\n\n    def _ensure_cache_structure(self):\n        \"\"\"Ensure the cache has the required structure.\"\"\"\n        # Check if servers key exists and is not CacheMiss\n        servers_value = safe_cache_get(self._shared_component_cache, \"servers\")\n        if servers_value is None:\n            safe_cache_set(self._shared_component_cache, \"servers\", {})\n\n        # Check if last_selected_server key exists and is not CacheMiss\n        last_server_value = safe_cache_get(self._shared_component_cache, \"last_selected_server\")\n        if last_server_value is None:\n            safe_cache_set(self._shared_component_cache, \"last_selected_server\", \"\")\n\n    default_keys: list[str] = [\n        \"code\",\n        \"_type\",\n        \"tool_mode\",\n        \"tool_placeholder\",\n        \"mcp_server\",\n        \"tool\",\n        \"use_cache\",\n        \"verify_ssl\",\n    ]\n\n    display_name = \"MCP Tools\"\n    description = \"Connect to an MCP server to use its tools.\"\n    documentation: str = \"https://docs.langflow.org/mcp-tools\"\n    icon = \"Mcp\"\n    name = \"MCPTools\"\n\n    inputs = [\n        McpInput(\n            name=\"mcp_server\",\n            display_name=\"MCP Server\",\n            info=\"Select the MCP Server that will be used by this component\",\n            real_time_refresh=True,\n        ),\n        BoolInput(\n            name=\"use_cache\",\n            display_name=\"Use Cached Server\",\n            info=(\n                \"Enable caching of MCP Server and tools to improve performance. \"\n                \"Disable to always fetch fresh tools and server updates.\"\n            ),\n            value=False,\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"verify_ssl\",\n            display_name=\"Verify SSL Certificate\",\n            info=(\n                \"Enable SSL certificate verification for HTTPS connections. \"\n                \"Disable only for development/testing with self-signed certificates.\"\n            ),\n            value=True,\n            advanced=True,\n        ),\n        DropdownInput(\n            name=\"tool\",\n            display_name=\"Tool\",\n            options=[],\n            value=\"\",\n            info=\"Select the tool to execute\",\n            show=False,\n            required=True,\n            real_time_refresh=True,\n        ),\n        MessageTextInput(\n            name=\"tool_placeholder\",\n            display_name=\"Tool Placeholder\",\n            info=\"Placeholder for the tool\",\n            value=\"\",\n            show=False,\n            tool_mode=False,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Response\", name=\"response\", method=\"build_output\"),\n    ]\n\n    async def _validate_schema_inputs(self, tool_obj) -> list[InputTypes]:\n        \"\"\"Validate and process schema inputs for a tool.\"\"\"\n        try:\n            if not tool_obj or not hasattr(tool_obj, \"args_schema\"):\n                msg = \"Invalid tool object or missing input schema\"\n                raise ValueError(msg)\n\n            flat_schema = flatten_schema(tool_obj.args_schema.schema())\n            input_schema = create_input_schema_from_json_schema(flat_schema)\n            if not input_schema:\n                msg = f\"Empty input schema for tool '{tool_obj.name}'\"\n                raise ValueError(msg)\n\n            schema_inputs = schema_to_langflow_inputs(input_schema)\n            if not schema_inputs:\n                msg = f\"No input parameters defined for tool '{tool_obj.name}'\"\n                await logger.awarning(msg)\n                return []\n\n        except Exception as e:\n            msg = f\"Error validating schema inputs: {e!s}\"\n            await logger.aexception(msg)\n            raise ValueError(msg) from e\n        else:\n            return schema_inputs\n\n    async def update_tool_list(self, mcp_server_value=None):\n        # Accepts mcp_server_value as dict {name, config} or uses self.mcp_server\n        mcp_server = mcp_server_value if mcp_server_value is not None else getattr(self, \"mcp_server\", None)\n        server_name = None\n        server_config_from_value = None\n        if isinstance(mcp_server, dict):\n            server_name = mcp_server.get(\"name\")\n            server_config_from_value = mcp_server.get(\"config\")\n        else:\n            server_name = mcp_server\n        if not server_name:\n            self.tools = []\n            return [], {\"name\": server_name, \"config\": server_config_from_value}\n\n        # Check if caching is enabled, default to False\n        use_cache = getattr(self, \"use_cache\", False)\n\n        # Use shared cache if available and caching is enabled\n        cached = None\n        if use_cache:\n            servers_cache = safe_cache_get(self._shared_component_cache, \"servers\", {})\n            cached = servers_cache.get(server_name) if isinstance(servers_cache, dict) else None\n\n        if cached is not None:\n            try:\n                self.tools = cached[\"tools\"]\n                self.tool_names = cached[\"tool_names\"]\n                self._tool_cache = cached[\"tool_cache\"]\n                server_config_from_value = cached[\"config\"]\n            except (TypeError, KeyError, AttributeError) as e:\n                # Handle corrupted cache data by clearing it and continuing to fetch fresh tools\n                msg = f\"Unable to use cached data for MCP Server{server_name}: {e}\"\n                await logger.awarning(msg)\n                # Clear the corrupted cache entry\n                current_servers_cache = safe_cache_get(self._shared_component_cache, \"servers\", {})\n                if isinstance(current_servers_cache, dict) and server_name in current_servers_cache:\n                    current_servers_cache.pop(server_name)\n                    safe_cache_set(self._shared_component_cache, \"servers\", current_servers_cache)\n            else:\n                return self.tools, {\"name\": server_name, \"config\": server_config_from_value}\n\n        try:\n            try:\n                from langflow.api.v2.mcp import get_server\n                from langflow.services.database.models.user.crud import get_user_by_id\n            except ImportError as e:\n                msg = (\n                    \"Langflow MCP server functionality is not available. \"\n                    \"This feature requires the full Langflow installation.\"\n                )\n                raise ImportError(msg) from e\n            async with session_scope() as db:\n                if not self.user_id:\n                    msg = \"User ID is required for fetching MCP tools.\"\n                    raise ValueError(msg)\n                current_user = await get_user_by_id(db, self.user_id)\n\n                # Try to get server config from DB/API\n                server_config = await get_server(\n                    server_name,\n                    current_user,\n                    db,\n                    storage_service=get_storage_service(),\n                    settings_service=get_settings_service(),\n                )\n\n            # If get_server returns empty but we have a config, use it\n            if not server_config and server_config_from_value:\n                server_config = server_config_from_value\n\n            if not server_config:\n                self.tools = []\n                return [], {\"name\": server_name, \"config\": server_config}\n\n            # Add verify_ssl option to server config if not present\n            if \"verify_ssl\" not in server_config:\n                verify_ssl = getattr(self, \"verify_ssl\", True)\n                server_config[\"verify_ssl\"] = verify_ssl\n\n            _, tool_list, tool_cache = await update_tools(\n                server_name=server_name,\n                server_config=server_config,\n                mcp_stdio_client=self.stdio_client,\n                mcp_streamable_http_client=self.streamable_http_client,\n            )\n\n            self.tool_names = [tool.name for tool in tool_list if hasattr(tool, \"name\")]\n            self._tool_cache = tool_cache\n            self.tools = tool_list\n\n            # Cache the result only if caching is enabled\n            if use_cache:\n                cache_data = {\n                    \"tools\": tool_list,\n                    \"tool_names\": self.tool_names,\n                    \"tool_cache\": tool_cache,\n                    \"config\": server_config,\n                }\n\n                # Safely update the servers cache\n                current_servers_cache = safe_cache_get(self._shared_component_cache, \"servers\", {})\n                if isinstance(current_servers_cache, dict):\n                    current_servers_cache[server_name] = cache_data\n                    safe_cache_set(self._shared_component_cache, \"servers\", current_servers_cache)\n\n        except (TimeoutError, asyncio.TimeoutError) as e:\n            msg = f\"Timeout updating tool list: {e!s}\"\n            await logger.aexception(msg)\n            raise TimeoutError(msg) from e\n        except Exception as e:\n            msg = f\"Error updating tool list: {e!s}\"\n            await logger.aexception(msg)\n            raise ValueError(msg) from e\n        else:\n            return tool_list, {\"name\": server_name, \"config\": server_config}\n\n    async def update_build_config(self, build_config: dict, field_value: str, field_name: str | None = None) -> dict:\n        \"\"\"Toggle the visibility of connection-specific fields based on the selected mode.\"\"\"\n        try:\n            if field_name == \"tool\":\n                try:\n                    if len(self.tools) == 0:\n                        try:\n                            self.tools, build_config[\"mcp_server\"][\"value\"] = await self.update_tool_list()\n                            build_config[\"tool\"][\"options\"] = [tool.name for tool in self.tools]\n                            build_config[\"tool\"][\"placeholder\"] = \"Select a tool\"\n                        except (TimeoutError, asyncio.TimeoutError) as e:\n                            msg = f\"Timeout updating tool list: {e!s}\"\n                            await logger.aexception(msg)\n                            if not build_config[\"tools_metadata\"][\"show\"]:\n                                build_config[\"tool\"][\"show\"] = True\n                                build_config[\"tool\"][\"options\"] = []\n                                build_config[\"tool\"][\"value\"] = \"\"\n                                build_config[\"tool\"][\"placeholder\"] = \"Timeout on MCP server\"\n                            else:\n                                build_config[\"tool\"][\"show\"] = False\n                        except ValueError:\n                            if not build_config[\"tools_metadata\"][\"show\"]:\n                                build_config[\"tool\"][\"show\"] = True\n                                build_config[\"tool\"][\"options\"] = []\n                                build_config[\"tool\"][\"value\"] = \"\"\n                                build_config[\"tool\"][\"placeholder\"] = \"Error on MCP Server\"\n                            else:\n                                build_config[\"tool\"][\"show\"] = False\n\n                    if field_value == \"\":\n                        return build_config\n                    tool_obj = None\n                    for tool in self.tools:\n                        if tool.name == field_value:\n                            tool_obj = tool\n                            break\n                    if tool_obj is None:\n                        msg = f\"Tool {field_value} not found in available tools: {self.tools}\"\n                        await logger.awarning(msg)\n                        return build_config\n                    await self._update_tool_config(build_config, field_value)\n                except Exception as e:\n                    build_config[\"tool\"][\"options\"] = []\n                    msg = f\"Failed to update tools: {e!s}\"\n                    raise ValueError(msg) from e\n                else:\n                    return build_config\n            elif field_name == \"mcp_server\":\n                if not field_value:\n                    build_config[\"tool\"][\"show\"] = False\n                    build_config[\"tool\"][\"options\"] = []\n                    build_config[\"tool\"][\"value\"] = \"\"\n                    build_config[\"tool\"][\"placeholder\"] = \"\"\n                    build_config[\"tool_placeholder\"][\"tool_mode\"] = False\n                    self.remove_non_default_keys(build_config)\n                    return build_config\n\n                build_config[\"tool_placeholder\"][\"tool_mode\"] = True\n\n                current_server_name = field_value.get(\"name\") if isinstance(field_value, dict) else field_value\n                _last_selected_server = safe_cache_get(self._shared_component_cache, \"last_selected_server\", \"\")\n                server_changed = current_server_name != _last_selected_server\n\n                # Determine if \"Tool Mode\" is active by checking if the tool dropdown is hidden.\n                is_in_tool_mode = build_config[\"tools_metadata\"][\"show\"]\n\n                # Get use_cache setting to determine if we should use cached data\n                use_cache = getattr(self, \"use_cache\", False)\n\n                # Fast path: if server didn't change and we already have options, keep them as-is\n                # BUT only if caching is enabled or we're in tool mode\n                existing_options = build_config.get(\"tool\", {}).get(\"options\") or []\n                if not server_changed and existing_options:\n                    # In non-tool mode with cache disabled, skip the fast path to force refresh\n                    if not is_in_tool_mode and not use_cache:\n                        pass  # Continue to refresh logic below\n                    else:\n                        if not is_in_tool_mode:\n                            build_config[\"tool\"][\"show\"] = True\n                        return build_config\n\n                # To avoid unnecessary updates, only proceed if the server has actually changed\n                # OR if caching is disabled (to force refresh in non-tool mode)\n                if (_last_selected_server in (current_server_name, \"\")) and build_config[\"tool\"][\"show\"] and use_cache:\n                    if current_server_name:\n                        servers_cache = safe_cache_get(self._shared_component_cache, \"servers\", {})\n                        if isinstance(servers_cache, dict):\n                            cached = servers_cache.get(current_server_name)\n                            if cached is not None and cached.get(\"tool_names\"):\n                                cached_tools = cached[\"tool_names\"]\n                                current_tools = build_config[\"tool\"][\"options\"]\n                                if current_tools == cached_tools:\n                                    return build_config\n                    else:\n                        return build_config\n                safe_cache_set(self._shared_component_cache, \"last_selected_server\", current_server_name)\n\n                # Check if tools are already cached for this server before clearing\n                cached_tools = None\n                if current_server_name and use_cache:\n                    servers_cache = safe_cache_get(self._shared_component_cache, \"servers\", {})\n                    if isinstance(servers_cache, dict):\n                        cached = servers_cache.get(current_server_name)\n                        if cached is not None:\n                            try:\n                                cached_tools = cached[\"tools\"]\n                                self.tools = cached_tools\n                                self.tool_names = cached[\"tool_names\"]\n                                self._tool_cache = cached[\"tool_cache\"]\n                            except (TypeError, KeyError, AttributeError) as e:\n                                # Handle corrupted cache data by ignoring it\n                                msg = f\"Unable to use cached data for MCP Server,{current_server_name}: {e}\"\n                                await logger.awarning(msg)\n                                cached_tools = None\n\n                # Only clear tools if we don't have cached tools for the current server\n                if not cached_tools:\n                    self.tools = []  # Clear previous tools only if no cache\n\n                # Clear previous tool inputs if:\n                # 1. Server actually changed\n                # 2. Cache is disabled (meaning tool list will be refreshed)\n                if server_changed or not use_cache:\n                    self.remove_non_default_keys(build_config)\n\n                # Only show the tool dropdown if not in tool_mode\n                if not is_in_tool_mode:\n                    build_config[\"tool\"][\"show\"] = True\n                    if cached_tools:\n                        # Use cached tools to populate options immediately\n                        build_config[\"tool\"][\"options\"] = [tool.name for tool in cached_tools]\n                        build_config[\"tool\"][\"placeholder\"] = \"Select a tool\"\n                    else:\n                        # Show loading state only when we need to fetch tools\n                        build_config[\"tool\"][\"placeholder\"] = \"Loading tools...\"\n                        build_config[\"tool\"][\"options\"] = []\n                    # Force a value refresh when:\n                    # 1. Server changed\n                    # 2. We don't have cached tools\n                    # 3. Cache is disabled (to force refresh on config changes)\n                    if server_changed or not cached_tools or not use_cache:\n                        build_config[\"tool\"][\"value\"] = uuid.uuid4()\n                else:\n                    # Keep the tool dropdown hidden if in tool_mode\n                    self._not_load_actions = True\n                    build_config[\"tool\"][\"show\"] = False\n\n            elif field_name == \"tool_mode\":\n                build_config[\"tool\"][\"placeholder\"] = \"\"\n                build_config[\"tool\"][\"show\"] = not bool(field_value) and bool(build_config[\"mcp_server\"])\n                self.remove_non_default_keys(build_config)\n                self.tool = build_config[\"tool\"][\"value\"]\n                if field_value:\n                    self._not_load_actions = True\n                else:\n                    build_config[\"tool\"][\"value\"] = uuid.uuid4()\n                    build_config[\"tool\"][\"options\"] = []\n                    build_config[\"tool\"][\"show\"] = True\n                    build_config[\"tool\"][\"placeholder\"] = \"Loading tools...\"\n            elif field_name == \"tools_metadata\":\n                self._not_load_actions = False\n\n        except Exception as e:\n            msg = f\"Error in update_build_config: {e!s}\"\n            await logger.aexception(msg)\n            raise ValueError(msg) from e\n        else:\n            return build_config\n\n    def get_inputs_for_all_tools(self, tools: list) -> dict:\n        \"\"\"Get input schemas for all tools.\"\"\"\n        inputs = {}\n        for tool in tools:\n            if not tool or not hasattr(tool, \"name\"):\n                continue\n            try:\n                flat_schema = flatten_schema(tool.args_schema.schema())\n                input_schema = create_input_schema_from_json_schema(flat_schema)\n                langflow_inputs = schema_to_langflow_inputs(input_schema)\n                inputs[tool.name] = langflow_inputs\n            except (AttributeError, ValueError, TypeError, KeyError) as e:\n                msg = f\"Error getting inputs for tool {getattr(tool, 'name', 'unknown')}: {e!s}\"\n                logger.exception(msg)\n                continue\n        return inputs\n\n    def remove_non_default_keys(self, build_config: dict) -> None:\n        \"\"\"Remove non-default keys from the build config.\"\"\"\n        for key in list(build_config.keys()):\n            if key not in self.default_keys:\n                build_config.pop(key)\n\n    async def _update_tool_config(self, build_config: dict, tool_name: str) -> None:\n        \"\"\"Update tool configuration with proper error handling.\"\"\"\n        if not self.tools:\n            self.tools, build_config[\"mcp_server\"][\"value\"] = await self.update_tool_list()\n\n        if not tool_name:\n            return\n\n        tool_obj = next((tool for tool in self.tools if tool.name == tool_name), None)\n        if not tool_obj:\n            msg = f\"Tool {tool_name} not found in available tools: {self.tools}\"\n            self.remove_non_default_keys(build_config)\n            build_config[\"tool\"][\"value\"] = \"\"\n            await logger.awarning(msg)\n            return\n\n        try:\n            # Store current values before removing inputs (only for the current tool)\n            current_values = {}\n            for key, value in build_config.items():\n                if key not in self.default_keys and isinstance(value, dict) and \"value\" in value:\n                    current_values[key] = value[\"value\"]\n\n            # Remove ALL non-default keys (all previous tool inputs)\n            self.remove_non_default_keys(build_config)\n\n            # Get and validate new inputs for the selected tool\n            self.schema_inputs = await self._validate_schema_inputs(tool_obj)\n            if not self.schema_inputs:\n                msg = f\"No input parameters to configure for tool '{tool_name}'\"\n                await logger.ainfo(msg)\n                return\n\n            # Add new inputs to build config for the selected tool only\n            for schema_input in self.schema_inputs:\n                if not schema_input or not hasattr(schema_input, \"name\"):\n                    msg = \"Invalid schema input detected, skipping\"\n                    await logger.awarning(msg)\n                    continue\n\n                try:\n                    name = schema_input.name\n                    input_dict = schema_input.to_dict()\n                    input_dict.setdefault(\"value\", None)\n                    input_dict.setdefault(\"required\", True)\n\n                    build_config[name] = input_dict\n\n                    # Preserve existing value if the parameter name exists in current_values\n                    if name in current_values:\n                        build_config[name][\"value\"] = current_values[name]\n\n                except (AttributeError, KeyError, TypeError) as e:\n                    msg = f\"Error processing schema input {schema_input}: {e!s}\"\n                    await logger.aexception(msg)\n                    continue\n        except ValueError as e:\n            msg = f\"Schema validation error for tool {tool_name}: {e!s}\"\n            await logger.aexception(msg)\n            self.schema_inputs = []\n            return\n        except (AttributeError, KeyError, TypeError) as e:\n            msg = f\"Error updating tool config: {e!s}\"\n            await logger.aexception(msg)\n            raise ValueError(msg) from e\n\n    async def build_output(self) -> DataFrame:\n        \"\"\"Build output with improved error handling and validation.\"\"\"\n        try:\n            self.tools, _ = await self.update_tool_list()\n            if self.tool != \"\":\n                # Set session context for persistent MCP sessions using Langflow session ID\n                session_context = self._get_session_context()\n                if session_context:\n                    self.stdio_client.set_session_context(session_context)\n                    self.streamable_http_client.set_session_context(session_context)\n                exec_tool = self._tool_cache[self.tool]\n                tool_args = self.get_inputs_for_all_tools(self.tools)[self.tool]\n                kwargs = {}\n                for arg in tool_args:\n                    value = getattr(self, arg.name, None)\n                    if value is not None:\n                        if isinstance(value, Message):\n                            kwargs[arg.name] = value.text\n                        else:\n                            kwargs[arg.name] = value\n\n                unflattened_kwargs = maybe_unflatten_dict(kwargs)\n\n                output = await exec_tool.coroutine(**unflattened_kwargs)\n                tool_content = []\n                for item in output.content:\n                    item_dict = item.model_dump()\n                    item_dict = self.process_output_item(item_dict)\n                    tool_content.append(item_dict)\n\n                if isinstance(tool_content, list) and all(isinstance(x, dict) for x in tool_content):\n                    return DataFrame(tool_content)\n                return DataFrame(data=tool_content)\n            return DataFrame(data=[{\"error\": \"You must select a tool\"}])\n        except Exception as e:\n            msg = f\"Error in build_output: {e!s}\"\n            await logger.aexception(msg)\n            raise ValueError(msg) from e\n\n    def process_output_item(self, item_dict):\n        \"\"\"Process the output of a tool.\"\"\"\n        if item_dict.get(\"type\") == \"text\":\n            text = item_dict.get(\"text\")\n            try:\n                return json.loads(text)\n            except json.JSONDecodeError:\n                return item_dict\n        return item_dict\n\n    def _get_session_context(self) -> str | None:\n        \"\"\"Get the Langflow session ID for MCP session caching.\"\"\"\n        # Try to get session ID from the component's execution context\n        if hasattr(self, \"graph\") and hasattr(self.graph, \"session_id\"):\n            session_id = self.graph.session_id\n            # Include server name to ensure different servers get different sessions\n            server_name = \"\"\n            mcp_server = getattr(self, \"mcp_server\", None)\n            if isinstance(mcp_server, dict):\n                server_name = mcp_server.get(\"name\", \"\")\n            elif mcp_server:\n                server_name = str(mcp_server)\n            return f\"{session_id}_{server_name}\" if session_id else None\n        return None\n\n    async def _get_tools(self):\n        \"\"\"Get cached tools or update if necessary.\"\"\"\n        mcp_server = getattr(self, \"mcp_server\", None)\n        if not self._not_load_actions:\n            tools, _ = await self.update_tool_list(mcp_server)\n            return tools\n        return []\n"
+              },
+              "is_refresh": false,
+              "mcp_server": {
+                "_input_type": "McpInput",
+                "advanced": false,
+                "display_name": "MCP Server",
+                "dynamic": false,
+                "info": "Select the MCP Server that will be used by this component",
+                "name": "mcp_server",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "mcp",
+                "value": {
+                  "config": {},
+                  "name": "terraform"
+                }
+              },
+              "tool": {
+                "_input_type": "DropdownInput",
+                "advanced": false,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Tool",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Select the tool to execute",
+                "name": "tool",
+                "options": [],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": true,
+                "show": false,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": ""
+              },
+              "tool_placeholder": {
+                "_input_type": "MessageTextInput",
+                "advanced": false,
+                "display_name": "Tool Placeholder",
+                "dynamic": false,
+                "info": "Placeholder for the tool",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "tool_placeholder",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": false,
+                "title_case": false,
+                "tool_mode": true,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "tools_metadata": {
+                "_input_type": "ToolsInput",
+                "advanced": false,
+                "display_name": "Actions",
+                "dynamic": false,
+                "info": "Modify tool names and descriptions to help agents understand when to use each tool.",
+                "is_list": true,
+                "list_add_label": "Add More",
+                "name": "tools_metadata",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "tools",
+                "value": [
+                  {
+                    "args": {
+                      "variable_set_id": {
+                        "description": "Variable set ID",
+                        "title": "Variable Set Id",
+                        "type": "string"
+                      },
+                      "workspace_ids": {
+                        "description": "Comma-separated list of workspace IDs",
+                        "title": "Workspace Ids",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Attach a variable set to one or more workspaces.",
+                    "display_description": "Attach a variable set to one or more workspaces.",
+                    "display_name": "attach_variable_set_to_workspaces",
+                    "name": "attach_variable_set_to_workspaces",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "attach_variable_set_to_workspaces"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "auto_apply": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether to automatically apply changes in the workspace: 'true' or 'false'",
+                        "title": "Auto Apply"
+                      },
+                      "no_code_module_id": {
+                        "description": "The ID of the No Code module to create a workspace for",
+                        "title": "No Code Module Id",
+                        "type": "string"
+                      },
+                      "project_id": {
+                        "description": "The ID of the project to use",
+                        "title": "Project Id",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "The name of the workspace to create",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Creates a new Terraform No Code module workspace. The tool uses the MCP elicitation feature to automatically discover and collect required variables from the user.",
+                    "display_description": "Creates a new Terraform No Code module workspace. The tool uses the MCP elicitation feature to automatically discover and collect required variables from the user.",
+                    "display_name": "create_no_code_workspace",
+                    "name": "create_no_code_workspace",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "create_no_code_workspace"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "message": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "Triggered via Terraform MCP Server",
+                        "description": "Optional message for the run",
+                        "title": "Message"
+                      },
+                      "run_type": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "plan_and_apply",
+                        "description": "A run type for the run",
+                        "title": "Run Type"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "The name of the workspace to create a run in",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Creates a new Terraform run in the specified workspace.",
+                    "display_description": "Creates a new Terraform run in the specified workspace.",
+                    "display_name": "create_run",
+                    "name": "create_run",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "create_run"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "category": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "terraform",
+                        "description": "Variable category: terraform or env",
+                        "title": "Category"
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Variable description",
+                        "title": "Description"
+                      },
+                      "hcl": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether variable is HCL: true or false",
+                        "title": "Hcl"
+                      },
+                      "key": {
+                        "description": "Variable key/name",
+                        "title": "Key",
+                        "type": "string"
+                      },
+                      "sensitive": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether variable is sensitive: true or false",
+                        "title": "Sensitive"
+                      },
+                      "value": {
+                        "description": "Variable value",
+                        "title": "Value",
+                        "type": "string"
+                      },
+                      "variable_set_id": {
+                        "description": "Variable set ID",
+                        "title": "Variable Set Id",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Create a new variable in a variable set.",
+                    "display_description": "Create a new variable in a variable set.",
+                    "display_name": "create_variable_in_variable_set",
+                    "name": "create_variable_in_variable_set",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "create_variable_in_variable_set"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Variable set description",
+                        "title": "Description"
+                      },
+                      "global": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether variable set is global: true or false",
+                        "title": "Global"
+                      },
+                      "name": {
+                        "description": "Variable set name",
+                        "title": "Name",
+                        "type": "string"
+                      },
+                      "terraform_org_name": {
+                        "description": "Organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Create a new variable set in an organization.",
+                    "display_description": "Create a new variable set in an organization.",
+                    "display_name": "create_variable_set",
+                    "name": "create_variable_set",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "create_variable_set"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "auto_apply": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Whether to automatically apply successful plans: 'true' or 'false' (default: 'false')",
+                        "title": "Auto Apply"
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional description for the workspace",
+                        "title": "Description"
+                      },
+                      "execution_mode": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Execution mode: 'remote', 'local', or 'agent' (default: 'remote')",
+                        "title": "Execution Mode"
+                      },
+                      "project_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional project ID to associate the workspace with",
+                        "title": "Project Id"
+                      },
+                      "tags": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional comma-separated list of tags to apply to the workspace",
+                        "title": "Tags"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "terraform_version": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional Terraform version to use (e.g., '1.5.0')",
+                        "title": "Terraform Version"
+                      },
+                      "vcs_repo_branch": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional VCS repository branch (default: main/master)",
+                        "title": "Vcs Repo Branch"
+                      },
+                      "vcs_repo_identifier": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional VCS repository identifier (e.g., 'org/repo')",
+                        "title": "Vcs Repo Identifier"
+                      },
+                      "vcs_repo_oauth_token_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "OAuth token ID for VCS integration",
+                        "title": "Vcs Repo Oauth Token Id"
+                      },
+                      "working_directory": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional working directory for Terraform operations",
+                        "title": "Working Directory"
+                      },
+                      "workspace_name": {
+                        "description": "The name of the workspace to create",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Creates a new Terraform workspace in the specified organization. This is a destructive operation that will create new infrastructure resources.",
+                    "display_description": "Creates a new Terraform workspace in the specified organization. This is a destructive operation that will create new infrastructure resources.",
+                    "display_name": "create_workspace",
+                    "name": "create_workspace",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "create_workspace"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "tags": {
+                        "description": "Comma-separated list of tag names to add, for key-value tags use key:value",
+                        "title": "Tags",
+                        "type": "string"
+                      },
+                      "terraform_org_name": {
+                        "description": "Organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "Workspace name",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Add tags to a Terraform workspace.",
+                    "display_description": "Add tags to a Terraform workspace.",
+                    "display_name": "create_workspace_tags",
+                    "name": "create_workspace_tags",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "create_workspace_tags"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "category": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "env",
+                        "description": "Variable category: terraform or env",
+                        "title": "Category"
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "",
+                        "description": "Variable description",
+                        "title": "Description"
+                      },
+                      "hcl": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether variable is HCL: true or false",
+                        "title": "Hcl"
+                      },
+                      "key": {
+                        "description": "Variable key/name",
+                        "title": "Key",
+                        "type": "string"
+                      },
+                      "sensitive": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether variable is sensitive: true or false",
+                        "title": "Sensitive"
+                      },
+                      "terraform_org_name": {
+                        "description": "Organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "value": {
+                        "description": "Variable value",
+                        "title": "Value",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "Workspace name",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Create a new variable in a Terraform workspace.",
+                    "display_description": "Create a new variable in a Terraform workspace.",
+                    "display_name": "create_workspace_variable",
+                    "name": "create_workspace_variable",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "create_workspace_variable"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "variable_id": {
+                        "description": "Variable ID to delete",
+                        "title": "Variable Id",
+                        "type": "string"
+                      },
+                      "variable_set_id": {
+                        "description": "Variable set ID",
+                        "title": "Variable Set Id",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Delete a variable in a variable set.",
+                    "display_description": "Delete a variable in a variable set.",
+                    "display_name": "delete_variable_in_variable_set",
+                    "name": "delete_variable_in_variable_set",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "delete_variable_in_variable_set"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "variable_set_id": {
+                        "description": "Variable set ID",
+                        "title": "Variable Set Id",
+                        "type": "string"
+                      },
+                      "workspace_ids": {
+                        "description": "Comma-separated list of workspace IDs",
+                        "title": "Workspace Ids",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Detach a variable set from one or more workspaces.",
+                    "display_description": "Detach a variable set from one or more workspaces.",
+                    "display_name": "detach_variable_set_from_workspaces",
+                    "name": "detach_variable_set_from_workspaces",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "detach_variable_set_from_workspaces"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "module_name": {
+                        "description": "The name of the module, this is usually the service or group of service the user is deploying e.g., 'security-group', 'secrets-manager' etc.",
+                        "title": "Module Name",
+                        "type": "string"
+                      },
+                      "module_provider": {
+                        "description": "The name of the Terraform provider for the module, e.g., 'aws', 'google', 'azurerm' etc.",
+                        "title": "Module Provider",
+                        "type": "string"
+                      },
+                      "module_publisher": {
+                        "description": "The publisher of the module, e.g., 'hashicorp', 'aws-ia', 'terraform-google-modules', 'Azure' etc.",
+                        "title": "Module Publisher",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches the latest version of a Terraform module from the public registry",
+                    "display_description": "Fetches the latest version of a Terraform module from the public registry",
+                    "display_name": "get_latest_module_version",
+                    "name": "get_latest_module_version",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_latest_module_version"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "name": {
+                        "description": "The name of the Terraform provider, e.g., 'aws', 'azurerm', 'google', etc.",
+                        "title": "Name",
+                        "type": "string"
+                      },
+                      "namespace": {
+                        "description": "The namespace of the Terraform provider, typically the name of the company, or their GitHub organization name that created the provider e.g., 'hashicorp'",
+                        "title": "Namespace",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches the latest version of a Terraform provider from the public registry",
+                    "display_description": "Fetches the latest version of a Terraform provider from the public registry",
+                    "display_name": "get_latest_provider_version",
+                    "name": "get_latest_provider_version",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_latest_provider_version"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "module_id": {
+                        "description": "Exact valid and compatible module_id retrieved from search_modules (e.g., 'squareops/terraform-kubernetes-mongodb/mongodb/2.1.1', 'GoogleCloudPlatform/vertex-ai/google/0.2.0')",
+                        "title": "Module Id",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches up-to-date documentation on how to use a Terraform module. You must call 'search_modules' first to obtain the exact valid and compatible module_id required to use this tool.",
+                    "display_description": "Fetches up-to-date documentation on how to use a Terraform module. You must call 'search_modules' first to obtain the exact valid and compatible module_id required to use this tool.",
+                    "display_name": "get_module_details",
+                    "name": "get_module_details",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_module_details"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "terraform_policy_id": {
+                        "description": "Matching terraform_policy_id retrieved from the 'search_policies' tool (e.g., 'policies/hashicorp/CIS-Policy-Set-for-AWS-Terraform/1.0.1')",
+                        "title": "Terraform Policy Id",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches up-to-date documentation for a specific policy from the Terraform registry. You must call 'search_policies' first to obtain the exact terraform_policy_id required to use this tool.",
+                    "display_description": "Fetches up-to-date documentation for a specific policy from the Terraform registry. You must call 'search_policies' first to obtain the exact terraform_policy_id required to use this tool.",
+                    "display_name": "get_policy_details",
+                    "name": "get_policy_details",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_policy_details"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "private_module_id": {
+                        "description": "The private module ID should be in the format 'module-namespace/module-name/module-provider-name' (for example, 'my-tfc-org/vpc/aws' or 'my-module-namespace/vm/azurerm').\nThe module-namespace is usually the name of the Terraform organization. Obtain this ID by calling 'search_private_modules'.",
+                        "title": "Private Module Id",
+                        "type": "string"
+                      },
+                      "private_module_version": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Specific version of the module to retrieve details for. If not provided, the latest version will be used",
+                        "title": "Private Module Version"
+                      },
+                      "registry_name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "private",
+                        "description": "The type of Terraform registry to search within Terraform Cloud/Enterprise (e.g., 'private', 'public')",
+                        "title": "Registry Name"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "This tool retrieves detailed information about a specific private module in your Terraform Cloud/Enterprise organization.\nIt provides comprehensive details including inputs, outputs, dependencies, versions, and usage examples. The private_module_id format is 'module-namespace/module-name/module-provider-name'.\nThis can be obtained by calling 'search_private_modules' first to obtain the exact private_module_id required to use this tool. This tool requires a valid Terraform token to be configured.",
+                    "display_description": "This tool retrieves detailed information about a specific private module in your Terraform Cloud/Enterprise organization.\nIt provides comprehensive details including inputs, outputs, dependencies, versions, and usage examples. The private_module_id format is 'module-namespace/module-name/module-provider-name'.\nThis can be obtained by calling 'search_private_modules' first to obtain the exact private_module_id required to use this tool. This tool requires a valid Terraform token to be configured.",
+                    "display_name": "get_private_module_details",
+                    "name": "get_private_module_details",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_private_module_details"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "include_versions": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": true,
+                        "description": "Whether to include detailed version information",
+                        "title": "Include Versions"
+                      },
+                      "private_provider_name": {
+                        "description": "The name of the private provider",
+                        "title": "Private Provider Name",
+                        "type": "string"
+                      },
+                      "private_provider_namespace": {
+                        "description": "The namespace of the private provider in your Terraform Cloud/Enterprise organization. For public registry, use the namespace from the public Terraform registry.",
+                        "title": "Private Provider Namespace",
+                        "type": "string"
+                      },
+                      "registry_name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "private",
+                        "description": "The type of Terraform registry to search within Terraform Cloud/Enterprise (e.g., 'private', 'public')",
+                        "title": "Registry Name"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "This tool retrieves information about a specific private provider in your Terraform Cloud/Enterprise organization.\nIt provides details on how to use the provider, permissions, available versions, and more. This tool requires a valid Terraform token to be configured.\n",
+                    "display_description": "This tool retrieves information about a specific private provider in your Terraform Cloud/Enterprise organization.\nIt provides details on how to use the provider, permissions, available versions, and more. This tool requires a valid Terraform token to be configured.\n",
+                    "display_name": "get_private_provider_details",
+                    "name": "get_private_provider_details",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_private_provider_details"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "name": {
+                        "description": "The name of the Terraform provider, e.g., 'aws', 'azurerm', 'google', etc.",
+                        "title": "Name",
+                        "type": "string"
+                      },
+                      "namespace": {
+                        "description": "The namespace of the Terraform provider, typically the name of the company, or their GitHub organization name that created the provider e.g., 'hashicorp'",
+                        "title": "Namespace",
+                        "type": "string"
+                      },
+                      "version": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "The version of the provider to analyze (defaults to 'latest')",
+                        "title": "Version"
+                      }
+                    },
+                    "description": "Get the capabilities of a Terraform provider including the types of resources, data sources, functions, guides, and other features it supports.\nThis tool analyzes the provider documentation to determine what types of capabilities are available:\n- resources: Infrastructure resources that can be created/managed\n- data-sources: Read-only data sources for querying existing infrastructure  \n- functions: Provider-specific functions for data transformation\n- guides: Documentation guides and tutorials for using the provider\n- actions: Available provider actions (if any)\n- ephemeral resources: Temporary resources for credentials and tokens\n- list-resources: List resources for querying existing cloud resources (Terraform Search)\n\nReturns a summary with counts and examples for each capability type.",
+                    "display_description": "Get the capabilities of a Terraform provider including the types of resources, data sources, functions, guides, and other features it supports.\nThis tool analyzes the provider documentation to determine what types of capabilities are available:\n- resources: Infrastructure resources that can be created/managed\n- data-sources: Read-only data sources for querying existing infrastructure  \n- functions: Provider-specific functions for data transformation\n- guides: Documentation guides and tutorials for using the provider\n- actions: Available provider actions (if any)\n- ephemeral resources: Temporary resources for credentials and tokens\n- list-resources: List resources for querying existing cloud resources (Terraform Search)\n\nReturns a summary with counts and examples for each capability type.",
+                    "display_name": "get_provider_capabilities",
+                    "name": "get_provider_capabilities",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_provider_capabilities"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "provider_doc_id": {
+                        "description": "Exact tfprovider-compatible provider_doc_id, (e.g., '8894603', '8906901') retrieved from 'search_providers'",
+                        "title": "Provider Doc Id",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches up-to-date documentation for a specific service from a Terraform provider. \nYou must call 'search_providers' tool first to obtain the exact tfprovider-compatible provider_doc_id required to use this tool.",
+                    "display_description": "Fetches up-to-date documentation for a specific service from a Terraform provider. \nYou must call 'search_providers' tool first to obtain the exact tfprovider-compatible provider_doc_id required to use this tool.",
+                    "display_name": "get_provider_details",
+                    "name": "get_provider_details",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_provider_details"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "run_id": {
+                        "description": "The ID of the run to get details for",
+                        "title": "Run Id",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches detailed information about a specific Terraform run.",
+                    "display_description": "Fetches detailed information about a specific Terraform run.",
+                    "display_name": "get_run_details",
+                    "name": "get_run_details",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_run_details"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "The name of the workspace to get details for",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches detailed information about a specific Terraform workspace, including configuration, variables, and current state information.",
+                    "display_description": "Fetches detailed information about a specific Terraform workspace, including configuration, variables, and current state information.",
+                    "display_name": "get_workspace_details",
+                    "name": "get_workspace_details",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "get_workspace_details"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "page": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (min 1)",
+                        "title": "Page"
+                      },
+                      "pageSize": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Results per page for pagination (min 1, max 100)",
+                        "title": "Pagesize"
+                      },
+                      "status": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional run status filter",
+                        "title": "Status"
+                      },
+                      "terraform_org_name": {
+                        "description": "Lists the runs in Terraform Cloud/Enterprise organization based on filters if no workspace is specified",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "vcs_username": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Searches for runs that match the VCS username you supply",
+                        "title": "Vcs Username"
+                      },
+                      "workspace_name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "If specified, lists the runs in the given workspace instead of the organization based on filters",
+                        "title": "Workspace Name"
+                      }
+                    },
+                    "description": "List or search Terraform runs in a specific workspace with optional filtering.",
+                    "display_description": "List or search Terraform runs in a specific workspace with optional filtering.",
+                    "display_name": "list_runs",
+                    "name": "list_runs",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "list_runs"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "page": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (min 1)",
+                        "title": "Page"
+                      },
+                      "pageSize": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Results per page for pagination (min 1, max 100)",
+                        "title": "Pagesize"
+                      }
+                    },
+                    "description": "Fetches a list of all Terraform organizations.",
+                    "display_description": "Fetches a list of all Terraform organizations.",
+                    "display_name": "list_terraform_orgs",
+                    "name": "list_terraform_orgs",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "list_terraform_orgs"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "page": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (min 1)",
+                        "title": "Page"
+                      },
+                      "pageSize": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Results per page for pagination (min 1, max 100)",
+                        "title": "Pagesize"
+                      },
+                      "terraform_org_name": {
+                        "description": "The name of the Terraform organization to list projects for.",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Fetches a list of all Terraform projects.",
+                    "display_description": "Fetches a list of all Terraform projects.",
+                    "display_name": "list_terraform_projects",
+                    "name": "list_terraform_projects",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "list_terraform_projects"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "page": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (min 1)",
+                        "title": "Page"
+                      },
+                      "pageSize": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Results per page for pagination (min 1, max 100)",
+                        "title": "Pagesize"
+                      },
+                      "query": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional filter query for variable set names",
+                        "title": "Query"
+                      },
+                      "terraform_org_name": {
+                        "description": "Organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "List all variable sets in an organization. Returns all if query is empty.",
+                    "display_description": "List all variable sets in an organization. Returns all if query is empty.",
+                    "display_name": "list_variable_sets",
+                    "name": "list_variable_sets",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "list_variable_sets"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "page": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (min 1)",
+                        "title": "Page"
+                      },
+                      "pageSize": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Results per page for pagination (min 1, max 100)",
+                        "title": "Pagesize"
+                      },
+                      "terraform_org_name": {
+                        "description": "Organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "Workspace name",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "List all variables in a Terraform workspace. Returns all variables if query is empty.",
+                    "display_description": "List all variables in a Terraform workspace. Returns all variables if query is empty.",
+                    "display_name": "list_workspace_variables",
+                    "name": "list_workspace_variables",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "list_workspace_variables"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "exclude_tags": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional comma-separated list of tags to exclude from results",
+                        "title": "Exclude Tags"
+                      },
+                      "page": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (min 1)",
+                        "title": "Page"
+                      },
+                      "pageSize": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Results per page for pagination (min 1, max 100)",
+                        "title": "Pagesize"
+                      },
+                      "project_id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional project ID to filter workspaces",
+                        "title": "Project Id"
+                      },
+                      "search_query": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional search query to filter workspaces by name",
+                        "title": "Search Query"
+                      },
+                      "tags": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional comma-separated list of tags to filter workspaces",
+                        "title": "Tags"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "wildcard_name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional wildcard pattern to match workspace names",
+                        "title": "Wildcard Name"
+                      }
+                    },
+                    "description": "Search and list Terraform workspaces within a specified organization. Returns all workspaces when no filters are applied, or filters results based on name patterns, tags, or search queries. Supports pagination for large result sets.",
+                    "display_description": "Search and list Terraform workspaces within a specified organization. Returns all workspaces when no filters are applied, or filters results based on name patterns, tags, or search queries. Supports pagination for large result sets.",
+                    "display_name": "list_workspaces",
+                    "name": "list_workspaces",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "list_workspaces"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "terraform_org_name": {
+                        "description": "Organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "Workspace name",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Read all tags from a Terraform workspace.",
+                    "display_description": "Read all tags from a Terraform workspace.",
+                    "display_name": "read_workspace_tags",
+                    "name": "read_workspace_tags",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "read_workspace_tags"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "current_offset": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": 0,
+                        "description": "Current offset for pagination",
+                        "title": "Current Offset"
+                      },
+                      "module_query": {
+                        "description": "The query to search for Terraform modules.",
+                        "title": "Module Query",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Resolves a Terraform module name to obtain a compatible module_id for the get_module_details tool and returns a list of matching Terraform modules.\nYou MUST call this function before 'get_module_details' to obtain a valid and compatible module_id.\nWhen selecting the best match, consider the following:\n\t- Name similarity to the query\n\t- Description relevance\n\t- Verification status (verified)\n\t- Download counts (popularity)\nReturn the selected module_id and explain your choice. If there are multiple good matches, mention this but proceed with the most relevant one.\nIf no modules were found, reattempt the search with a new moduleName query.",
+                    "display_description": "Resolves a Terraform module name to obtain a compatible module_id for the get_module_details tool and returns a list of matching Terraform modules.\nYou MUST call this function before 'get_module_details' to obtain a valid and compatible module_id.\nWhen selecting the best match, consider the following:\n\t- Name similarity to the query\n\t- Description relevance\n\t- Verification status (verified)\n\t- Download counts (popularity)\nReturn the selected module_id and explain your choice. If there are multiple good matches, mention this but proceed with the most relevant one.\nIf no modules were found, reattempt the search with a new moduleName query.",
+                    "display_name": "search_modules",
+                    "name": "search_modules",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "search_modules"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "policy_query": {
+                        "description": "The query to search for Terraform modules.",
+                        "title": "Policy Query",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Searches for Terraform policies based on a query string.\nThis tool returns a list of matching policies, which can be used to retrieve detailed policy information using the 'get_policy_details' tool.\nYou MUST call this function before 'get_policy_details' to obtain a valid terraform_policy_id.\nWhen selecting the best match, consider the following:\n\t- Name similarity to the query\n\t- Title relevance\n\t- Verification status (verified)\n\t- Download counts (popularity)\nReturn the selected policyID and explain your choice. If there are multiple good matches, mention this but proceed with the most relevant one.\nIf no policies were found, reattempt the search with a new policy_query.",
+                    "display_description": "Searches for Terraform policies based on a query string.\nThis tool returns a list of matching policies, which can be used to retrieve detailed policy information using the 'get_policy_details' tool.\nYou MUST call this function before 'get_policy_details' to obtain a valid terraform_policy_id.\nWhen selecting the best match, consider the following:\n\t- Name similarity to the query\n\t- Title relevance\n\t- Verification status (verified)\n\t- Download counts (popularity)\nReturn the selected policyID and explain your choice. If there are multiple good matches, mention this but proceed with the most relevant one.\nIf no policies were found, reattempt the search with a new policy_query.",
+                    "display_name": "search_policies",
+                    "name": "search_policies",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "search_policies"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "page_number": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (starts at 1)",
+                        "title": "Page Number"
+                      },
+                      "page_size": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Number of results to return per page (max 100)",
+                        "title": "Page Size"
+                      },
+                      "search_query": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional search query to filter modules by name or namespace. If not provided, all modules will be returned",
+                        "title": "Search Query"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name to search within",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "This tool searches for private modules in your Terraform Cloud/Enterprise organization.\nIt retrieves a list of private modules that match the search criteria. This tool requires a valid Terraform token to be configured.",
+                    "display_description": "This tool searches for private modules in your Terraform Cloud/Enterprise organization.\nIt retrieves a list of private modules that match the search criteria. This tool requires a valid Terraform token to be configured.",
+                    "display_name": "search_private_modules",
+                    "name": "search_private_modules",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "search_private_modules"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "page_number": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Page number for pagination (starts at 1)",
+                        "title": "Page Number"
+                      },
+                      "page_size": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Number of results to return per page (max 100)",
+                        "title": "Page Size"
+                      },
+                      "registry_name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": "private",
+                        "description": "The type of Terraform registry to search within Terraform Cloud/Enterprise (e.g., 'private', 'public')",
+                        "title": "Registry Name"
+                      },
+                      "search_query": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional search query to filter providers by name or namespace. If not provided, all providers will be returned",
+                        "title": "Search Query"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name to search within",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "This tool searches for private providers in your Terraform Cloud/Enterprise organization.\nIt retrieves a list of private providers that match the search criteria. This tool requires a valid Terraform token to be configured.",
+                    "display_description": "This tool searches for private providers in your Terraform Cloud/Enterprise organization.\nIt retrieves a list of private providers that match the search criteria. This tool requires a valid Terraform token to be configured.",
+                    "display_name": "search_private_providers",
+                    "name": "search_private_providers",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "search_private_providers"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "provider_document_type": {
+                        "description": "The type of the document to retrieve,\nfor general overview of the provider use 'overview',\nfor guidance on upgrading a provider or custom configuration information use 'guides',\nfor deploying resources use 'resources', for reading pre-deployed resources use 'data-sources',\nfor functions use 'functions',\nfor Terraform actions use 'actions',\nfor listing resources using Terraform Search use 'list-resources'",
+                        "title": "Provider Document Type",
+                        "type": "string"
+                      },
+                      "provider_name": {
+                        "description": "The name of the Terraform provider to perform the read or deployment operation",
+                        "title": "Provider Name",
+                        "type": "string"
+                      },
+                      "provider_namespace": {
+                        "description": "The publisher of the Terraform provider, typically the name of the company, or their GitHub organization name that created the provider",
+                        "title": "Provider Namespace",
+                        "type": "string"
+                      },
+                      "provider_version": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "The version of the Terraform provider to retrieve in the format 'x.y.z', or 'latest' to get the latest version",
+                        "title": "Provider Version"
+                      },
+                      "service_slug": {
+                        "description": "The slug of the service you want to deploy or read using the Terraform provider, prefer using a single word, use underscores for multiple words and if unsure about the service_slug, use the provider_name for its value",
+                        "title": "Service Slug",
+                        "type": "string"
+                      }
+                    },
+                    "description": "This tool retrieves a list of potential documents based on the 'service_slug' and 'provider_document_type' provided.\nYou MUST call this function before 'get_provider_details' to obtain a valid tfprovider-compatible 'provider_doc_id'.\nUse the most relevant single word as the search query for 'service_slug', if unsure about the 'service_slug', use the 'provider_name' for its value.\nWhen selecting the best match, consider the following:\n\t- Title similarity to the query\n\t- Category relevance\nReturn the selected 'provider_doc_id' and explain your choice.\nIf there are multiple good matches, mention this but proceed with the most relevant one.",
+                    "display_description": "This tool retrieves a list of potential documents based on the 'service_slug' and 'provider_document_type' provided.\nYou MUST call this function before 'get_provider_details' to obtain a valid tfprovider-compatible 'provider_doc_id'.\nUse the most relevant single word as the search query for 'service_slug', if unsure about the 'service_slug', use the 'provider_name' for its value.\nWhen selecting the best match, consider the following:\n\t- Title similarity to the query\n\t- Category relevance\nReturn the selected 'provider_doc_id' and explain your choice.\nIf there are multiple good matches, mention this but proceed with the most relevant one.",
+                    "display_name": "search_providers",
+                    "name": "search_providers",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "search_providers"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "auto_apply": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Whether to automatically apply successful plans: 'true' or 'false'",
+                        "title": "Auto Apply"
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional new description for the workspace",
+                        "title": "Description"
+                      },
+                      "execution_mode": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Execution mode: 'remote', 'local', or 'agent'",
+                        "title": "Execution Mode"
+                      },
+                      "file_triggers_enabled": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Whether file triggers are enabled: 'true' or 'false'",
+                        "title": "File Triggers Enabled"
+                      },
+                      "new_name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional new name for the workspace",
+                        "title": "New Name"
+                      },
+                      "queue_all_runs": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Whether to queue all runs: 'true' or 'false'",
+                        "title": "Queue All Runs"
+                      },
+                      "speculative_enabled": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Whether speculative plans are enabled: 'true' or 'false'",
+                        "title": "Speculative Enabled"
+                      },
+                      "tags": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional comma-separated list of tags to replace existing tags",
+                        "title": "Tags"
+                      },
+                      "terraform_org_name": {
+                        "description": "The Terraform Cloud/Enterprise organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "terraform_version": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional new Terraform version to use (e.g., '1.5.0')",
+                        "title": "Terraform Version"
+                      },
+                      "trigger_prefixes": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional comma-separated list of trigger prefixes",
+                        "title": "Trigger Prefixes"
+                      },
+                      "working_directory": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Optional new working directory for Terraform operations",
+                        "title": "Working Directory"
+                      },
+                      "workspace_name": {
+                        "description": "The name of the workspace to update",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Updates an existing Terraform workspace configuration. This is a potentially destructive operation that may affect infrastructure resources.",
+                    "display_description": "Updates an existing Terraform workspace configuration. This is a potentially destructive operation that may affect infrastructure resources.",
+                    "display_name": "update_workspace",
+                    "name": "update_workspace",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "update_workspace"
+                    ]
+                  },
+                  {
+                    "args": {
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Variable description",
+                        "title": "Description"
+                      },
+                      "hcl": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether variable is HCL: true or false",
+                        "title": "Hcl"
+                      },
+                      "key": {
+                        "description": "Variable key/name",
+                        "title": "Key",
+                        "type": "string"
+                      },
+                      "sensitive": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": false,
+                        "description": "Whether variable is sensitive: true or false",
+                        "title": "Sensitive"
+                      },
+                      "terraform_org_name": {
+                        "description": "Organization name",
+                        "title": "Terraform Org Name",
+                        "type": "string"
+                      },
+                      "value": {
+                        "description": "Variable value",
+                        "title": "Value",
+                        "type": "string"
+                      },
+                      "variable_id": {
+                        "description": "Variable ID to update",
+                        "title": "Variable Id",
+                        "type": "string"
+                      },
+                      "workspace_name": {
+                        "description": "Workspace name",
+                        "title": "Workspace Name",
+                        "type": "string"
+                      }
+                    },
+                    "description": "Update an existing variable in a Terraform workspace.",
+                    "display_description": "Update an existing variable in a Terraform workspace.",
+                    "display_name": "update_workspace_variable",
+                    "name": "update_workspace_variable",
+                    "readonly": false,
+                    "status": true,
+                    "tags": [
+                      "update_workspace_variable"
+                    ]
+                  }
+                ]
+              },
+              "use_cache": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Use Cached Server",
+                "dynamic": false,
+                "info": "Enable caching of MCP Server and tools to improve performance. Disable to always fetch fresh tools and server updates.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "use_cache",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "verify_ssl": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Verify SSL Certificate",
+                "dynamic": false,
+                "info": "Enable SSL certificate verification for HTTPS connections. Disable only for development/testing with self-signed certificates.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "verify_ssl",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              }
+            },
+            "tool_mode": true
+          },
+          "showNode": true,
+          "type": "MCPTools"
+        },
+        "dragging": false,
+        "id": "MCPTools-ICBtY",
+        "measured": {
+          "height": 339,
+          "width": 320
+        },
+        "position": {
+          "x": 1482.4571992049496,
+          "y": -142.11893220419103
+        },
+        "selected": true,
+        "type": "genericNode"
       }
     ],
     "viewport": {
-      "x": -90.43606891474155,
-      "y": 34.12923273198487,
-      "zoom": 0.8766766134871719
+      "x": 119.93690053910996,
+      "y": 220.19607443420705,
+      "zoom": 0.7833254848938241
     }
   },
   "description": "",
