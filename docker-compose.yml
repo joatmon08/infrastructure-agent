@@ -1,4 +1,15 @@
 services:
+
+  terraform-mcp-server:
+    image: hashicorp/terraform-mcp-server:0.3.3
+    container_name: terraform-mcp-server
+    ports:
+      - "8080:8080"
+    environment:
+      - 'TRANSPORT_MODE=streamable-http'
+      - 'TRANSPORT_HOST=0.0.0.0'
+      - 'TFE_TOKEN=${TFE_TOKEN}'
+
   ollama:
     build:
       context: Dockerfiles
@@ -13,13 +24,16 @@ services:
       - 'OLLAMA_CONTEXT_LENGTH=131072'
 
   langflow:
-    image: langflowai/langflow:latest
+    build:
+      context: Dockerfiles
+      dockerfile: Dockerfile.langflow
     container_name: langflow
     ports:
       - "7860:7860"
     environment:
       - 'LANGFLOW_HOST=0.0.0.0'
       - 'LANGFLOW_OPEN_BROWSER=false'
+      - 'LANGFLOW_WORKER_TIMEOUT=1800'
     volumes:
       - langflow_data:/app/langflow
     depends_on:
@@ -27,13 +41,16 @@ services:
     restart: unless-stopped
 
   opensearch:
-    image: opensearchproject/opensearch:latest
+    build:
+      context: Dockerfiles
+      dockerfile: Dockerfile.opensearch
     container_name: opensearch
     environment:
       - cluster.name=opensearch-cluster
       - node.name=opensearch-node1
       - discovery.type=single-node
       - bootstrap.memory_lock=true
+      - action.auto_create_index=true
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - "DISABLE_INSTALL_DEMO_CONFIG=true"
       - "DISABLE_SECURITY_PLUGIN=true"

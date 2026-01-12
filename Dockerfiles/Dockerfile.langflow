@@ -1,0 +1,7 @@
+FROM langflowai/langflow:1.7.2
+
+USER root
+
+RUN apt update && apt install -y libgl1 libglib2.0-0 && uv pip install langflow[docling]
+
+CMD ["python", "-m", "langflow", "run", "--host", "0.0.0.0", "--port", "7860"]

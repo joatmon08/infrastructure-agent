@@ -1,0 +1,18 @@
+FROM opensearchproject/opensearch:3
+
+# Copy the initialization script
+COPY init-opensearch.sh /usr/share/opensearch/init-opensearch.sh
+
+# Make the script executable
+RUN chmod +x /usr/share/opensearch/init-opensearch.sh
+
+# Create a wrapper script to run both OpenSearch and the init script
+RUN echo '#!/bin/bash' > /usr/share/opensearch/entrypoint-wrapper.sh && \
+    echo '/usr/share/opensearch/opensearch-docker-entrypoint.sh opensearch &' >> /usr/share/opensearch/entrypoint-wrapper.sh && \
+    echo 'sleep 5' >> /usr/share/opensearch/entrypoint-wrapper.sh && \
+    echo '/usr/share/opensearch/init-opensearch.sh' >> /usr/share/opensearch/entrypoint-wrapper.sh && \
+    echo 'wait' >> /usr/share/opensearch/entrypoint-wrapper.sh && \
+    chmod +x /usr/share/opensearch/entrypoint-wrapper.sh
+
+# Use the wrapper as the entrypoint
+ENTRYPOINT ["/usr/share/opensearch/entrypoint-wrapper.sh"]

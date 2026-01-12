@@ -1,0 +1,9 @@
+FROM alpine:latest
+
+RUN apk add --no-cache curl
+
+RUN curl -Lo /tmp/openmcpauthproxy.zip https://github.com/wso2/open-mcp-auth-proxy/releases/download/v1.2.0/openmcpauthproxy_linux-v1.2.0.zip && \
+    unzip /tmp/openmcpauthproxy.zip -d /usr/bin/openmcpauthproxy && \
+    rm /tmp/openmcpauthproxy.zip
+
+CMD [ "/usr/bin/openmcpauthproxy" ]
