@@ -1,10 +1,7 @@
 FROM opensearchproject/opensearch:3
 
 # Copy the initialization script
-COPY init-opensearch.sh /usr/share/opensearch/init-opensearch.sh
-
-# Make the script executable
-RUN chmod +x /usr/share/opensearch/init-opensearch.sh
+COPY ./init-opensearch.sh /usr/share/opensearch/init-opensearch.sh
 
 # Create a wrapper script to run both OpenSearch and the init script
 RUN echo '#!/bin/bash' > /usr/share/opensearch/entrypoint-wrapper.sh && \
