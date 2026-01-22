@@ -47,37 +47,7 @@ variable "single_nat_gateway" {
 }
 
 variable "cluster_version" {
-  description = "Kubernetes version for EKS cluster"
+  description = "Kubernetes version for EKS cluster (Auto Mode requires 1.33+)"
   type        = string
   default     = "1.33"
-}
-
-variable "node_group_desired_size" {
-  description = "Desired number of worker nodes"
-  type        = number
-  default     = 2
-}
-
-variable "node_group_min_size" {
-  description = "Minimum number of worker nodes"
-  type        = number
-  default     = 1
-}
-
-variable "node_group_max_size" {
-  description = "Maximum number of worker nodes"
-  type        = number
-  default     = 4
-}
-
-variable "node_instance_types" {
-  description = "Instance types for EKS node group"
-  type        = list(string)
-  default     = ["t3.xlarge"]
-}
-
-variable "node_disk_size" {
-  description = "Disk size in GB for worker nodes"
-  type        = number
-  default     = 20
 }

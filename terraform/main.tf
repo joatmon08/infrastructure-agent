@@ -32,7 +32,7 @@ module "vpc" {
   }
 }
 
-# EKS Module
+# EKS Module with Auto Mode
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
@@ -51,26 +51,10 @@ module "eks" {
   subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.private_subnets
 
-  eks_managed_node_groups = {
-    default = {
-      name = "${var.project_name}-node-group"
-
-      min_size     = var.node_group_min_size
-      max_size     = var.node_group_max_size
-      desired_size = var.node_group_desired_size
-
-      instance_types = var.node_instance_types
-      capacity_type  = "ON_DEMAND"
-
-      labels = {
-        Environment = var.environment
-        Project     = var.project_name
-      }
-
-      tags = {
-        Environment = var.environment
-        Project     = var.project_name
-      }
-    }
+  # Enable EKS Auto Mode
+  # Auto Mode automatically manages compute capacity
+  compute_config = {
+    enabled        = true
+    node_pools     = ["general-purpose", "system"]
   }
 }
