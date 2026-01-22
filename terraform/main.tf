@@ -54,7 +54,47 @@ module "eks" {
   # Enable EKS Auto Mode
   # Auto Mode automatically manages compute capacity
   compute_config = {
-    enabled        = true
-    node_pools     = ["general-purpose", "system"]
+    enabled    = true
+    node_pools = ["general-purpose", "system"]
+  }
+}
+
+# ECR Repositories
+resource "aws_ecr_repository" "ollama" {
+  name                 = "${var.project_name}-ollama"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = {
+    Name = "${var.project_name}-ollama"
+  }
+}
+
+resource "aws_ecr_repository" "langflow" {
+  name                 = "${var.project_name}-langflow"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = {
+    Name = "${var.project_name}-langflow"
+  }
+}
+
+resource "aws_ecr_repository" "opensearch" {
+  name                 = "${var.project_name}-opensearch"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = {
+    Name = "${var.project_name}-opensearch"
   }
 }
