@@ -23,12 +23,12 @@ module "vpc" {
   # Tags for EKS
   public_subnet_tags = {
     "kubernetes.io/role/elb"                    = "1"
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/cluster/${var.project_name}" = "shared"
   }
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb"           = "1"
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/cluster/${var.project_name}" = "shared"
   }
 }
 
@@ -37,8 +37,9 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
 
-  name               = var.cluster_name
-  kubernetes_version = var.cluster_version
+  name                     = var.project_name
+  iam_role_use_name_prefix = false
+  kubernetes_version       = var.cluster_version
 
   # Cluster endpoint access
   endpoint_public_access = true
@@ -52,7 +53,7 @@ module "eks" {
 
   eks_managed_node_groups = {
     default = {
-      name = "${var.cluster_name}-node-group"
+      name = "${var.project_name}-node-group"
 
       min_size     = var.node_group_min_size
       max_size     = var.node_group_max_size

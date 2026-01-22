@@ -46,12 +46,6 @@ variable "single_nat_gateway" {
   default     = true
 }
 
-variable "cluster_name" {
-  description = "Name of the EKS cluster"
-  type        = string
-  default     = "infrastructure-agent-cluster"
-}
-
 variable "cluster_version" {
   description = "Kubernetes version for EKS cluster"
   type        = string
