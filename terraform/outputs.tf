@@ -77,6 +77,31 @@ output "eks_managed_node_groups_autoscaling_group_names" {
   value       = module.eks.eks_managed_node_groups_autoscaling_group_names
 }
 
+# ECR Repository Outputs
+output "ecr_repository_arns" {
+  description = "List of ARNs for all ECR repositories"
+  value = [
+    aws_ecr_repository.ollama.arn,
+    aws_ecr_repository.langflow.arn,
+    aws_ecr_repository.opensearch.arn
+  ]
+}
+
+output "ecr_repository_urls" {
+  description = "List of URLs for all ECR repositories"
+  value = [
+    aws_ecr_repository.ollama.repository_url,
+    aws_ecr_repository.langflow.repository_url,
+    aws_ecr_repository.opensearch.repository_url
+  ]
+}
+
+# IAM Policy Output
+output "ecr_pull_policy_arn" {
+  description = "ARN of the IAM policy for ECR pull access"
+  value       = aws_iam_policy.ecr_pull_policy.arn
+}
+
 # Configuration Output
 output "configure_kubectl" {
   description = "Command to configure kubectl"
