@@ -82,8 +82,7 @@ output "ecr_repository_arns" {
   description = "List of ARNs for all ECR repositories"
   value = [
     aws_ecr_repository.ollama.arn,
-    aws_ecr_repository.langflow.arn,
-    aws_ecr_repository.opensearch.arn
+    aws_ecr_repository.langflow.arn
   ]
 }
 
@@ -91,8 +90,7 @@ output "ecr_repository_urls" {
   description = "List of URLs for all ECR repositories"
   value = [
     aws_ecr_repository.ollama.repository_url,
-    aws_ecr_repository.langflow.repository_url,
-    aws_ecr_repository.opensearch.repository_url
+    aws_ecr_repository.langflow.repository_url
   ]
 }
 
