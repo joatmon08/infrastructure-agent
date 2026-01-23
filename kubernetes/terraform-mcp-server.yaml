@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: terraform-mcp-server
+  labels:
+    app: terraform-mcp-server
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: terraform-mcp-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: terraform-mcp-server
+  labels:
+    app: terraform-mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: terraform-mcp-server
+  template:
+    metadata:
+      labels:
+        app: terraform-mcp-server
+    spec:
+      containers:
+      - name: terraform-mcp-server
+        image: hashicorp/terraform-mcp-server:0.3.3
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: TRANSPORT_MODE
+          value: "streamable-http"
+        - name: TRANSPORT_HOST
+          value: "0.0.0.0"
+        - name: TFE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: terraform-mcp-server-secret
+              key: tfe-token
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+# Made with Bob
