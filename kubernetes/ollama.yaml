@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
       - name: ollama
-        image: arn:aws:ecr:us-east-1:224382219437:repository/infra-agent-ollama
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-ollama:4b378270b40863b413c4f7d314546e6b274556b8
         ports:
         - containerPort: 11434
           name: http
