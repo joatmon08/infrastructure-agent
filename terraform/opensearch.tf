@@ -35,9 +35,6 @@ resource "aws_opensearchserverless_security_policy" "network" {
         },
       ]
       AllowFromPublic = true
-      SourceVPCEs = [
-        aws_opensearchserverless_vpc_endpoint.this.id
-      ]
     }
   ])
 }
