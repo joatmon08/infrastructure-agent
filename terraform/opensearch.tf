@@ -38,41 +38,6 @@ resource "aws_opensearchserverless_security_policy" "network" {
     }
   ])
 }
-
-resource "aws_opensearchserverless_vpc_endpoint" "this" {
-  name               = "${var.project_name}-vpce"
-  vpc_id             = module.vpc.vpc_id
-  subnet_ids         = module.vpc.private_subnets
-  security_group_ids = [aws_security_group.opensearch_serverless.id]
-}
-
-resource "aws_security_group" "opensearch_serverless" {
-  name        = "${var.project_name}-opensearch-serverless-sg"
-  description = "Security group for OpenSearch Serverless VPC endpoint"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    description = "HTTPS from VPC"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  egress {
-    description = "Allow all outbound"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.project_name}-opensearch-serverless-sg"
-  }
-}
-
-# IAM role for OpenSearch Serverless access from EKS
 resource "aws_iam_role" "opensearch_access" {
   name = "${var.project_name}-opensearch-access-role"
 
@@ -141,7 +106,9 @@ resource "aws_opensearchserverless_access_policy" "data_access" {
             "aoss:CreateCollectionItems",
             "aoss:DeleteCollectionItems",
             "aoss:UpdateCollectionItems",
-            "aoss:DescribeCollectionItems"
+            "aoss:DescribeCollectionItems",
+            "aoss:DashboardsAccessAll",
+            "aoss:APIAccessAll"
           ]
           ResourceType = "collection"
         },
