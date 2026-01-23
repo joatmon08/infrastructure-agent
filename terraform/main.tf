@@ -323,3 +323,19 @@ resource "aws_opensearchserverless_collection" "langflow" {
     Name = "langflow"
   }
 }
+
+resource "opensearch_index" "langflow" {
+  name                           = "langflow"
+  index_knn                      = true
+  index_knn_algo_param_ef_search = "512"
+  mappings                       = <<-EOF
+    {
+      "properties": {
+        "chunk_embedding": {
+          "type": "knn_vector",
+          "dimension": 384
+        }
+      }
+    }
+  EOF
+}

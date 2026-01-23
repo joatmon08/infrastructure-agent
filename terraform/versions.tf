@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
+    opensearch = {
+      source  = "opensearch-project/opensearch"
+      version = "~> 2.3"
+    }
   }
 }
 
@@ -19,4 +23,9 @@ provider "aws" {
       ManagedBy   = "Terraform"
     }
   }
+}
+
+provider "opensearch" {
+  url         = aws_opensearchserverless_collection.langflow.collection_endpoint
+  healthcheck = false
 }
