@@ -1,12 +1,17 @@
 serviceAccount:
-  create: false
-  name: opensearch
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::224382219437:role/infra-agent-dev-opensearch-irsa"
+
+## TODO: Figure out why it locks the file system on startup
+securityContext:
+  readOnlyRootFilesystem: false
 
 langflow:
   backend:
     image:
       repository: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-langflow
-      tag: 6ba82fc8b1048080e69fcf54d6dc1f496daa4fe9
+      tag: 6d41795303b633cc69309ec5c012aa4dfbdb195c
     sqlite:
       volume:
         size: "20Gi"
