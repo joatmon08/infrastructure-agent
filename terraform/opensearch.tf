@@ -103,12 +103,7 @@ resource "aws_opensearchserverless_access_policy" "data_access" {
             "collection/langflow"
           ]
           Permission = [
-            "aoss:CreateCollectionItems",
-            "aoss:DeleteCollectionItems",
-            "aoss:UpdateCollectionItems",
-            "aoss:DescribeCollectionItems",
-            "aoss:DashboardsAccessAll",
-            "aoss:APIAccessAll"
+            "aoss:*"
           ]
           ResourceType = "collection"
         },
@@ -117,12 +112,7 @@ resource "aws_opensearchserverless_access_policy" "data_access" {
             "index/langflow/*"
           ]
           Permission = [
-            "aoss:CreateIndex",
-            "aoss:DeleteIndex",
-            "aoss:UpdateIndex",
-            "aoss:DescribeIndex",
-            "aoss:ReadDocument",
-            "aoss:WriteDocument"
+            "aoss:*"
           ]
           ResourceType = "index"
         }
