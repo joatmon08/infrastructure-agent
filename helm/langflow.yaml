@@ -1,3 +1,7 @@
+serviceAccount:
+  create: false
+  name: opensearch
+
 langflow:
   backend:
     image:
