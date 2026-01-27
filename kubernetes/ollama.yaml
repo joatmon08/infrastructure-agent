@@ -9,7 +9,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 30Gi
   storageClassName: auto-ebs-sc
 ---
 apiVersion: v1
@@ -59,11 +59,8 @@ spec:
           mountPath: /root/.ollama
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "1000m"
-          limits:
-            memory: "4Gi"
-            cpu: "2000m"
+            memory: "10Gi"
+            cpu: 4
         livenessProbe:
           httpGet:
             path: /

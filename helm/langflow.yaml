@@ -1,0 +1,26 @@
+langflow:
+  backend:
+    image:
+      repository: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-langflow
+      tag: 6ba82fc8b1048080e69fcf54d6dc1f496daa4fe9
+    sqlite:
+      volume:
+        size: "20Gi"
+        storageClass:
+          provisioner: ebs.csi.eks.amazonaws.com
+    autoLogin: false
+    superuser: admin
+    newUserIsActive: true
+    resources:
+      requests:
+        cpu: 2
+        memory: 6Gi
+    env:
+      - name: LANGFLOW_WORKER_TIMEOUT
+        value: "1800"
+
+  frontend:
+    resources:
+      requests:
+        cpu: 2
+        memory: 6Gi
