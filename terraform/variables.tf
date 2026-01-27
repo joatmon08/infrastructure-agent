@@ -51,3 +51,15 @@ variable "cluster_version" {
   type        = string
   default     = "1.33"
 }
+
+variable "opensearch_namespace" {
+  description = "Kubernetes namespace for OpenSearch service account"
+  type        = string
+  default     = "default"
+}
+
+variable "opensearch_service_account" {
+  description = "Kubernetes service account name for OpenSearch access"
+  type        = string
+  default     = "opensearch"
+}
