@@ -105,29 +105,3 @@ output "configure_kubectl" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
-
-output "opensearch_collection" {
-  description = "OpenSearch Serverless collection"
-  value       = module.opensearch_serverless.opensearch_serverless_collection
-}
-
-output "opensearch_vector_index" {
-  description = "Vector index of OpenSearch Serverless collection"
-  value       = module.opensearch_serverless.vector_index
-}
-
-# IRSA Outputs
-output "opensearch_irsa_role_arn" {
-  description = "ARN of the IAM role for OpenSearch IRSA"
-  value       = aws_iam_role.opensearch_irsa.arn
-}
-
-output "opensearch_service_account_name" {
-  description = "Name of the Kubernetes service account for OpenSearch"
-  value       = var.opensearch_service_account
-}
-
-output "opensearch_namespace" {
-  description = "Kubernetes namespace for OpenSearch service account"
-  value       = var.opensearch_namespace
-}
