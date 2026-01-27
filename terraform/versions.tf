@@ -32,8 +32,3 @@ provider "aws" {
 provider "awscc" {
   region = var.aws_region
 }
-
-provider "opensearch" {
-  url         = module.opensearch_serverless.opensearch_serverless_collection.collection_endpoint
-  healthcheck = false
-}
