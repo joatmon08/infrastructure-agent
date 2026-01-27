@@ -61,5 +61,5 @@ variable "opensearch_namespace" {
 variable "opensearch_service_account" {
   description = "Kubernetes service account name for OpenSearch access"
   type        = string
-  default     = "opensearch"
+  default     = "langflow-service"
 }
