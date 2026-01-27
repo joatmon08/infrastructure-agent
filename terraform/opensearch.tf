@@ -1,4 +1,6 @@
 # OpenSearch Serverless Collection
+data "aws_caller_identity" "current" {}
+
 resource "aws_opensearchserverless_security_policy" "encryption" {
   name = "${var.project_name}-encryption-policy"
   type = "encryption"
@@ -38,6 +40,7 @@ resource "aws_opensearchserverless_security_policy" "network" {
     }
   ])
 }
+
 resource "aws_iam_role" "opensearch_access" {
   name = "${var.project_name}-opensearch-access-role"
 
@@ -118,7 +121,8 @@ resource "aws_opensearchserverless_access_policy" "data_access" {
         }
       ]
       Principal = [
-        aws_iam_role.opensearch_access.arn
+        aws_iam_role.opensearch_access.arn,
+        data.aws_caller_identity.current.arn
       ]
     }
   ])
