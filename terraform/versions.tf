@@ -6,9 +6,13 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
+    awscc = {
+      source  = "hashicorp/awscc"
+      version = "~> 1.68"
+    }
     opensearch = {
       source  = "opensearch-project/opensearch"
-      version = "~> 2.3"
+      version = "~> 2.2"
     }
   }
 }
@@ -25,7 +29,11 @@ provider "aws" {
   }
 }
 
+provider "awscc" {
+  region = var.aws_region
+}
+
 provider "opensearch" {
-  url         = aws_opensearchserverless_collection.langflow.collection_endpoint
+  url         = module.opensearch_serverless.opensearch_serverless_collection.collection_endpoint
   healthcheck = false
 }
