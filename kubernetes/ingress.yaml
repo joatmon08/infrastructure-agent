@@ -4,6 +4,8 @@ metadata:
   name: langflow
   annotations:
     alb.ingress.kubernetes.io/inbound-cidrs: "100.8.117.17/32"
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=1800
+    alb.ingress.kubernetes.io/success-codes: 200,201,404
   labels:
     app: langflow
 spec:
@@ -18,3 +20,10 @@ spec:
             name: langflow-service
             port:
               number: 8080
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: langflow-service-backend
+            port:
+              number: 7860
