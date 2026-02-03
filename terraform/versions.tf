@@ -14,6 +14,10 @@ terraform {
       source  = "opensearch-project/opensearch"
       version = "~> 2.2"
     }
+    hcp = {
+      source  = "hashicorp/hcp"
+      version = "~> 0.111"
+    }
   }
 }
 
@@ -32,3 +36,5 @@ provider "aws" {
 provider "awscc" {
   region = var.aws_region
 }
+
+provider "hcp" {}

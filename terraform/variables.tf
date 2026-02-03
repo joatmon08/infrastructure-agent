@@ -63,3 +63,22 @@ variable "opensearch_service_account" {
   type        = string
   default     = "langflow-service"
 }
+
+# HCP Variables
+variable "hvn_cidr" {
+  description = "CIDR block for HCP HVN"
+  type        = string
+  default     = "172.25.16.0/20"
+}
+
+variable "vault_tier" {
+  description = "Tier of the HCP Vault cluster (dev, starter_small, standard_small, standard_medium, standard_large, plus_small, plus_medium, plus_large)"
+  type        = string
+  default     = "dev"
+}
+
+variable "vault_public_endpoint" {
+  description = "Enable public endpoint for Vault cluster"
+  type        = bool
+  default     = true
+}

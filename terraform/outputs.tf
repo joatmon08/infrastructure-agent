@@ -105,3 +105,30 @@ output "configure_kubectl" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
+
+# HCP Vault Cluster Outputs
+output "vault_cluster_id" {
+  description = "The ID of the HCP Vault cluster"
+  value       = hcp_vault_cluster.main.cluster_id
+}
+
+output "vault_public_endpoint_url" {
+  description = "The public endpoint URL of the HCP Vault cluster"
+  value       = hcp_vault_cluster.main.vault_public_endpoint_url
+}
+
+output "vault_private_endpoint_url" {
+  description = "The private endpoint URL of the HCP Vault cluster"
+  value       = hcp_vault_cluster.main.vault_private_endpoint_url
+}
+
+output "vault_namespace" {
+  description = "The namespace of the HCP Vault cluster"
+  value       = hcp_vault_cluster.main.namespace
+}
+
+output "vault_admin_token" {
+  description = "The admin token for the HCP Vault cluster"
+  value       = hcp_vault_cluster_admin_token.main.token
+  sensitive   = true
+}
