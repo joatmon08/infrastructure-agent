@@ -63,8 +63,8 @@ resource "vault_identity_oidc_client" "agent" {
 
 resource "vault_identity_oidc_provider" "agent" {
   name          = "agent"
-  https_enabled = false
-  issuer_host   = "127.0.0.1:8200"
+  https_enabled = true
+  issuer_host   = replace(hcp_vault_cluster.main.vault_public_endpoint_url, "https://", "")
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]
