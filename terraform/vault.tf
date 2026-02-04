@@ -49,6 +49,15 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   disable_iss_validation = "true"
 }
 
+resource "vault_identity_oidc" "server" {
+  issuer = hcp_vault_cluster.main.vault_public_endpoint_url
+}
+
+resource "vault_identity_oidc_key" "agent" {
+  name      = "agent"
+  algorithm = "RS256"
+}
+
 resource "vault_identity_oidc_client" "agent" {
   name = "agent"
   redirect_uris = [
@@ -59,6 +68,7 @@ resource "vault_identity_oidc_client" "agent" {
   ]
   id_token_ttl     = 2400
   access_token_ttl = 7200
+  key              = vault_identity_oidc_key.agent.name
 }
 
 resource "vault_identity_oidc_provider" "agent" {
@@ -68,11 +78,6 @@ resource "vault_identity_oidc_provider" "agent" {
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]
-}
-
-resource "vault_identity_oidc_key" "agent" {
-  name      = "agent"
-  algorithm = "RS256"
 }
 
 resource "vault_identity_oidc_role" "helloworld_reader" {
