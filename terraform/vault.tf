@@ -72,7 +72,7 @@ resource "vault_identity_oidc_provider" "agent" {
 
 resource "vault_identity_oidc_key" "agent" {
   name      = "agent"
-  algorithm = "ES256"
+  algorithm = "RS256"
 }
 
 resource "vault_identity_oidc_role" "helloworld_reader" {
