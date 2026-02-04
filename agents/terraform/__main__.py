@@ -1,4 +1,4 @@
-import token
+import logging
 import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication
@@ -14,7 +14,10 @@ from a2a.types import (
 from agent_executor import (
     HelloWorldAgentExecutor,  # type: ignore[import-untyped]
 )
+from auth_middleware import AuthMiddleware
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     # --8<-- [start:AgentSkill]
@@ -88,4 +91,12 @@ if __name__ == "__main__":
         extended_agent_card=specific_extended_agent_card,
     )
 
-    uvicorn.run(server.build(), host="0.0.0.0", port=9999)
+    app = server.build()
+
+    app.add_middleware(
+        AuthMiddleware,
+        agent_card=public_agent_card,
+        public_paths=['/.well-known/agent-card.json'],
+    )
+
+    uvicorn.run(app, host="0.0.0.0", port=9999)

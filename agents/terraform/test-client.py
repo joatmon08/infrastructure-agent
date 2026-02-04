@@ -13,28 +13,33 @@ from a2a.types import (
     MessageSendParams,
     SendStreamingMessageRequest,
 )
+
 from a2a.utils.constants import (
     AGENT_CARD_WELL_KNOWN_PATH,
     EXTENDED_AGENT_CARD_PATH,
 )
 
-class AgentAuth(httpx.Auth):
-    """Custom httpx's authentication class to inject access token required by agent."""
-
-    def __init__(self, agent_card: AgentCard):
-        self.agent_card = agent_card
-        self.vault_client = hvac.Client(
+async def get_token():
+    vault_client = hvac.Client(
             url = os.environ['VAULT_ADDR'],
             token = os.environ['VAULT_TOKEN'],
             namespace = os.environ['VAULT_NAMESPACE'],
-        )
+    )
+    response = vault_client.secrets.identity.generate_signed_id_token(
+            name = "helloworld-reader"
+    )
+    return response['data']['token']
+
+
+class AgentAuth(httpx.Auth):
+    """Custom httpx's authentication class to inject access token required by agent."""
+
+    def __init__(self, agent_card: AgentCard, token):
+        self.agent_card = agent_card
+        self.token = token
 
     def auth_flow(self, request):
-        response = self.vault_client.secrets.identity.generate_signed_id_token(
-            name = "helloworld-reader"
-        )
-        print(response)
-        request.headers['Authorization'] = f'Bearer {response['data']['token']}'
+        request.headers['Authorization'] = f'Bearer {self.token}'
         yield request
 
 
@@ -58,6 +63,7 @@ async def main() -> None:
 
         # Fetch Public Agent Card and Initialize Client
         final_agent_card_to_use: AgentCard | None = None
+        token = await get_token()
 
         try:
             logger.info(
@@ -81,7 +87,7 @@ async def main() -> None:
                         f'\nPublic card supports authenticated extended card. Attempting to fetch from: {base_url}{EXTENDED_AGENT_CARD_PATH}'
                     )
                     auth_headers_dict = {
-                        'Authorization': 'Bearer dummy-token-for-extended-card'
+                        'Authorization': f'Bearer {token}'
                     }
                     _extended_card = await resolver.get_agent_card(
                         relative_card_path=EXTENDED_AGENT_CARD_PATH,
@@ -115,13 +121,11 @@ async def main() -> None:
 
         except Exception as e:
             logger.error(
-                f'Critical error fetching public agent card: {e}', exc_info=True
+                f'Critical error fetching public agent card: {e}'
             )
-            raise RuntimeError(
-                'Failed to fetch the public agent card. Cannot continue.'
-            ) from e
+            raise RuntimeError()
 
-        httpx_client.auth = AgentAuth(final_agent_card_to_use)
+        httpx_client.auth = AgentAuth(final_agent_card_to_use, token)
 
         # --8<-- [start:send_message]
         client = A2AClient(
