@@ -1,15 +1,16 @@
 import logging
+import os
 
 from typing import Any
 from uuid import uuid4
 
 import httpx
+import hvac
 
 from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import (
     AgentCard,
     MessageSendParams,
-    SendMessageRequest,
     SendStreamingMessageRequest,
 )
 from a2a.utils.constants import (
@@ -17,40 +18,23 @@ from a2a.utils.constants import (
     EXTENDED_AGENT_CARD_PATH,
 )
 
-access_token = None
-
 class AgentAuth(httpx.Auth):
     """Custom httpx's authentication class to inject access token required by agent."""
 
     def __init__(self, agent_card: AgentCard):
         self.agent_card = agent_card
+        self.vault_client = hvac.Client(
+            url = os.environ['VAULT_ADDR'],
+            token = os.environ['VAULT_TOKEN'],
+            namespace = os.environ['VAULT_NAMESPACE'],
+        )
 
     def auth_flow(self, request):
-        global access_token
-        auth = self.agent_card.security_schemes
-
-        # skip if not using oauth2 or credentials details are missing
-        if not (
-            any(scheme.lower() == 'oauth2' for scheme in auth)
-            and auth.credentials
-        ):
-            yield request
-            return
-
-        if not access_token:
-            token_url = json.loads(auth.credentials)['tokenUrl']
-            print(f'\nFetching agent access token from {token_url}...')
-            get_token = GetToken(
-                domain=urlparse(token_url).hostname,
-                client_id=os.getenv('A2A_CLIENT_AUTH0_CLIENT_ID'),
-                client_secret=os.getenv('A2A_CLIENT_AUTH0_CLIENT_SECRET'),
-            )
-            access_token = get_token.client_credentials(
-                os.getenv('HR_AGENT_AUTH0_AUDIENCE')
-            )['access_token']
-            print('Done.\n')
-
-        request.headers['Authorization'] = f'Bearer {access_token}'
+        response = self.vault_client.secrets.identity.generate_signed_id_token(
+            name = "helloworld-reader"
+        )
+        print(response)
+        request.headers['Authorization'] = f'Bearer {response['data']['token']}'
         yield request
 
 

@@ -69,3 +69,18 @@ resource "vault_identity_oidc_provider" "agent" {
     vault_identity_oidc_client.agent.client_id
   ]
 }
+
+resource "vault_identity_oidc_key" "agent" {
+  name      = "agent"
+  algorithm = "ES256"
+}
+
+resource "vault_identity_oidc_role" "helloworld_reader" {
+  name = "helloworld-reader"
+  key  = vault_identity_oidc_key.agent.name
+}
+
+resource "vault_identity_oidc_key_allowed_client_id" "helloworld_reader" {
+  key_name          = vault_identity_oidc_key.agent.name
+  allowed_client_id = vault_identity_oidc_role.helloworld_reader.client_id
+}
