@@ -50,7 +50,7 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
 }
 
 resource "vault_identity_oidc_client" "agent" {
-  name          = "agent"
+  name = "agent"
   redirect_uris = [
     "http://127.0.0.1:9999/callback"
   ]
@@ -59,4 +59,13 @@ resource "vault_identity_oidc_client" "agent" {
   ]
   id_token_ttl     = 2400
   access_token_ttl = 7200
+}
+
+resource "vault_identity_oidc_provider" "agent" {
+  name          = "agent"
+  https_enabled = false
+  issuer_host   = "127.0.0.1:8200"
+  allowed_client_ids = [
+    vault_identity_oidc_client.agent.client_id
+  ]
 }
