@@ -48,3 +48,15 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   token_reviewer_jwt     = kubernetes_secret_v1.vault_auth.data.token
   disable_iss_validation = "true"
 }
+
+resource "vault_identity_oidc_client" "agent" {
+  name          = "agent"
+  redirect_uris = [
+    "http://127.0.0.1:9999/callback"
+  ]
+  assignments = [
+    "allow_all"
+  ]
+  id_token_ttl     = 2400
+  access_token_ttl = 7200
+}
