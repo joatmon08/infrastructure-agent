@@ -81,8 +81,13 @@ resource "vault_identity_oidc_provider" "agent" {
 }
 
 resource "vault_identity_oidc_role" "helloworld_reader" {
-  name = "helloworld-reader"
-  key  = vault_identity_oidc_key.agent.name
+  name     = "helloworld-reader"
+  key      = vault_identity_oidc_key.agent.name
+  template = <<EOT
+{
+  "scope": "hello_world:read"
+}
+EOT
 }
 
 resource "vault_identity_oidc_key_allowed_client_id" "helloworld_reader" {
