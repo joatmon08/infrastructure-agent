@@ -82,3 +82,9 @@ variable "vault_public_endpoint" {
   type        = bool
   default     = true
 }
+
+variable "vault_helm_chart_version" {
+  description = "Version of the HashiCorp Vault Helm chart to use"
+  type        = string
+  default     = "0.32.0"
+}
