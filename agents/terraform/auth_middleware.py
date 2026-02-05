@@ -4,9 +4,6 @@ import hvac
 import os
 
 from a2a.types import AgentCard, HTTPAuthSecurityScheme
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicNumbers
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 
 from starlette.applications import Starlette
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -19,13 +16,40 @@ ISSUER = os.getenv("VAULT_ADDR")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def get_scopes_from_agent_card(agent_card):
+    for sec_req in agent_card.security or []:
+        if not sec_req:
+            break
+
+        for name, scopes in sec_req.items():
+            if agent_card.security_schemes == None:
+                raise NotImplementedError(f'No security scheme defined')
+
+            if agent_card.security_schemes.get(name) == None:
+                raise NotImplementedError(f'No security scheme defined for {name}')
+
+            if agent_card.security_schemes.get(name).root == None:
+                raise NotImplementedError(f'No security scheme defined for {name}')
+            
+            sec_scheme = agent_card.security_schemes.get(name).root
+
+            if not isinstance(sec_scheme, HTTPAuthSecurityScheme):
+                raise NotImplementedError('Only HTTPAuthSecurityScheme is supported.')
+
+            return scopes
+
 async def verify_token(jwt_token) -> bool:
     vault_client = hvac.Client(
             url = os.environ['VAULT_ADDR'],
             token = os.environ['VAULT_TOKEN'],
             namespace = os.environ['VAULT_NAMESPACE'],
     )
-    response = vault_client.secrets.identity.introspect_signed_id_token(jwt_token)
+    try:
+        response = vault_client.secrets.identity.introspect_signed_id_token(jwt_token)
+    except Exception as e:
+        logger.error(f"Failed to verify token with Vault: {str(e)}")
+        return False
     return response['active'] == True
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -39,25 +63,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.agent_card = agent_card
         self.public_paths = set(public_paths or [])
 
-        # Process the AgentCard to identify what (if any) Security Requirements are defined at the root of the
-        # AgentCard, indicating agent-level authentication/authorization.
-
-        # Use app state for this demonstration (simplicity)
-        self.a2a_auth = {}
-
-        for sec_req in agent_card.security or []:
-
-            if not sec_req:
-                break
-
-            for name, scopes in sec_req.items():
-                sec_scheme = self.agent_card.security_schemes.get(name).root
-
-                if not isinstance(sec_scheme, HTTPAuthSecurityScheme):
-                    raise NotImplementedError('Only HTTPAuthSecurityScheme is supported.')
-
-                self.a2a_auth = { 'required_scopes': scopes }
-        
+        scopes = get_scopes_from_agent_card(self.agent_card)
+        self.a2a_auth = { 'required_scopes': scopes }
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
@@ -89,8 +96,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     payload = jwt.decode(access_token, options={'verify_signature': False})
                 except Exception as e:
                     logger.error(f"Failed to decode token: {str(e)}")
+                    return self._forbidden(f'Authentication failed: {e}', request)
 
-                scopes = payload.get('scope', '').split()
+                scopes = payload.get('scope', '').split()              
 
                 missing_scopes = [
                     s
