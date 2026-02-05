@@ -63,7 +63,8 @@ resource "vault_identity_oidc_key" "agent" {
 resource "vault_identity_oidc_client" "agent" {
   name = "agent"
   redirect_uris = [
-    "http://127.0.0.1:9999/callback"
+    "http://127.0.0.1:9998/callback",
+    "http://localhost:9998/callback",
   ]
   assignments = [
     "allow_all"
