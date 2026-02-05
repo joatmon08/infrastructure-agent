@@ -1,5 +1,6 @@
 import logging
 import uvicorn
+import os
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
@@ -9,6 +10,7 @@ from a2a.types import (
     AgentCard,
     AgentSkill,
     HTTPAuthSecurityScheme,
+    OpenIdConnectSecurityScheme,
     SecurityScheme,
 )
 from agent_executor import (
@@ -18,6 +20,8 @@ from auth_middleware import AuthMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+OPENID_CONNECT_URL=os.environ['OPENID_CONNECT_URL']
 
 if __name__ == "__main__":
     # --8<-- [start:AgentSkill]
@@ -51,6 +55,13 @@ if __name__ == "__main__":
         skills=[skill],  # Only the basic skill for the public card
         supports_authenticated_extended_card=True,
         security_schemes={
+            "oauth": SecurityScheme(
+                root=OpenIdConnectSecurityScheme(
+                    description = "OIDC provider",
+                    type = "openIdConnect",
+                    open_id_connect_url = OPENID_CONNECT_URL,
+                )
+            ),
             "bearer": SecurityScheme(
                 root=HTTPAuthSecurityScheme(
                     type="http",
@@ -60,7 +71,7 @@ if __name__ == "__main__":
                 )
             )
         },
-        security=[{"bearer": ["hello_world:read"]}],
+        security=[{"oauth":["hello_world:read"]}, {"bearer": ["hello_world:read"]}],
     )
     # --8<-- [end:AgentCard]
 

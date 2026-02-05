@@ -1,9 +1,11 @@
+from authlib.integrations import httpx_client
+import httpx
 import jwt
 import logging
 import hvac
 import os
 
-from a2a.types import AgentCard, HTTPAuthSecurityScheme
+from a2a.types import AgentCard, HTTPAuthSecurityScheme, OpenIdConnectSecurityScheme
 
 from starlette.applications import Starlette
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -12,6 +14,7 @@ from starlette.responses import JSONResponse, PlainTextResponse
 
 PUBLIC_KEY_ENDPOINT = os.getenv("PUBLIC_KEY_ENDPOINT")
 ISSUER = os.getenv("VAULT_ADDR")
+USERINFO_ENDPOINT=os.getenv("USERINFO_ENDPOINT")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,23 +37,18 @@ def get_scopes_from_agent_card(agent_card):
             
             sec_scheme = agent_card.security_schemes.get(name).root
 
-            if not isinstance(sec_scheme, HTTPAuthSecurityScheme):
-                raise NotImplementedError('Only HTTPAuthSecurityScheme is supported.')
+            if not isinstance(sec_scheme, HTTPAuthSecurityScheme) and not isinstance(sec_scheme, OpenIdConnectSecurityScheme):
+                raise NotImplementedError('Only HTTPAuthSecurityScheme, OpenIdConnectSecurityScheme are supported.')
 
             return scopes
 
-async def verify_token(jwt_token) -> bool:
-    vault_client = hvac.Client(
-            url = os.environ['VAULT_ADDR'],
-            token = os.environ['VAULT_TOKEN'],
-            namespace = os.environ['VAULT_NAMESPACE'],
-    )
+def get_userinfo(access_token):
     try:
-        response = vault_client.secrets.identity.introspect_signed_id_token(jwt_token)
+        userinfo = httpx.get(f'{USERINFO_ENDPOINT}', headers={'Authorization': f'Bearer {access_token}'})
+        return userinfo.json()
     except Exception as e:
-        logger.error(f"Failed to verify token with Vault: {str(e)}")
-        return False
-    return response['active'] == True
+        logger.error(f"Failed to get userinfo with token: {str(e)}")
+        return None
 
 class AuthMiddleware(BaseHTTPMiddleware):
     def __init__(
@@ -84,29 +82,22 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         try:
             if self.a2a_auth:
-                valid_token = await verify_token(access_token)
+                userinfo = get_userinfo(access_token)
+                
 
-                if not valid_token:
+                if not userinfo:
                     logger.error(f"Invalid or expired access token")
                     return self._unauthorized(f'Authentication failed: invalid or expired access token', request)
 
-                payload = None
+                missing_scopes = []
 
-                try:
-                    payload = jwt.decode(access_token, options={'verify_signature': False})
-                except Exception as e:
-                    logger.error(f"Failed to decode token: {str(e)}")
-                    return self._forbidden(f'Authentication failed: {e}', request)
-
-                scopes = payload.get('scope', '').split()              
-
-                missing_scopes = [
-                    s
-                    for s in self.a2a_auth['required_scopes']
-                    if s not in scopes
-                ]
+                for scope in self.a2a_auth['required_scopes']:
+                    scope_key, scope_value = scope.split(":")
+                    if scope_key not in userinfo.keys() or scope_value != userinfo.get(scope_key):
+                        missing_scopes.append(scope)             
 
                 if missing_scopes:
+                    logger.error(f"Missing required scopes: {missing_scopes}")
                     return self._forbidden(
                         f'Missing required scopes: {missing_scopes}', request
                     )

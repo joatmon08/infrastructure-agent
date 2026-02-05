@@ -4,3 +4,4 @@ python-dotenv
 hvac
 pyjwt
 pyjwt[crypto]
+httpx-auth

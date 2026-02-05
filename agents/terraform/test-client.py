@@ -4,7 +4,9 @@ import os
 from typing import Any
 from uuid import uuid4
 
+from fastapi.openapi.models import OAuthFlowAuthorizationCode
 import httpx
+from httpx_auth import OAuth2AuthorizationCode
 import hvac
 
 from a2a.client import A2ACardResolver, A2AClient
@@ -18,6 +20,36 @@ from a2a.utils.constants import (
     AGENT_CARD_WELL_KNOWN_PATH,
     EXTENDED_AGENT_CARD_PATH,
 )
+
+from authlib.integrations.httpx_client import AsyncOAuth2Client
+from authlib.oauth2.rfc7523 import ClientSecretJWT
+
+# Configure logging to show INFO level messages
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)  # Get a logger instance
+
+def authorization_code_flow():
+    token_endpoint = os.environ['TOKEN_ENDPOINT']
+    authorization_endpoint: str = os.environ['AUTH_ENDPOINT']
+    client_id = os.environ['CLIENT_ID']
+    client_secret = os.environ['CLIENT_SECRET']
+
+    kwargs = dict(
+        client_id=client_id,
+        client_secret=client_secret,
+        scope="openid helloworld"
+    )
+
+    print(kwargs["scope"])
+
+    auth = OAuth2AuthorizationCode(
+        authorization_url=authorization_endpoint,
+        token_url=token_endpoint,
+        redirect_uri_port=9998,
+        redirect_uri_endpoint="callback",
+        **kwargs
+    )
+    return auth
 
 async def get_token():
     vault_client = hvac.Client(
@@ -44,10 +76,6 @@ class AgentAuth(httpx.Auth):
 
 
 async def main() -> None:
-    # Configure logging to show INFO level messages
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)  # Get a logger instance
-
     # --8<-- [start:A2ACardResolver]
 
     base_url = 'http://localhost:9999'
@@ -63,8 +91,8 @@ async def main() -> None:
 
         # Fetch Public Agent Card and Initialize Client
         final_agent_card_to_use: AgentCard | None = None
-        token = await get_token()
-
+        # token = await get_token()
+        
         try:
             logger.info(
                 f'Attempting to fetch public agent card from: {base_url}{AGENT_CARD_WELL_KNOWN_PATH}'
@@ -82,16 +110,17 @@ async def main() -> None:
             )
 
             if _public_card.supports_authenticated_extended_card:
+                logger.info('trying')
+
+                httpx_client.auth = authorization_code_flow()
+
                 try:
                     logger.info(
                         f'\nPublic card supports authenticated extended card. Attempting to fetch from: {base_url}{EXTENDED_AGENT_CARD_PATH}'
                     )
-                    auth_headers_dict = {
-                        'Authorization': f'Bearer {token}'
-                    }
+
                     _extended_card = await resolver.get_agent_card(
                         relative_card_path=EXTENDED_AGENT_CARD_PATH,
-                        http_kwargs={'headers': auth_headers_dict},
                     )
                     logger.info(
                         'Successfully fetched authenticated extended agent card:'
@@ -125,32 +154,32 @@ async def main() -> None:
             )
             raise RuntimeError()
 
-        httpx_client.auth = AgentAuth(final_agent_card_to_use, token)
+        # httpx_client.auth = AgentAuth(final_agent_card_to_use, token)
 
-        # --8<-- [start:send_message]
-        client = A2AClient(
-            httpx_client=httpx_client, agent_card=final_agent_card_to_use
-        )
-        logger.info('A2AClient initialized.')
+        # # --8<-- [start:send_message]
+        # client = A2AClient(
+        #     httpx_client=httpx_client, agent_card=final_agent_card_to_use
+        # )
+        # logger.info('A2AClient initialized.')
 
-        send_message_payload: dict[str, Any] = {
-            'message': {
-                'role': 'user',
-                'parts': [
-                    {'kind': 'text', 'text': 'how much is 10 USD in INR?'}
-                ],
-                'messageId': uuid4().hex,
-            },
-        }
-        # --8<-- [start:send_message_streaming]
-        streaming_request = SendStreamingMessageRequest(
-            id=str(uuid4()), params=MessageSendParams(**send_message_payload)
-        )
+        # send_message_payload: dict[str, Any] = {
+        #     'message': {
+        #         'role': 'user',
+        #         'parts': [
+        #             {'kind': 'text', 'text': 'how much is 10 USD in INR?'}
+        #         ],
+        #         'messageId': uuid4().hex,
+        #     },
+        # }
+        # # --8<-- [start:send_message_streaming]
+        # streaming_request = SendStreamingMessageRequest(
+        #     id=str(uuid4()), params=MessageSendParams(**send_message_payload)
+        # )
 
-        stream_response = client.send_message_streaming(streaming_request)
+        # stream_response = client.send_message_streaming(streaming_request)
 
-        async for chunk in stream_response:
-            print(chunk.model_dump(mode='json', exclude_none=True))
+        # async for chunk in stream_response:
+        #     print(chunk.model_dump(mode='json', exclude_none=True))
         # --8<-- [end:send_message_streaming]
 
 
