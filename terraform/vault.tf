@@ -53,38 +53,52 @@ resource "vault_identity_oidc" "server" {
   issuer = hcp_vault_cluster.main.vault_public_endpoint_url
 }
 
-# resource "vault_identity_oidc_client" "agent" {
-#   name = "agent"
-#   redirect_uris = [
-#     "http://127.0.0.1:9999/callback"
-#   ]
-#   assignments = [
-#     "allow_all"
-#   ]
-#   id_token_ttl     = 2400
-#   access_token_ttl = 7200
-# }
+resource "vault_identity_oidc_key" "agent" {
+  name               = "agent"
+  algorithm          = "RS256"
+  allowed_client_ids = ["*"]
+}
 
-# resource "vault_identity_oidc_provider" "agent" {
-#   name          = "agent"
-#   https_enabled = true
-#   issuer_host   = replace(hcp_vault_cluster.main.vault_public_endpoint_url, "https://", "")
-#   allowed_client_ids = [
-#     vault_identity_oidc_client.agent.client_id
-#   ]
-# }
 
-# resource "vault_identity_oidc_role" "helloworld_reader" {
-#   name     = "helloworld-reader"
-#   key      = "default"
-#   template = <<EOT
-# {
-#   "scope": "hello_world:read"
-# }
-# EOT
-# }
+resource "vault_identity_oidc_client" "agent" {
+  name = "agent"
+  redirect_uris = [
+    "http://127.0.0.1:9999/callback"
+  ]
+  assignments = [
+    "allow_all"
+  ]
+  key              = vault_identity_oidc_key.agent.name
+  id_token_ttl     = 2400
+  access_token_ttl = 7200
+}
 
-# resource "vault_identity_oidc_key_allowed_client_id" "helloworld_reader" {
-#   key_name          = "default"
-#   allowed_client_id = vault_identity_oidc_role.helloworld_reader.client_id
-# }
+resource "vault_identity_oidc_scope" "helloworld_read" {
+  name        = "helloworld-read"
+  template    = <<EOT
+{
+  "hello_world": "read"
+}
+EOT
+  description = "helloworld read scope"
+}
+
+resource "vault_identity_oidc_provider" "agent" {
+  name          = "agent"
+  https_enabled = true
+  issuer_host   = replace(hcp_vault_cluster.main.vault_public_endpoint_url, "https://", "")
+  allowed_client_ids = [
+    vault_identity_oidc_client.agent.client_id
+  ]
+}
+
+## Use for identity tokens
+resource "vault_identity_oidc_role" "helloworld_reader" {
+  name     = "helloworld-reader"
+  key      = "default"
+  template = <<EOT
+{
+  "scope": "hello_world:read"
+}
+EOT
+}
