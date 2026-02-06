@@ -49,6 +49,53 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   disable_iss_validation = "true"
 }
 
+resource "vault_policy" "helloworld_agent_client" {
+  name = "helloworld-agent-client"
+
+  policy = <<EOT
+path "identity/oidc/introspect" {
+  capabilities = ["update"]
+}
+
+path "identity/oidc/introspect/*" {
+  capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_auth_backend" "userpass" {
+  type = "userpass"
+}
+
+resource "random_password" "helloworld_agent_client" {
+  length  = 16
+  special = false
+}
+
+resource "vault_generic_endpoint" "helloworld_agent_client" {
+  path                 = "${vault_auth_backend.userpass.path}/users/helloworld-agent-client"
+  ignore_absent_fields = true
+
+  data_json = <<EOT
+{
+  "policies": ["${vault_policy.helloworld_agent_client.name}"],
+  "password": "${random_password.helloworld_agent_client.result}"
+}
+EOT
+}
+
+resource "vault_identity_entity" "helloworld_agent_client" {
+  name     = "helloworld-agent-client"
+  policies = [vault_policy.helloworld_agent_client.name]
+}
+
+resource "vault_identity_oidc_assignment" "helloworld_agent_client" {
+  name = "helloworld-agent-client-assignment"
+  entity_ids = [
+    vault_identity_entity.helloworld_agent_client.id,
+  ]
+}
+
 resource "vault_identity_oidc" "server" {
   issuer = hcp_vault_cluster.main.vault_public_endpoint_url
 }
@@ -59,7 +106,6 @@ resource "vault_identity_oidc_key" "agent" {
   allowed_client_ids = ["*"]
 }
 
-
 resource "vault_identity_oidc_client" "agent" {
   name = "agent"
   redirect_uris = [
@@ -67,7 +113,7 @@ resource "vault_identity_oidc_client" "agent" {
     "http://localhost:9998/callback",
   ]
   assignments = [
-    "allow_all"
+    vault_identity_oidc_assignment.helloworld_agent_client.name,
   ]
   key              = vault_identity_oidc_key.agent.name
   id_token_ttl     = 2400

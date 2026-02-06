@@ -132,3 +132,9 @@ output "vault_admin_token" {
   value       = hcp_vault_cluster_admin_token.main.token
   sensitive   = true
 }
+
+output "helloworld_agent_client_login" {
+  description = "The login command for the helloworld-agent-client"
+  value       = "vault login -method=userpass username=helloworld-agent-client password=${random_password.helloworld_agent_client.result}"
+  sensitive   = true
+}
