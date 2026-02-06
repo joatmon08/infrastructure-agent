@@ -135,6 +135,12 @@ output "vault_admin_token" {
 
 output "helloworld_agent_client_login" {
   description = "The login command for the helloworld-agent-client"
-  value       = "vault login -method=userpass username=helloworld-agent-client password=${random_password.helloworld_agent_client.result}"
+  value       = "vault login -method=userpass username=${local.client_username} password=${random_password.helloworld_agent_client.result}"
+  sensitive   = true
+}
+
+output "helloworld_agent_server_login" {
+  description = "The login command for the helloworld-agent-server"
+  value       = "vault login -method=userpass username=${local.server_username} password=${random_password.helloworld_agent_client.result}"
   sensitive   = true
 }

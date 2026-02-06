@@ -50,7 +50,7 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
 }
 
 resource "vault_policy" "agent_oidc" {
-  name = "helloworld-agent-client"
+  name = "helloworld-agent-oidc"
 
   policy = <<EOT
 path "identity/oidc/provider/agent/authorize" {
@@ -60,7 +60,18 @@ EOT
 }
 
 resource "vault_policy" "agent_identity_token" {
-  name = "helloworld-agent-client"
+  name = "helloworld-agent-client-token"
+
+  policy = <<EOT
+path "identity/oidc/token/helloworld-reader" {
+  capabilities = ["read"]
+}
+EOT
+}
+
+
+resource "vault_policy" "agent_identity_introspect" {
+  name = "helloworld-agent-server-token-inspect"
 
   policy = <<EOT
 path "identity/oidc/introspect" {
@@ -82,8 +93,26 @@ resource "random_password" "helloworld_agent_client" {
   special = false
 }
 
+resource "random_password" "helloworld_agent_server" {
+  length  = 16
+  special = false
+}
+
 locals {
   client_username = "helloworld-agent-client"
+  server_username = "helloworld-agent-server"
+}
+
+resource "vault_generic_endpoint" "helloworld_agent_server" {
+  path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.server_username}"
+  ignore_absent_fields = true
+  data_json            = <<EOT
+{
+  "token_policies": ["${vault_policy.agent_identity_introspect.name}"],
+  "token_ttl": "1h",
+  "password": "${random_password.helloworld_agent_server.result}"
+}
+EOT
 }
 
 resource "vault_generic_endpoint" "helloworld_agent_client" {
@@ -203,7 +232,7 @@ EOT
 }
 
 resource "vault_identity_entity_alias" "helloworld_agent_client" {
-  name            = local.client_username
-  mount_accessor  = vault_auth_backend.userpass.accessor
-  canonical_id    = vault_identity_entity.helloworld_agent_client.id
+  name           = local.client_username
+  mount_accessor = vault_auth_backend.userpass.accessor
+  canonical_id   = vault_identity_entity.helloworld_agent_client.id
 }
