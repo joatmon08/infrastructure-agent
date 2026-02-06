@@ -49,7 +49,17 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   disable_iss_validation = "true"
 }
 
-resource "vault_policy" "helloworld_agent_client" {
+resource "vault_policy" "agent_oidc" {
+  name = "helloworld-agent-client"
+
+  policy = <<EOT
+path "identity/oidc/provider/agent/authorize" {
+  capabilities = [ "read" ]
+}
+EOT
+}
+
+resource "vault_policy" "agent_identity_token" {
   name = "helloworld-agent-client"
 
   policy = <<EOT
@@ -72,27 +82,47 @@ resource "random_password" "helloworld_agent_client" {
   special = false
 }
 
-resource "vault_generic_endpoint" "helloworld_agent_client" {
-  path                 = "auth/${vault_auth_backend.userpass.path}/users/helloworld-agent-client"
-  ignore_absent_fields = true
+locals {
+  client_username = "helloworld-agent"
+}
 
-  data_json = <<EOT
+resource "vault_generic_endpoint" "helloworld_agent_client" {
+  path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.client_username}"
+  ignore_absent_fields = true
+  data_json            = <<EOT
 {
-  "policies": ["${vault_policy.helloworld_agent_client.name}"],
+  "token_policies": ["${vault_policy.agent_oidc.name}", "${vault_policy.agent_identity_token.name}"],
+  "token_ttl": "1h",
   "password": "${random_password.helloworld_agent_client.result}"
 }
 EOT
 }
 
 resource "vault_identity_entity" "helloworld_agent_client" {
-  name     = "helloworld-agent-client"
-  policies = [vault_policy.helloworld_agent_client.name]
+  name = local.client_username
+}
+
+resource "vault_identity_group" "agent" {
+  name = "agent"
+  type = "internal"
+  member_entity_ids = [
+    vault_identity_entity.helloworld_agent_client.id
+  ]
+}
+
+resource "vault_identity_entity_alias" "helloworld_agent_client" {
+  name           = local.client_username
+  mount_accessor = vault_auth_backend.userpass.accessor
+  canonical_id   = vault_identity_entity.helloworld_agent_client.id
 }
 
 resource "vault_identity_oidc_assignment" "helloworld_agent_client" {
-  name = "helloworld-agent-client-assignment"
+  name = "${local.client_username}-assignment"
   entity_ids = [
     vault_identity_entity.helloworld_agent_client.id,
+  ]
+  group_ids = [
+    vault_identity_group.agent.id,
   ]
 }
 
@@ -104,6 +134,8 @@ resource "vault_identity_oidc_key" "agent" {
   name               = "agent"
   algorithm          = "RS256"
   allowed_client_ids = ["*"]
+  verification_ttl   = 7200
+  rotation_period    = 3600
 }
 
 resource "vault_identity_oidc_client" "agent" {
@@ -130,6 +162,27 @@ EOT
   description = "helloworld read scope"
 }
 
+resource "vault_identity_oidc_scope" "user" {
+  name        = "user"
+  template    = <<EOT
+{
+    "username": {{identity.entity.name}}
+}
+EOT
+  description = "The user scope provides claims using Vault identity entity metadata"
+}
+
+
+resource "vault_identity_oidc_scope" "groups" {
+  name        = "groups"
+  template    = <<EOT
+{
+  "groups": {{identity.entity.groups.names}}
+}
+EOT
+  description = "The groups scope provides the groups claims using Vault group membership"
+}
+
 resource "vault_identity_oidc_provider" "agent" {
   name          = "agent"
   https_enabled = true
@@ -137,7 +190,11 @@ resource "vault_identity_oidc_provider" "agent" {
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]
-  scopes_supported = [vault_identity_oidc_scope.helloworld_read.name]
+  scopes_supported = [
+    vault_identity_oidc_scope.helloworld_read.name,
+    vault_identity_oidc_scope.groups.name,
+    vault_identity_oidc_scope.user.name
+  ]
 }
 
 ## Use for identity tokens
