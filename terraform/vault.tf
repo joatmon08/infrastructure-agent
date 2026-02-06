@@ -73,7 +73,7 @@ resource "random_password" "helloworld_agent_client" {
 }
 
 resource "vault_generic_endpoint" "helloworld_agent_client" {
-  path                 = "${vault_auth_backend.userpass.path}/users/helloworld-agent-client"
+  path                 = "auth/${vault_auth_backend.userpass.path}/users/helloworld-agent-client"
   ignore_absent_fields = true
 
   data_json = <<EOT
