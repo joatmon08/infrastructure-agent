@@ -22,12 +22,12 @@ from auth_middleware import JWTAuthMiddleware, OIDCAuthMiddleware
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-OPENID_CONNECT_URL = os.environ["OPENID_CONNECT_URL"]
-USERINFO_ENDPOINT = os.environ["USERINFO_ENDPOINT"]
+OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
+USERINFO_ENDPOINT = os.getenv("USERINFO_ENDPOINT")
 
-VAULT_ADDR=os.environ["VAULT_ADDR"]
-VAULT_NAMESPACE=os.environ["VAULT_NAMESPACE"]
-VAULT_TOKEN=os.environ["VAULT_TOKEN"]
+VAULT_ADDR=os.getenv("VAULT_ADDR")
+VAULT_NAMESPACE=os.getenv("VAULT_NAMESPACE")
+VAULT_TOKEN=os.getenv("VAULT_TOKEN")
 
 if __name__ == "__main__":
     security_schemes = {

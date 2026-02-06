@@ -28,14 +28,14 @@ from authlib.oauth2.rfc7523 import ClientSecretJWT
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__) 
 
-TOKEN_ENDPOINT = os.environ['TOKEN_ENDPOINT']
-AUTHORIZATION_ENDPOINT: str = os.environ['AUTH_ENDPOINT']
-CLIENT_ID = os.environ['CLIENT_ID']
-CLIENT_SECRET = os.environ['CLIENT_SECRET']
+TOKEN_ENDPOINT: str | None = os.getenv('TOKEN_ENDPOINT')
+AUTHORIZATION_ENDPOINT: str =  os.getenv('AUTH_ENDPOINT')
+CLIENT_ID = os.getenv('CLIENT_ID')
+CLIENT_SECRET =  os.getenv('CLIENT_SECRET')
 
-VAULT_ADDR=os.environ["VAULT_ADDR"]
-VAULT_NAMESPACE=os.environ["VAULT_NAMESPACE"]
-VAULT_TOKEN=os.environ["VAULT_TOKEN"]
+VAULT_ADDR= os.getenv("VAULT_ADDR")
+VAULT_NAMESPACE= os.getenv("VAULT_NAMESPACE")
+VAULT_TOKEN= os.getenv("VAULT_TOKEN")
 
 def authorization_code_flow():
     kwargs = dict(
@@ -112,7 +112,12 @@ async def main() -> None:
             )
 
             if _public_card.supports_authenticated_extended_card:
-                httpx_client.auth = authorization_code_flow()
+                if TOKEN_ENDPOINT and AUTHORIZATION_ENDPOINT and CLIENT_ID and CLIENT_SECRET:
+                    httpx_client.auth = authorization_code_flow()
+                elif VAULT_ADDR and VAULT_NAMESPACE and VAULT_TOKEN:
+                    httpx_client.auth = await get_token()
+                else:
+                    raise NotImplementedError('No authentication specified for authenticated extended card. Use OIDC or Vault identity token')
 
                 try:
                     logger.info(
