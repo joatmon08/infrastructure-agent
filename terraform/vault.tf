@@ -110,12 +110,6 @@ resource "vault_identity_group" "agent" {
   ]
 }
 
-resource "vault_identity_entity_alias" "helloworld_agent_client" {
-  name           = local.client_username
-  mount_accessor = vault_auth_backend.userpass.accessor
-  canonical_id   = vault_identity_entity.helloworld_agent_client.id
-}
-
 resource "vault_identity_oidc_assignment" "helloworld_agent_client" {
   name = "${local.client_username}-assignment"
   entity_ids = [
