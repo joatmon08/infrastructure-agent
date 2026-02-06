@@ -74,7 +74,7 @@ variable "hvn_cidr" {
 variable "vault_tier" {
   description = "Tier of the HCP Vault cluster (dev, starter_small, standard_small, standard_medium, standard_large, plus_small, plus_medium, plus_large)"
   type        = string
-  default     = "dev"
+  default     = "standard_small"
 }
 
 variable "vault_public_endpoint" {
