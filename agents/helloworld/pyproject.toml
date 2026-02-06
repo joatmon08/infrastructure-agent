@@ -1,0 +1,15 @@
+[project]
+name = "helloworld"
+version = "0.1.0"
+description = "HelloWorld agent example that returns Messages. Based on https://github.com/a2aproject/a2a-samples "
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "a2a-sdk[http-server]>=0.3.22",
+    "httpx>=0.28.1",
+    "httpx-auth>=0.23.1",
+    "hvac>=2.4.0",
+    "pyjwt>=2.11.0",
+    "starlette>=0.52.1",
+    "uvicorn>=0.40.0",
+]

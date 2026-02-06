@@ -167,6 +167,7 @@ class OIDCAuthMiddleware(BaseHTTPMiddleware):
                 f"{self.userinfo_endpoint}",
                 headers={"Authorization": f"Bearer {access_token}"},
             )
+            logger.info(userinfo)
             return userinfo.json()
         except Exception as e:
             logger.error(f"Failed to get userinfo with token: {str(e)}")
