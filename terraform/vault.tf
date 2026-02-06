@@ -83,7 +83,7 @@ resource "random_password" "helloworld_agent_client" {
 }
 
 locals {
-  client_username = "helloworld-agent"
+  client_username = "helloworld-agent-client"
 }
 
 resource "vault_generic_endpoint" "helloworld_agent_client" {
