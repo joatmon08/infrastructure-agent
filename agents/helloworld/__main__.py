@@ -22,9 +22,11 @@ from auth_middleware import JWTAuthMiddleware, OIDCAuthMiddleware
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+## Define these values for Vault as OIDC provider
 OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
 USERINFO_ENDPOINT = os.getenv("USERINFO_ENDPOINT")
 
+## Define these values for Vault identity tokens
 VAULT_ADDR=os.getenv("VAULT_ADDR")
 VAULT_NAMESPACE=os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN=os.getenv("VAULT_TOKEN")
@@ -117,29 +119,27 @@ if __name__ == "__main__":
     app = server.build()
     
     if OPENID_CONNECT_URL and USERINFO_ENDPOINT:
+        logger.info("OIDC authentication is enabled")
         app.add_middleware(
             OIDCAuthMiddleware,
             agent_card=public_agent_card,
             public_paths=["/.well-known/agent-card.json"],
             userinfo_endpoint=USERINFO_ENDPOINT,
         )
-    else:
-        if VAULT_ADDR and VAULT_TOKEN and VAULT_NAMESPACE:
-            vault_client = hvac.Client(
-                url=VAULT_ADDR,
-                token=VAULT_TOKEN,
-                namespace=VAULT_NAMESPACE,
-                verify=True
-            )
-            app.add_middleware(
-                JWTAuthMiddleware,
-                agent_card=public_agent_card,
-                public_paths=["/.well-known/agent-card.json"],
-                vault_client=vault_client,
-            )
-        else:
-            raise NotImplementedError(
-                "No authentication method defined. Please set OPENID_CONNECT_URL and USERINFO_ENDPOINT or VAULT_ADDR, VAULT_TOKEN and VAULT_NAMESPACE."
-            )
+        
+    if VAULT_ADDR and VAULT_TOKEN and VAULT_NAMESPACE:
+        logger.info("JWT authentication is enabled")
+        vault_client = hvac.Client(
+            url=VAULT_ADDR,
+            token=VAULT_TOKEN,
+            namespace=VAULT_NAMESPACE,
+            verify=True
+        )
+        app.add_middleware(
+            JWTAuthMiddleware,
+            agent_card=public_agent_card,
+            public_paths=["/.well-known/agent-card.json"],
+            vault_client=vault_client,
+        )
 
     uvicorn.run(app, host="0.0.0.0", port=9999)

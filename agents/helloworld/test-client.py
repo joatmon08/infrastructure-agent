@@ -28,11 +28,13 @@ from authlib.oauth2.rfc7523 import ClientSecretJWT
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__) 
 
+## Define these values for Vault as OIDC provider
 TOKEN_ENDPOINT: str | None = os.getenv('TOKEN_ENDPOINT')
 AUTHORIZATION_ENDPOINT: str =  os.getenv('AUTH_ENDPOINT')
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET =  os.getenv('CLIENT_SECRET')
 
+## Define these values for Vault identity tokens
 VAULT_ADDR= os.getenv("VAULT_ADDR")
 VAULT_NAMESPACE= os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN= os.getenv("VAULT_TOKEN")
@@ -115,7 +117,9 @@ async def main() -> None:
                 if TOKEN_ENDPOINT and AUTHORIZATION_ENDPOINT and CLIENT_ID and CLIENT_SECRET:
                     httpx_client.auth = authorization_code_flow()
                 elif VAULT_ADDR and VAULT_NAMESPACE and VAULT_TOKEN:
-                    httpx_client.auth = await get_token()
+                    token = await get_token()
+                    print(token)
+                    httpx_client.headers['Authorization'] = f'Bearer {token}'
                 else:
                     raise NotImplementedError('No authentication specified for authenticated extended card. Use OIDC or Vault identity token')
 

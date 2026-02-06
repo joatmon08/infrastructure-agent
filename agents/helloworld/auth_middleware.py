@@ -13,7 +13,6 @@ from starlette.responses import JSONResponse, PlainTextResponse
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 def get_scopes_from_agent_card(agent_card):
     for sec_req in agent_card.security or []:
         if not sec_req:
@@ -53,20 +52,8 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         self.public_paths = set(public_paths or [])
         self.vault_client = vault_client
 
-        self.a2a_auth = {}        
-
-        for sec_req in agent_card.security or []:
-
-            if not sec_req:
-                break
-
-            for name, scopes in sec_req.items():
-                sec_scheme = self.agent_card.security_schemes.get(name).root
-
-                if not isinstance(sec_scheme, HTTPAuthSecurityScheme):
-                    raise NotImplementedError('Only HTTPAuthSecurityScheme is supported.')
-
-                self.a2a_auth = { 'required_scopes': scopes }
+        scopes = get_scopes_from_agent_card(self.agent_card)
+        self.a2a_auth = {"required_scopes": scopes}
 
 
     ## Use Vault's API to introspect token - ensures that it is active
@@ -80,6 +67,12 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         
 
     async def dispatch(self, request: Request, call_next):
+        if self.vault_client is None:
+            logger.info("No Vault client provided. Cannot retrieve identity token")
+            return
+
+        logger.info("Authenticating with Vault identity tokens")
+
         path = request.url.path
 
         # Allow public paths and anonymous access
@@ -180,6 +173,12 @@ class OIDCAuthMiddleware(BaseHTTPMiddleware):
             return None
 
     async def dispatch(self, request: Request, call_next):
+        if self.userinfo_endpoint is None:
+            logger.info("No OIDC userinfo endpoint provided. Stopping authorization flow")
+            return
+
+        logger.info("Authenticating with OIDC")
+
         path = request.url.path
 
         # Allow public paths and anonymous access
