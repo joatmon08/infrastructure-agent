@@ -25,6 +25,19 @@ resource "aws_ecr_repository" "langflow" {
   }
 }
 
+resource "aws_ecr_repository" "helloworld_agent" {
+  name                 = "${var.project_name}-helloworld-agent"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = {
+    Name = "${var.project_name}-helloworld-agent"
+  }
+}
+
 # IAM Policy for ECR Access
 resource "aws_iam_policy" "ecr_pull_policy" {
   name        = "${var.project_name}-ecr-pull-policy"

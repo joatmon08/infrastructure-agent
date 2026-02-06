@@ -26,25 +26,27 @@ from authlib.oauth2.rfc7523 import ClientSecretJWT
 
 # Configure logging to show INFO level messages
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)  # Get a logger instance
+logger = logging.getLogger(__name__) 
+
+TOKEN_ENDPOINT = os.environ['TOKEN_ENDPOINT']
+AUTHORIZATION_ENDPOINT: str = os.environ['AUTH_ENDPOINT']
+CLIENT_ID = os.environ['CLIENT_ID']
+CLIENT_SECRET = os.environ['CLIENT_SECRET']
+
+VAULT_ADDR=os.environ["VAULT_ADDR"]
+VAULT_NAMESPACE=os.environ["VAULT_NAMESPACE"]
+VAULT_TOKEN=os.environ["VAULT_TOKEN"]
 
 def authorization_code_flow():
-    token_endpoint = os.environ['TOKEN_ENDPOINT']
-    authorization_endpoint: str = os.environ['AUTH_ENDPOINT']
-    client_id = os.environ['CLIENT_ID']
-    client_secret = os.environ['CLIENT_SECRET']
-
     kwargs = dict(
-        client_id=client_id,
-        client_secret=client_secret,
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
         scope="openid helloworld"
     )
 
-    print(kwargs["scope"])
-
     auth = OAuth2AuthorizationCode(
-        authorization_url=authorization_endpoint,
-        token_url=token_endpoint,
+        authorization_url=AUTHORIZATION_ENDPOINT,
+        token_url=TOKEN_ENDPOINT,
         redirect_uri_port=9998,
         redirect_uri_endpoint="callback",
         **kwargs
@@ -53,9 +55,9 @@ def authorization_code_flow():
 
 async def get_token():
     vault_client = hvac.Client(
-            url = os.environ['VAULT_ADDR'],
-            token = os.environ['VAULT_TOKEN'],
-            namespace = os.environ['VAULT_NAMESPACE'],
+            url = VAULT_ADDR,
+            token = VAULT_TOKEN,
+            namespace = VAULT_NAMESPACE,
     )
     response = vault_client.secrets.identity.generate_signed_id_token(
             name = "helloworld-reader"
@@ -110,8 +112,6 @@ async def main() -> None:
             )
 
             if _public_card.supports_authenticated_extended_card:
-                logger.info('trying')
-
                 httpx_client.auth = authorization_code_flow()
 
                 try:
@@ -154,33 +154,30 @@ async def main() -> None:
             )
             raise RuntimeError()
 
-        # httpx_client.auth = AgentAuth(final_agent_card_to_use, token)
+        # --8<-- [start:send_message]
+        client = A2AClient(
+            httpx_client=httpx_client, agent_card=final_agent_card_to_use
+        )
+        logger.info('A2AClient initialized.')
 
-        # # --8<-- [start:send_message]
-        # client = A2AClient(
-        #     httpx_client=httpx_client, agent_card=final_agent_card_to_use
-        # )
-        # logger.info('A2AClient initialized.')
+        send_message_payload: dict[str, Any] = {
+            'message': {
+                'role': 'user',
+                'parts': [
+                    {'kind': 'text', 'text': 'how much is 10 USD in INR?'}
+                ],
+                'messageId': uuid4().hex,
+            },
+        }
+        # --8<-- [start:send_message_streaming]
+        streaming_request = SendStreamingMessageRequest(
+            id=str(uuid4()), params=MessageSendParams(**send_message_payload)
+        )
 
-        # send_message_payload: dict[str, Any] = {
-        #     'message': {
-        #         'role': 'user',
-        #         'parts': [
-        #             {'kind': 'text', 'text': 'how much is 10 USD in INR?'}
-        #         ],
-        #         'messageId': uuid4().hex,
-        #     },
-        # }
-        # # --8<-- [start:send_message_streaming]
-        # streaming_request = SendStreamingMessageRequest(
-        #     id=str(uuid4()), params=MessageSendParams(**send_message_payload)
-        # )
+        stream_response = client.send_message_streaming(streaming_request)
 
-        # stream_response = client.send_message_streaming(streaming_request)
-
-        # async for chunk in stream_response:
-        #     print(chunk.model_dump(mode='json', exclude_none=True))
-        # --8<-- [end:send_message_streaming]
+        async for chunk in stream_response:
+            print(chunk.model_dump(mode='json', exclude_none=True))
 
 
 if __name__ == '__main__':

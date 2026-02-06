@@ -1,3 +1,4 @@
+import hvac
 import logging
 import uvicorn
 import os
@@ -16,14 +17,41 @@ from a2a.types import (
 from agent_executor import (
     HelloWorldAgentExecutor,  # type: ignore[import-untyped]
 )
-from auth_middleware import AuthMiddleware
+from auth_middleware import JWTAuthMiddleware, OIDCAuthMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-OPENID_CONNECT_URL=os.environ['OPENID_CONNECT_URL']
+OPENID_CONNECT_URL = os.environ["OPENID_CONNECT_URL"]
+USERINFO_ENDPOINT = os.environ["USERINFO_ENDPOINT"]
+
+VAULT_ADDR=os.environ["VAULT_ADDR"]
+VAULT_NAMESPACE=os.environ["VAULT_NAMESPACE"]
+VAULT_TOKEN=os.environ["VAULT_TOKEN"]
 
 if __name__ == "__main__":
+    security_schemes = {
+        "bearer": SecurityScheme(
+            root=HTTPAuthSecurityScheme(
+                type="http",
+                scheme="bearer",
+                bearer_format="JWT",
+                description="OAuth 2.0 JWT token with 'hello_world:read' scope",
+            )
+        )
+    }
+    security = [{"bearer": ["hello_world:read"]}]
+
+    if OPENID_CONNECT_URL and USERINFO_ENDPOINT:
+        security_schemes["oauth"] = SecurityScheme(
+            root=OpenIdConnectSecurityScheme(
+                description="OIDC provider",
+                type="openIdConnect",
+                open_id_connect_url=OPENID_CONNECT_URL,
+            )
+        )
+        security.append({"oauth": ["hello_world:read"]})
+
     # --8<-- [start:AgentSkill]
     skill = AgentSkill(
         id="hello_world",
@@ -54,24 +82,8 @@ if __name__ == "__main__":
         capabilities=AgentCapabilities(streaming=True),
         skills=[skill],  # Only the basic skill for the public card
         supports_authenticated_extended_card=True,
-        security_schemes={
-            "oauth": SecurityScheme(
-                root=OpenIdConnectSecurityScheme(
-                    description = "OIDC provider",
-                    type = "openIdConnect",
-                    open_id_connect_url = OPENID_CONNECT_URL,
-                )
-            ),
-            "bearer": SecurityScheme(
-                root=HTTPAuthSecurityScheme(
-                    type="http",
-                    scheme="bearer",
-                    bearer_format="JWT",
-                    description="OAuth 2.0 JWT token with 'hello_world:read' scope",
-                )
-            )
-        },
-        security=[{"oauth":["hello_world:read"]}, {"bearer": ["hello_world:read"]}],
+        security_schemes=security_schemes,
+        security=security,
     )
     # --8<-- [end:AgentCard]
 
@@ -103,11 +115,31 @@ if __name__ == "__main__":
     )
 
     app = server.build()
-
-    app.add_middleware(
-        AuthMiddleware,
-        agent_card=public_agent_card,
-        public_paths=['/.well-known/agent-card.json'],
-    )
+    
+    if OPENID_CONNECT_URL and USERINFO_ENDPOINT:
+        app.add_middleware(
+            OIDCAuthMiddleware,
+            agent_card=public_agent_card,
+            public_paths=["/.well-known/agent-card.json"],
+            userinfo_endpoint=USERINFO_ENDPOINT,
+        )
+    else:
+        if VAULT_ADDR and VAULT_TOKEN and VAULT_NAMESPACE:
+            vault_client = hvac.Client(
+                url=VAULT_ADDR,
+                token=VAULT_TOKEN,
+                namespace=VAULT_NAMESPACE,
+                verify=True
+            )
+            app.add_middleware(
+                JWTAuthMiddleware,
+                agent_card=public_agent_card,
+                public_paths=["/.well-known/agent-card.json"],
+                vault_client=vault_client,
+            )
+        else:
+            raise NotImplementedError(
+                "No authentication method defined. Please set OPENID_CONNECT_URL and USERINFO_ENDPOINT or VAULT_ADDR, VAULT_TOKEN and VAULT_NAMESPACE."
+            )
 
     uvicorn.run(app, host="0.0.0.0", port=9999)
