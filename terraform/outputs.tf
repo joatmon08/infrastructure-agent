@@ -141,6 +141,6 @@ output "helloworld_agent_client_login" {
 
 output "helloworld_agent_server_login" {
   description = "The login command for the helloworld-agent-server"
-  value       = "vault login -method=userpass username=${local.server_username} password=${random_password.helloworld_agent_client.result}"
+  value       = "vault login -method=userpass username=${local.server_username} password=${random_password.helloworld_agent_server.result}"
   sensitive   = true
 }

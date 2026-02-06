@@ -232,7 +232,7 @@ EOT
 }
 
 resource "vault_identity_entity_alias" "helloworld_agent_client" {
-  name           = local.client_username
+  name           = "${local.client_username}-0"
   mount_accessor = vault_auth_backend.userpass.accessor
   canonical_id   = vault_identity_entity.helloworld_agent_client.id
 }
