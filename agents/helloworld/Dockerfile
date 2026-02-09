@@ -46,4 +46,4 @@ WORKDIR /app
 EXPOSE 9999
 
 # Run the agent
-CMD python __main__.py
+CMD ["python", "__main__.py"]
