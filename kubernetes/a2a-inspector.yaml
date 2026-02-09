@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: a2a-inspector
+  labels:
+    app: a2a-inspector
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: a2a-inspector
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: a2a-inspector
+  labels:
+    app: a2a-inspector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: a2a-inspector
+  template:
+    metadata:
+      labels:
+        app: a2a-inspector
+    spec:
+      containers:
+      - name: a2a-inspector
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/a2a-inspector:8098818f97c6b8554f1f83636508a9608842f5a0
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+# Made with Bob

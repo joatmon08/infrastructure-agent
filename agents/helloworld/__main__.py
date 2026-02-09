@@ -17,7 +17,7 @@ from a2a.types import (
 from agent_executor import (
     HelloWorldAgentExecutor,  # type: ignore[import-untyped]
 )
-from auth_middleware import JWTAuthMiddleware, OIDCAuthMiddleware
+from auth_middleware import AuthMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,10 +25,8 @@ logger = logging.getLogger(__name__)
 AGENT_URL = os.getenv("AGENT_URL", 'http://localhost:9999/')
 
 ## Define these values for Vault as OIDC provider
-OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
-USERINFO_ENDPOINT = os.getenv("USERINFO_ENDPOINT")
+OPENID_CONNECT_PROVIDER_NAME = os.getenv("OPENID_CONNECT_PROVIDER_NAME")
 
-## Define these values for Vault identity tokens
 VAULT_ADDR=os.getenv("VAULT_ADDR")
 VAULT_NAMESPACE=os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN=os.getenv("VAULT_TOKEN")
@@ -46,12 +44,13 @@ if __name__ == "__main__":
     }
     security = [{"bearer": ["hello_world:read"]}]
 
-    if OPENID_CONNECT_URL and USERINFO_ENDPOINT:
+    if OPENID_CONNECT_PROVIDER_NAME:
+        openid_connect_configuration = f"/v1/identity/oidc/provider/{OPENID_CONNECT_PROVIDER_NAME}/.well-known/openid-configuration"
         security_schemes["oauth"] = SecurityScheme(
             root=OpenIdConnectSecurityScheme(
                 description="OIDC provider",
                 type="openIdConnect",
-                open_id_connect_url=OPENID_CONNECT_URL,
+                open_id_connect_url=f"{VAULT_ADDR}{openid_connect_configuration}",
             )
         )
         security.append({"oauth": ["hello_world:read"]})
@@ -119,18 +118,8 @@ if __name__ == "__main__":
     )
 
     app = server.build()
-    
-    if OPENID_CONNECT_URL and USERINFO_ENDPOINT:
-        logger.info("OIDC authentication is enabled")
-        app.add_middleware(
-            OIDCAuthMiddleware,
-            agent_card=public_agent_card,
-            public_paths=["/.well-known/agent-card.json"],
-            userinfo_endpoint=USERINFO_ENDPOINT,
-        )
         
     if VAULT_ADDR and VAULT_TOKEN and VAULT_NAMESPACE:
-        logger.info("JWT authentication is enabled")
         vault_client = hvac.Client(
             url=VAULT_ADDR,
             token=VAULT_TOKEN,
@@ -138,10 +127,11 @@ if __name__ == "__main__":
             verify=True
         )
         app.add_middleware(
-            JWTAuthMiddleware,
+            AuthMiddleware,
             agent_card=public_agent_card,
             public_paths=["/.well-known/agent-card.json"],
             vault_client=vault_client,
+            openid_connect_provider_name=OPENID_CONNECT_PROVIDER_NAME
         )
 
     uvicorn.run(app, host="0.0.0.0", port=9999)

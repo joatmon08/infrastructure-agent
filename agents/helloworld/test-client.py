@@ -34,31 +34,52 @@ REDIRECT_URI_DOMAIN = os.getenv("REDIRECT_URI_DOMAIN", "localhost")
 REDIRECT_URI_PORT = os.getenv("REDIRECT_URI_PORT", 9998)
 REDIRECT_URI_ENDPOINT = os.getenv("REDIRECT_URI_ENDPOINT", "callback")
 
-## Define these values for Vault as OIDC provider
-TOKEN_ENDPOINT: str | None = os.getenv("TOKEN_ENDPOINT")
-AUTHORIZATION_ENDPOINT: str | None = os.getenv("AUTH_ENDPOINT")
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-OIDC_SCOPES = os.getenv("OIDC_SCOPES", "openid")
-
-## Define these values for Vault identity tokens
+## Required to connect to confidential OIDC provider
 VAULT_ADDR = os.getenv("VAULT_ADDR")
 VAULT_NAMESPACE = os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN = os.getenv("VAULT_TOKEN")
+
+## Define these values for Vault as OIDC provider
+OPENID_CONNECT_SCOPES = os.getenv("OIDC_SCOPES", "openid")
+OPENID_CONNECT_PROVIDER_NAME = os.getenv("OPENID_CONNECT_PROVIDER_NAME")
+OPENID_CONNECT_CLIENT_NAME = os.getenv('OPENID_CONNECT_CLIENT_NAME')
+
+## Define these values for Vault identity tokens
 VAULT_ROLE = os.getenv("VAULT_ROLE", "default")
 
-
 class OIDCAuthenticationConfig:
-    def __init__(self):
-        self.authorization_endpoint = AUTHORIZATION_ENDPOINT
-        self.token_endpoint = TOKEN_ENDPOINT
+    def __init__(self, vault_client):
         self.redirect_uri_domain = REDIRECT_URI_DOMAIN
         self.redirect_uri_port = REDIRECT_URI_PORT
         self.redirect_uri_endpoint = REDIRECT_URI_ENDPOINT
-        self.client_id = CLIENT_ID
-        self.client_secret = CLIENT_SECRET
-        self.scope = OIDC_SCOPES
+        self.scope = OPENID_CONNECT_SCOPES
+        self.vault_client = vault_client
+        self._get_openid_configuration()
+        self._get_client_secret()
 
+    def _get_openid_configuration(self):
+        self.authorization_endpoint = None
+        self.token_endpoint = None
+        try:
+            logger.info(f"Attempting to get Vault OIDC provider config for {OPENID_CONNECT_PROVIDER_NAME}")
+            response = self.vault_client.read(f"/v1/identity/oidc/provider/{OPENID_CONNECT_PROVIDER_NAME}/.well-known/openid-configuration")
+            config = response.json()
+            self.authorization_endpoint = config['authorization_endpoint']
+            self.token_endpoint = config['token_endpoint']
+        except Exception as e:
+            logger.error(f"Failed to get OIDC provider config for {OPENID_CONNECT_PROVIDER_NAME}: {str(e)}")
+
+    def _get_client_secret(self):
+        self.client_id = None
+        self.client_secret = None
+        try:
+            logger.info(f"Attempting to get client id and secret for {OPENID_CONNECT_CLIENT_NAME}")
+            response = self.vault_client.read(f"/v1/identity/oidc/client/{OPENID_CONNECT_CLIENT_NAME}")
+            config = response.json()
+            self.client_id = config['client_id']
+            self.client_secret = config['client_secret']
+        except Exception as e:
+            logger.error(f"Failed to client id and secret for {OPENID_CONNECT_CLIENT_NAME}: {str(e)}")
 
 def authorization_code_flow(config):
     logger.info(
@@ -81,16 +102,14 @@ def authorization_code_flow(config):
     return auth
 
 
-async def get_token():
-    logger.info(f"Attempting to get Vault identity token with {VAULT_ROLE}")
-    vault_client = hvac.Client(
-        url=VAULT_ADDR,
-        token=VAULT_TOKEN,
-        namespace=VAULT_NAMESPACE,
-    )
-    response = vault_client.secrets.identity.generate_signed_id_token(name=VAULT_ROLE)
-    return response["data"]["token"]
-
+async def get_token(vault_client):
+    try:
+        logger.info(f"Attempting to get Vault identity token with {VAULT_ROLE}")
+        response = vault_client.secrets.identity.generate_signed_id_token(name=VAULT_ROLE)
+        return response["data"]["token"]
+    except Exception as e:
+        logger.error(f"Failed to get Vault identity token: {str(e)}")
+        raise e
 
 class AgentAuth(httpx.Auth):
     """Custom httpx's authentication class to inject access token required by agent."""
@@ -132,22 +151,20 @@ async def main() -> None:
             )
 
             if _public_card.supports_authenticated_extended_card:
-                if (
-                    TOKEN_ENDPOINT
-                    and AUTHORIZATION_ENDPOINT
-                    and CLIENT_ID
-                    and CLIENT_SECRET
-                ):
+                vault_client = hvac.Client(
+                    url=VAULT_ADDR,
+                    token=VAULT_TOKEN,
+                    namespace=VAULT_NAMESPACE,
+                )
+
+                if OPENID_CONNECT_PROVIDER_NAME and OPENID_CONNECT_CLIENT_NAME:
                     httpx_client.auth = authorization_code_flow(
-                        OIDCAuthenticationConfig()
+                        OIDCAuthenticationConfig(vault_client)
                     )
-                elif VAULT_ADDR and VAULT_NAMESPACE and VAULT_TOKEN:
-                    token = await get_token()
-                    httpx_client.headers["Authorization"] = f"Bearer {token}"
                 else:
-                    raise NotImplementedError(
-                        "No authentication specified for authenticated extended card. Use OIDC or Vault identity token"
-                    )
+                    token = await get_token(vault_client)
+                    logger.info(token)
+                    httpx_client.headers["Authorization"] = f"Bearer {token}"
 
                 try:
                     logger.info(

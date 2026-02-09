@@ -27,26 +27,3 @@ spec:
             name: langflow-service-backend
             port:
               number: 7860
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: helloworld-agent-server
-  annotations:
-    alb.ingress.kubernetes.io/inbound-cidrs: "100.8.117.17/32"
-    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=1800
-    alb.ingress.kubernetes.io/healthcheck-path: /.well-known/agent-card.json
-  labels:
-    app: helloworld-agent-server
-spec:
-  ingressClassName: alb
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: helloworld-agent-server
-            port:
-              number: 9999
