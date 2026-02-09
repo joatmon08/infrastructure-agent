@@ -40,7 +40,7 @@ VAULT_NAMESPACE = os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN = os.getenv("VAULT_TOKEN")
 
 ## Define these values for Vault as OIDC provider
-OPENID_CONNECT_SCOPES = os.getenv("OIDC_SCOPES", "openid")
+OPENID_CONNECT_SCOPES = os.getenv("OPENID_CONNECT_SCOPES", "openid")
 OPENID_CONNECT_PROVIDER_NAME = os.getenv("OPENID_CONNECT_PROVIDER_NAME")
 OPENID_CONNECT_CLIENT_NAME = os.getenv('OPENID_CONNECT_CLIENT_NAME')
 
@@ -62,10 +62,9 @@ class OIDCAuthenticationConfig:
         self.token_endpoint = None
         try:
             logger.info(f"Attempting to get Vault OIDC provider config for {OPENID_CONNECT_PROVIDER_NAME}")
-            response = self.vault_client.read(f"/v1/identity/oidc/provider/{OPENID_CONNECT_PROVIDER_NAME}/.well-known/openid-configuration")
-            config = response.json()
-            self.authorization_endpoint = config['authorization_endpoint']
-            self.token_endpoint = config['token_endpoint']
+            response = self.vault_client.read(f"/identity/oidc/provider/{OPENID_CONNECT_PROVIDER_NAME}/.well-known/openid-configuration")
+            self.authorization_endpoint = response['authorization_endpoint']
+            self.token_endpoint = response['token_endpoint']
         except Exception as e:
             logger.error(f"Failed to get OIDC provider config for {OPENID_CONNECT_PROVIDER_NAME}: {str(e)}")
 
@@ -74,10 +73,9 @@ class OIDCAuthenticationConfig:
         self.client_secret = None
         try:
             logger.info(f"Attempting to get client id and secret for {OPENID_CONNECT_CLIENT_NAME}")
-            response = self.vault_client.read(f"/v1/identity/oidc/client/{OPENID_CONNECT_CLIENT_NAME}")
-            config = response.json()
-            self.client_id = config['client_id']
-            self.client_secret = config['client_secret']
+            response = self.vault_client.read(f"/identity/oidc/client/{OPENID_CONNECT_CLIENT_NAME}")
+            self.client_id = response['data']['client_id']
+            self.client_secret = response['data']['client_secret']
         except Exception as e:
             logger.error(f"Failed to client id and secret for {OPENID_CONNECT_CLIENT_NAME}: {str(e)}")
 
@@ -147,7 +145,7 @@ async def main() -> None:
             logger.info(_public_card.model_dump_json(indent=2, exclude_none=True))
             final_agent_card_to_use = _public_card
             logger.info(
-                "\nUsing PUBLIC agent card for client initialization (default)."
+                "Using PUBLIC agent card for client initialization (default)."
             )
 
             if _public_card.supports_authenticated_extended_card:
@@ -168,7 +166,7 @@ async def main() -> None:
 
                 try:
                     logger.info(
-                        f"\nPublic card supports authenticated extended card. Attempting to fetch from: {base_url}{EXTENDED_AGENT_CARD_PATH}"
+                        f"Public card supports authenticated extended card. Attempting to fetch from: {base_url}{EXTENDED_AGENT_CARD_PATH}"
                     )
 
                     _extended_card = await resolver.get_agent_card(
@@ -208,8 +206,6 @@ async def main() -> None:
         factory = ClientFactory(config=config)
         client = factory.create(final_agent_card_to_use)
         logger.info("A2AClient initialized")
-
-        logger.info(httpx_client.auth)
 
         message = Message(
             message_id=str(uuid4()), 

@@ -59,6 +59,16 @@ path "identity/oidc/provider/agent/authorize" {
 EOT
 }
 
+resource "vault_policy" "agent_oidc_client" {
+  name = "helloworld-agent-oidc-client"
+
+  policy = <<EOT
+path "identity/oidc/client/agent" {
+  capabilities = [ "read" ]
+}
+EOT
+}
+
 resource "vault_policy" "agent_identity_token" {
   name = "helloworld-agent-client-token"
 
@@ -120,7 +130,7 @@ resource "vault_generic_endpoint" "helloworld_agent_client" {
   ignore_absent_fields = true
   data_json            = <<EOT
 {
-  "token_policies": ["${vault_policy.agent_oidc.name}", "${vault_policy.agent_identity_token.name}"],
+  "token_policies": ["${vault_policy.agent_oidc.name}", "${vault_policy.agent_oidc_client.name}", "${vault_policy.agent_identity_token.name}"],
   "token_ttl": "1h",
   "password": "${random_password.helloworld_agent_client.result}"
 }
@@ -128,7 +138,8 @@ EOT
 }
 
 resource "vault_identity_entity" "helloworld_agent_client" {
-  name = local.client_username
+  name     = local.client_username
+  policies = [vault_policy.agent_oidc.name, vault_policy.agent_oidc_client.name, vault_policy.agent_identity_token.name]
 }
 
 resource "vault_identity_group" "agent" {
@@ -232,7 +243,7 @@ EOT
 }
 
 resource "vault_identity_entity_alias" "helloworld_agent_client" {
-  name           = "${local.client_username}-0"
+  name           = local.client_username
   mount_accessor = vault_auth_backend.userpass.accessor
   canonical_id   = vault_identity_entity.helloworld_agent_client.id
 }

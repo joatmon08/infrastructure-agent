@@ -89,9 +89,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     async def _get_userinfo_endpoint(self, openid_connect_provider_name: str) -> str | None :
         try:
-            response = self.vault_client.read(f"/v1/identity/oidc/provider/{openid_connect_provider_name}/.well-known/openid-configuration")
-            config = response.json()
-            return config['userinfo_endpoint']
+            response = self.vault_client.read(f"/identity/oidc/provider/{openid_connect_provider_name}/.well-known/openid-configuration")
+            return response['userinfo_endpoint']
         except Exception as e:
             logger.error(f"Failed to get OIDC provider config: {str(e)}")
             return None
@@ -170,7 +169,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
                 else:
                     missing_scopes = await self.check_vault_identity_token(request, access_token)
+            
             if missing_scopes:
+                logger.error(f"Missing required scopes: {missing_scopes}")
                 return self._forbidden(
                     f'Missing required scopes: {missing_scopes}', request
                 )
