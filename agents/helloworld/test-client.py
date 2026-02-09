@@ -1,28 +1,27 @@
+import http
 import logging
 import os
 
 from typing import Any
 from uuid import uuid4
 
-from fastapi.openapi.models import OAuthFlowAuthorizationCode
 import httpx
 from httpx_auth import OAuth2AuthorizationCode
 import hvac
 
-from a2a.client import A2ACardResolver, A2AClient
+from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
 from a2a.types import (
     AgentCard,
-    MessageSendParams,
-    SendStreamingMessageRequest,
+    Message,
+    Role,
+    Part,
+    TextPart
 )
 
 from a2a.utils.constants import (
     AGENT_CARD_WELL_KNOWN_PATH,
     EXTENDED_AGENT_CARD_PATH,
 )
-
-from authlib.integrations.httpx_client import AsyncOAuth2Client
-from authlib.oauth2.rfc7523 import ClientSecretJWT
 
 # Configure logging to show INFO level messages
 logging.basicConfig(level=logging.INFO)
@@ -39,36 +38,31 @@ TOKEN_ENDPOINT: str | None = os.getenv("TOKEN_ENDPOINT")
 AUTHORIZATION_ENDPOINT: str | None = os.getenv("AUTH_ENDPOINT")
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+OIDC_SCOPES = os.getenv("OIDC_SCOPES", "openid")
 
 ## Define these values for Vault identity tokens
 VAULT_ADDR = os.getenv("VAULT_ADDR")
 VAULT_NAMESPACE = os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN = os.getenv("VAULT_TOKEN")
+VAULT_ROLE = os.getenv("VAULT_ROLE", "default")
 
 
 class OIDCAuthenticationConfig:
-    def __init__(
-        self,
-        authorization_endpoint,
-        token_endpoint,
-        redirect_uri_domain,
-        redirect_uri_port,
-        redirect_uri_endpoint,
-        client_id,
-        client_secret,
-        scope,
-    ):
-        self.authorization_endpoint = authorization_endpoint
-        self.token_endpoint = token_endpoint
-        self.redirect_uri_domain = redirect_uri_domain
-        self.redirect_uri_port = redirect_uri_port
-        self.redirect_uri_endpoint = redirect_uri_endpoint
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.scope = scope
+    def __init__(self):
+        self.authorization_endpoint = AUTHORIZATION_ENDPOINT
+        self.token_endpoint = TOKEN_ENDPOINT
+        self.redirect_uri_domain = REDIRECT_URI_DOMAIN
+        self.redirect_uri_port = REDIRECT_URI_PORT
+        self.redirect_uri_endpoint = REDIRECT_URI_ENDPOINT
+        self.client_id = CLIENT_ID
+        self.client_secret = CLIENT_SECRET
+        self.scope = OIDC_SCOPES
 
 
 def authorization_code_flow(config):
+    logger.info(
+        f"Attempting to authenticate with OAuth2AuthorizationCode with scopes {config.scope}"
+    )
     kwargs = dict(
         client_id=config.client_id,
         client_secret=config.client_secret,
@@ -87,14 +81,13 @@ def authorization_code_flow(config):
 
 
 async def get_token():
+    logger.info(f"Attempting to get Vault identity token with {VAULT_ROLE}")
     vault_client = hvac.Client(
         url=VAULT_ADDR,
         token=VAULT_TOKEN,
         namespace=VAULT_NAMESPACE,
     )
-    response = vault_client.secrets.identity.generate_signed_id_token(
-        name="helloworld-reader"
-    )
+    response = vault_client.secrets.identity.generate_signed_id_token(name=VAULT_ROLE)
     return response["data"]["token"]
 
 
@@ -114,20 +107,14 @@ async def main() -> None:
     # --8<-- [start:A2ACardResolver]
 
     base_url = AGENT_SERVER_URL
-    scopes = "openid helloworld"
 
-    async with httpx.AsyncClient() as httpx_client:
-        # Initialize A2ACardResolver
+    async with httpx.AsyncClient(http2=True, timeout=60) as httpx_client:
         resolver = A2ACardResolver(
             httpx_client=httpx_client,
             base_url=base_url,
-            # agent_card_path uses default, extended_agent_card_path also uses default
         )
-        # --8<-- [end:A2ACardResolver]
 
-        # Fetch Public Agent Card and Initialize Client
         final_agent_card_to_use: AgentCard | None = None
-        # token = await get_token()
 
         try:
             logger.info(
@@ -150,20 +137,11 @@ async def main() -> None:
                     and CLIENT_ID
                     and CLIENT_SECRET
                 ):
-                    config = OIDCAuthenticationConfig(
-                        AUTHORIZATION_ENDPOINT,
-                        TOKEN_ENDPOINT,
-                        REDIRECT_URI_DOMAIN,
-                        REDIRECT_URI_PORT,
-                        REDIRECT_URI_ENDPOINT,
-                        CLIENT_ID,
-                        CLIENT_SECRET,
-                        scopes,
+                    httpx_client.auth = authorization_code_flow(
+                        OIDCAuthenticationConfig()
                     )
-                    httpx_client.auth = authorization_code_flow(config)
                 elif VAULT_ADDR and VAULT_NAMESPACE and VAULT_TOKEN:
                     token = await get_token()
-                    print(token)
                     httpx_client.headers["Authorization"] = f"Bearer {token}"
                 else:
                     raise NotImplementedError(
@@ -179,7 +157,7 @@ async def main() -> None:
                         relative_card_path=EXTENDED_AGENT_CARD_PATH,
                     )
                     logger.info(
-                        "Successfully fetched authenticated extended agent card:"
+                        "Successfully fetched authenticated extended agent card"
                     )
                     logger.info(
                         _extended_card.model_dump_json(indent=2, exclude_none=True)
@@ -188,44 +166,46 @@ async def main() -> None:
                         _extended_card  # Update to use the extended card
                     )
                     logger.info(
-                        "\nUsing AUTHENTICATED EXTENDED agent card for client initialization."
+                        "Using AUTHENTICATED EXTENDED agent card for client initialization"
                     )
                 except Exception as e_extended:
                     logger.warning(
-                        f"Failed to fetch extended agent card: {e_extended}. Will proceed with public card.",
+                        f"Failed to fetch extended agent card: {e_extended}. Will proceed with public card",
                         exc_info=True,
                     )
             elif _public_card:  # supports_authenticated_extended_card is False or None
                 logger.info(
-                    "\nPublic card does not indicate support for an extended card. Using public card."
+                    "Public card does not indicate support for an extended card. Using public card"
                 )
 
         except Exception as e:
             logger.error(f"Critical error fetching public agent card: {e}")
             raise RuntimeError()
 
-        # --8<-- [start:send_message]
-        client = A2AClient(
-            httpx_client=httpx_client, agent_card=final_agent_card_to_use
-        )
-        logger.info("A2AClient initialized.")
-
-        send_message_payload: dict[str, Any] = {
-            "message": {
-                "role": "user",
-                "parts": [{"kind": "text", "text": "how much is 10 USD in INR?"}],
-                "messageId": uuid4().hex,
-            },
-        }
-        # --8<-- [start:send_message_streaming]
-        streaming_request = SendStreamingMessageRequest(
-            id=str(uuid4()), params=MessageSendParams(**send_message_payload)
+        config = ClientConfig(
+            streaming=True,
+            httpx_client=httpx_client,
         )
 
-        stream_response = client.send_message_streaming(streaming_request)
+        factory = ClientFactory(config=config)
+        client = factory.create(final_agent_card_to_use)
+        logger.info("A2AClient initialized")
 
-        async for chunk in stream_response:
-            print(chunk.model_dump(mode="json", exclude_none=True))
+        message = Message(
+            message_id=str(uuid4()), 
+            role=Role.user,
+            parts=[Part(root=TextPart(text="Why is hello world a standard greeting?"))],
+        )
+        
+        try:
+
+            stream = client.send_message(message)
+        except Exception as e:
+            logger.error(f"Error sending message: {e}")
+            raise RuntimeError()
+
+        async for event in stream:
+            print(event)
 
 
 if __name__ == "__main__":

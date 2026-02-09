@@ -22,6 +22,8 @@ from auth_middleware import JWTAuthMiddleware, OIDCAuthMiddleware
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+AGENT_URL = os.getenv("AGENT_URL", 'http://localhost:9999/')
+
 ## Define these values for Vault as OIDC provider
 OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
 USERINFO_ENDPOINT = os.getenv("USERINFO_ENDPOINT")
@@ -77,7 +79,7 @@ if __name__ == "__main__":
     public_agent_card = AgentCard(
         name="Hello World Agent",
         description="Just a hello world agent",
-        url="http://localhost:9999/",
+        url=AGENT_URL,
         version="1.0.0",
         default_input_modes=["text"],
         default_output_modes=["text"],
