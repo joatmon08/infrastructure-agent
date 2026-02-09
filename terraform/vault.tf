@@ -241,6 +241,27 @@ data "vault_identity_oidc_openid_config" "agent" {
   name = vault_identity_oidc_provider.agent.name
 }
 
+resource "kubernetes_ingress_v1" "helloworld_agent_server" {
+  metadata {
+    name = local.server_username
+    annotations = {
+      "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
+      "alb.ingress.kubernetes.io/inbound-cidrs"    = "100.8.117.17/32"
+    }
+  }
+
+  spec {
+    default_backend {
+      service {
+        name = local.server_username
+        port {
+          number = 9999
+        }
+      }
+    }
+  }
+}
+
 resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   metadata {
     name = local.server_username
@@ -249,6 +270,7 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   data = {
     OPENID_CONNECT_URL = "${hcp_vault_cluster.main.vault_public_endpoint_url}/v1/identity/oidc/provider/agent/.well-known/openid-configuration"
     USERINFO_ENDPOINT  = data.vault_identity_oidc_openid_config.agent.userinfo_endpoint
+    AGENT_URL = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
   }
 }
 
