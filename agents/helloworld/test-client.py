@@ -5,6 +5,7 @@ import os
 from typing import Any
 from uuid import uuid4
 
+from anyio import TaskInfo
 import httpx
 from httpx_auth import OAuth2AuthorizationCode
 import hvac
@@ -27,7 +28,7 @@ from a2a.utils.constants import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-AGENT_SERVER_URL = os.getenv("AGENT_SERVER_URL", "http://localhost:9999")
+AGENT_SERVER_URL = os.getenv("AGENT_URL", "http://localhost:9999")
 
 REDIRECT_URI_DOMAIN = os.getenv("REDIRECT_URI_DOMAIN", "localhost")
 REDIRECT_URI_PORT = os.getenv("REDIRECT_URI_PORT", 9998)
@@ -191,21 +192,25 @@ async def main() -> None:
         client = factory.create(final_agent_card_to_use)
         logger.info("A2AClient initialized")
 
+        logger.info(httpx_client.auth)
+
         message = Message(
             message_id=str(uuid4()), 
             role=Role.user,
-            parts=[Part(root=TextPart(text="Why is hello world a standard greeting?"))],
+            parts=[Part(root=TextPart(text="Give me a hello world"))],
         )
         
         try:
-
             stream = client.send_message(message)
         except Exception as e:
             logger.error(f"Error sending message: {e}")
             raise RuntimeError()
 
         async for event in stream:
-            print(event)
+            if hasattr(event, 'parts'):
+                if hasattr(event.parts[0], 'root'):
+                    if hasattr(event.parts[0].root, 'text'):
+                            print(event.parts[0].root.text)
 
 
 if __name__ == "__main__":

@@ -32,12 +32,18 @@ spec:
     spec:
       containers:
       - name: helloworld-agent-server
-        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:97110eef09c2ae65577da0e35133dacc692669ac
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:a87426c19052eb9843caa3f174eabfb7b2d51871
         ports:
         - containerPort: 9999
           name: http
           protocol: TCP
         env:
+        - name: AGENT_URL
+          value: http://k8s-default-hellowor-356e360717-75923174.us-east-1.elb.amazonaws.com/
+          # valueFrom:
+          #   configMapKeyRef:
+          #     name: helloworld-agent-server
+          #     key: AGENT_URL
         - name: OPENID_CONNECT_URL
           valueFrom:
             configMapKeyRef:

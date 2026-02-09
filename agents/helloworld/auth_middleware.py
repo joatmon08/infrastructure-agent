@@ -68,10 +68,10 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         if self.vault_client is None:
-            logger.info("No Vault client provided. Cannot retrieve identity token")
+            logger.error("No Vault client provided. Cannot retrieve identity token")
             return
 
-        logger.info("Authenticating with Vault identity tokens")
+        logger.debug("Authenticating with Vault identity tokens")
 
         path = request.url.path
 
@@ -106,15 +106,18 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 
                 scopes = payload.get('scope', '').split()
 
-                missing_scopes = [
-                    s
-                    for s in self.a2a_auth['required_scopes']
-                    if s not in scopes
-                ]
+                missing_scopes = []
 
-                if missing_scopes:
-                    return self._forbidden(
-                        f'Missing required scopes: {missing_scopes}', request
+                if self.a2a_auth['required_scopes']:
+                    missing_scopes = [
+                        s
+                        for s in self.a2a_auth['required_scopes']
+                        if s not in scopes
+                    ]
+
+                    if missing_scopes:
+                        return self._forbidden(
+                            f'Missing required scopes: {missing_scopes}', request
                     )
         except Exception as e:
             return self._forbidden(f'Authentication failed: {e}', request)
@@ -167,7 +170,6 @@ class OIDCAuthMiddleware(BaseHTTPMiddleware):
                 f"{self.userinfo_endpoint}",
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-            logger.info(userinfo)
             return userinfo.json()
         except Exception as e:
             logger.error(f"Failed to get userinfo with token: {str(e)}")
@@ -175,10 +177,10 @@ class OIDCAuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         if self.userinfo_endpoint is None:
-            logger.info("No OIDC userinfo endpoint provided. Stopping authorization flow")
+            logger.error("No OIDC userinfo endpoint provided. Stopping authorization flow")
             return
 
-        logger.info("Authenticating with OIDC")
+        logger.debug("Authenticating with OIDC")
 
         path = request.url.path
 

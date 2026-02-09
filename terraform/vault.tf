@@ -270,7 +270,7 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   data = {
     OPENID_CONNECT_URL = "${hcp_vault_cluster.main.vault_public_endpoint_url}/v1/identity/oidc/provider/agent/.well-known/openid-configuration"
     USERINFO_ENDPOINT  = data.vault_identity_oidc_openid_config.agent.userinfo_endpoint
-    AGENT_URL = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
+    AGENT_URL          = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}/"
   }
 }
 
