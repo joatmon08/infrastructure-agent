@@ -236,3 +236,29 @@ resource "vault_identity_entity_alias" "helloworld_agent_client" {
   mount_accessor = vault_auth_backend.userpass.accessor
   canonical_id   = vault_identity_entity.helloworld_agent_client.id
 }
+
+data "vault_identity_oidc_openid_config" "agent" {
+  name = vault_identity_oidc_provider.agent.name
+}
+
+resource "kubernetes_config_map_v1" "helloworld_agent_server" {
+  metadata {
+    name = local.server_username
+  }
+
+  data = {
+    OPENID_CONNECT_URL = "${hcp_vault_cluster.main.vault_public_endpoint_url}/v1/identity/oidc/provider/agent/.well-known/openid-configuration"
+    USERINFO_ENDPOINT  = data.vault_identity_oidc_openid_config.agent.userinfo_endpoint
+  }
+}
+
+resource "kubernetes_config_map_v1" "helloworld_agent_client" {
+  metadata {
+    name = local.client_username
+  }
+
+  data = {
+    TOKEN_ENDPOINT         = data.vault_identity_oidc_openid_config.agent.token_endpoint
+    AUTHORIZATION_ENDPOINT = data.vault_identity_oidc_openid_config.agent.authorization_endpoint
+  }
+}
