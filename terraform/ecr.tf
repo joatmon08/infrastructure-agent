@@ -38,6 +38,20 @@ resource "aws_ecr_repository" "helloworld_agent" {
   }
 }
 
+resource "aws_ecr_repository" "a2a_inspector" {
+  name                 = "a2a-inspector"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = {
+    Name = "a2a-inspector"
+  }
+}
+
+
 # IAM Policy for ECR Access
 resource "aws_iam_policy" "ecr_pull_policy" {
   name        = "${var.project_name}-ecr-pull-policy"
