@@ -7,7 +7,6 @@ requires-python = ">=3.14"
 dependencies = [
     "a2a-sdk[http-server]>=0.3.22",
     "httpx>=0.28.1",
-    "httpx-auth>=0.23.1",
     "hvac>=2.4.0",
     "pyjwt>=2.11.0",
     "starlette>=0.52.1",
