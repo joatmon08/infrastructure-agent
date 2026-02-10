@@ -36,14 +36,14 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
         path {
           backend {
             service {
-              name = "a2a-inspector"
+              name = "test-client"
               port {
-                number = 8080
+                number = 9000
               }
             }
           }
 
-          path      = "/inspector"
+          path      = "/client"
           path_type = "Prefix"
         }
       }
