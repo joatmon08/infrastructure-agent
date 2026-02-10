@@ -196,7 +196,7 @@ resource "vault_identity_oidc_client" "agent" {
     "http://localhost:9998/callback",
   ]
   assignments = [
-    # vault_identity_oidc_assignment.end_user.name,
+    vault_identity_oidc_assignment.end_user.name,
   ]
   key              = vault_identity_oidc_key.agent.name
   id_token_ttl     = 3600
