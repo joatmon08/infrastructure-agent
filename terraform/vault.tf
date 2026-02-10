@@ -108,9 +108,15 @@ resource "random_password" "helloworld_agent_server" {
   special = false
 }
 
+resource "random_password" "end_user" {
+  length  = 16
+  special = false
+}
+
 locals {
   client_username = "helloworld-agent-client"
   server_username = "helloworld-agent-server"
+  end_user        = "end-user"
 }
 
 resource "vault_generic_endpoint" "helloworld_agent_server" {
@@ -130,30 +136,41 @@ resource "vault_generic_endpoint" "helloworld_agent_client" {
   ignore_absent_fields = true
   data_json            = <<EOT
 {
-  "token_policies": ["${vault_policy.agent_oidc.name}", "${vault_policy.agent_oidc_client.name}", "${vault_policy.agent_identity_token.name}"],
-  "token_ttl": "1h",
+  "token_policies": ["${vault_policy.agent_oidc_client.name}", "${vault_policy.agent_identity_token.name}"],
+  "token_ttl": "6h",
   "password": "${random_password.helloworld_agent_client.result}"
 }
 EOT
 }
 
-resource "vault_identity_entity" "helloworld_agent_client" {
-  name     = local.client_username
-  policies = [vault_policy.agent_oidc.name, vault_policy.agent_oidc_client.name, vault_policy.agent_identity_token.name]
+resource "vault_generic_endpoint" "end_user" {
+  path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.end_user}"
+  ignore_absent_fields = true
+  data_json            = <<EOT
+{
+  "token_policies": ["${vault_policy.agent_oidc.name}"],
+  "token_ttl": "1h",
+  "password": "${random_password.end_user.result}"
+}
+EOT
+}
+
+resource "vault_identity_entity" "end_user" {
+  name = local.end_user
 }
 
 resource "vault_identity_group" "agent" {
   name = "agent"
   type = "internal"
   member_entity_ids = [
-    vault_identity_entity.helloworld_agent_client.id
+    vault_identity_entity.end_user.id
   ]
 }
 
-resource "vault_identity_oidc_assignment" "helloworld_agent_client" {
-  name = "${local.client_username}-assignment"
+resource "vault_identity_oidc_assignment" "end_user" {
+  name = "${local.end_user}-assignment"
   entity_ids = [
-    vault_identity_entity.helloworld_agent_client.id,
+    vault_identity_entity.end_user.id,
   ]
   group_ids = [
     vault_identity_group.agent.id,
@@ -179,15 +196,15 @@ resource "vault_identity_oidc_client" "agent" {
     "http://localhost:9998/callback",
   ]
   assignments = [
-    vault_identity_oidc_assignment.helloworld_agent_client.name,
+    vault_identity_oidc_assignment.end_user.name,
   ]
   key              = vault_identity_oidc_key.agent.name
-  id_token_ttl     = 2400
+  id_token_ttl     = 3600
   access_token_ttl = 7200
 }
 
 resource "vault_identity_oidc_scope" "helloworld_read" {
-  name        = "helloworld"
+  name        = "helloworld-read"
   template    = <<EOT
 {
   "hello_world": "read"
@@ -242,10 +259,10 @@ resource "vault_identity_oidc_role" "helloworld_reader" {
 EOT
 }
 
-resource "vault_identity_entity_alias" "helloworld_agent_client" {
-  name           = local.client_username
+resource "vault_identity_entity_alias" "end_user" {
+  name           = local.end_user
   mount_accessor = vault_auth_backend.userpass.accessor
-  canonical_id   = vault_identity_entity.helloworld_agent_client.id
+  canonical_id   = vault_identity_entity.end_user.id
 }
 
 data "vault_identity_oidc_openid_config" "agent" {
