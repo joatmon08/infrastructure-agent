@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: helloworld-agent-server
-        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:de8e3511687225fef04dd9510b4e6e64b3e67a16
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:4373c249afbdce719a6f932d056f3da881dd49f9
         ports:
         - containerPort: 9999
           name: http
@@ -48,11 +48,6 @@ spec:
             configMapKeyRef:
               name: helloworld-agent-server
               key: OPENID_CONNECT_URL
-        - name: USERINFO_ENDPOINT
-          valueFrom:
-            configMapKeyRef:
-              name: helloworld-agent-server
-              key: USERINFO_ENDPOINT
         # Optional: Uncomment and configure if using Vault JWT authentication
         # - name: VAULT_ADDR
         #   value: "https://vault.example.com"
