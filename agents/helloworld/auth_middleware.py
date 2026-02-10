@@ -45,14 +45,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
         app: Starlette,
         agent_card: AgentCard,
         public_paths: list[str],
-        vault_client: hvac.Client,
-        openid_connect_provider_name: str | None,
+        vault_client: hvac.Client | None,
+        openid_connect_url: str | None,
     ):
         super().__init__(app)
         self.agent_card = agent_card
         self.public_paths = set(public_paths or [])
         self.vault_client = vault_client
-        self.openid_connect_provider_name = openid_connect_provider_name
+        self.openid_connect_url = openid_connect_url
 
         scopes = get_scopes_from_agent_card(self.agent_card)
         self.a2a_auth = {"required_scopes": scopes}
@@ -87,10 +87,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         
         return missing_scopes
 
-    async def _get_userinfo_endpoint(self, openid_connect_provider_name: str) -> str | None :
+    async def _get_userinfo_endpoint(self) -> str | None :
         try:
-            response = self.vault_client.read(f"/identity/oidc/provider/{openid_connect_provider_name}/.well-known/openid-configuration")
-            return response['userinfo_endpoint']
+            config = httpx.get(
+                self.openid_connect_url
+            )
+            return config.json()['userinfo_endpoint']
         except Exception as e:
             logger.error(f"Failed to get OIDC provider config: {str(e)}")
             return None
@@ -104,9 +106,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
             logger.error(f"Failed to decode token: {str(e)}")
             return False
 
-    async def get_userinfo(self, access_token, openid_connect_provider_name):
+    async def get_userinfo(self, access_token):
         try:
-            userinfo_endpoint = await self._get_userinfo_endpoint(openid_connect_provider_name)
+            userinfo_endpoint = await self._get_userinfo_endpoint()
             userinfo = httpx.get(
                 f"{userinfo_endpoint}",
                 headers={"Authorization": f"Bearer {access_token}"},
@@ -132,10 +134,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         
 
     async def dispatch(self, request: Request, call_next):
-        if self.vault_client is None:
-            logger.error("No Vault client provided. Cannot connect to identity provider")
-            return
-
         path = request.url.path
 
         # Allow public paths and anonymous access
@@ -155,8 +153,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             missing_scopes = []
     
             if self.a2a_auth:
-                if self.openid_connect_provider_name:
-                    userinfo = await self.get_userinfo(access_token, self.openid_connect_provider_name)
+                if self.openid_connect_url:
+                    userinfo = await self.get_userinfo(access_token)
 
                     if not userinfo:
                         logger.error(f"Invalid or expired access token")
@@ -166,9 +164,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     )
 
                     missing_scopes = self.check_oidc_scopes(userinfo)
-
-                else:
+                elif self.vault_client:
                     missing_scopes = await self.check_vault_identity_token(request, access_token)
+                else:
+                    logger.error("No Vault client provided for identity token validation")
+                    return self._unauthorized(
+                        'No Vault client provided. Cannot use Vault identity tokens', request
+                    )
             
             if missing_scopes:
                 logger.error(f"Missing required scopes: {missing_scopes}")

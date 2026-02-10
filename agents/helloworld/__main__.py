@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 AGENT_URL = os.getenv("AGENT_URL", 'http://localhost:9999/')
 
 ## Define these values for Vault as OIDC provider
-OPENID_CONNECT_PROVIDER_NAME = os.getenv("OPENID_CONNECT_PROVIDER_NAME")
+OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
 
 VAULT_ADDR=os.getenv("VAULT_ADDR")
 VAULT_NAMESPACE=os.getenv("VAULT_NAMESPACE")
@@ -44,13 +44,12 @@ if __name__ == "__main__":
     }
     security = [{"bearer": ["hello_world:read"]}]
 
-    if OPENID_CONNECT_PROVIDER_NAME:
-        openid_connect_configuration = f"/v1/identity/oidc/provider/{OPENID_CONNECT_PROVIDER_NAME}/.well-known/openid-configuration"
+    if OPENID_CONNECT_URL:
         security_schemes["oauth"] = SecurityScheme(
             root=OpenIdConnectSecurityScheme(
                 description="OIDC provider",
                 type="openIdConnect",
-                open_id_connect_url=f"{VAULT_ADDR}{openid_connect_configuration}",
+                open_id_connect_url=OPENID_CONNECT_URL,
             )
         )
         security.append({"oauth": ["hello_world:read"]})
@@ -118,7 +117,10 @@ if __name__ == "__main__":
     )
 
     app = server.build()
-        
+    
+    vault_client = None
+
+
     if VAULT_ADDR and VAULT_TOKEN and VAULT_NAMESPACE:
         vault_client = hvac.Client(
             url=VAULT_ADDR,
@@ -126,12 +128,13 @@ if __name__ == "__main__":
             namespace=VAULT_NAMESPACE,
             verify=True
         )
-        app.add_middleware(
-            AuthMiddleware,
-            agent_card=public_agent_card,
-            public_paths=["/.well-known/agent-card.json"],
-            vault_client=vault_client,
-            openid_connect_provider_name=OPENID_CONNECT_PROVIDER_NAME
-        )
+
+    app.add_middleware(
+        AuthMiddleware,
+        agent_card=public_agent_card,
+        public_paths=["/.well-known/agent-card.json"],
+        vault_client=vault_client,
+        openid_connect_url=OPENID_CONNECT_URL
+    )
 
     uvicorn.run(app, host="0.0.0.0", port=9999)
