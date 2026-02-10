@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World Client Agent Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #sendBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #sendBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #sendBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #clearBtn {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        #clearBtn:hover {
+            background: #e0e0e0;
+        }
+
+        .output-section {
+            margin-top: 20px;
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output-box.success {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+
+        .output-box.error {
+            border-color: #f44336;
+            background: #fef5f5;
+            color: #d32f2f;
+        }
+
+        .output-box.loading {
+            border-color: #2196f3;
+            background: #e3f2fd;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .status-badge.success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-badge.error {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-badge.loading {
+            background: #2196f3;
+            color: white;
+        }
+
+        .empty-state {
+            color: #999;
+            text-align: center;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Hello World Client Agent Tester</h1>
+        <p class="subtitle">Send messages to the agent and view responses</p>
+
+        <div class="input-section">
+            <label for="messageInput">Message to Hello World Server Agent:</label>
+            <textarea
+                id="messageInput"
+                placeholder="Enter your message here (e.g., 'Give me a hello world')"
+            >Give me a hello world</textarea>
+        </div>
+
+        <div class="input-section">
+            <label for="oidcScopesInput">OIDC Scopes:</label>
+            <textarea
+                id="oidcScopesInput"
+                placeholder="Enter space-delimited OIDC scopes (e.g., 'profile email'). 'openid' will be automatically added."
+                style="min-height: 60px;"
+            ></textarea>
+        </div>
+
+        <div class="button-container">
+            <button id="sendBtn" onclick="sendMessage()">
+                Send Request
+            </button>
+            <button id="clearBtn" onclick="clearOutput()">
+                Clear Output
+            </button>
+        </div>
+
+        <div class="output-section">
+            <label>Response:</label>
+            <div id="output" class="output-box">
+                <div class="empty-state">No response yet. Click "Send Request" to start.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const oidcScopesInput = document.getElementById('oidcScopesInput');
+            const outputDiv = document.getElementById('output');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            const message = messageInput.value.trim();
+            const oidcScopes = oidcScopesInput.value.trim();
+            
+            if (!message) {
+                outputDiv.className = 'output-box error';
+                outputDiv.innerHTML = '<span class="status-badge error">ERROR</span><br>Please enter a message.';
+                return;
+            }
+
+            // Disable button and show loading state
+            sendBtn.disabled = true;
+            outputDiv.className = 'output-box loading';
+            outputDiv.innerHTML = '<span class="status-badge loading">LOADING</span><br><span class="loading-spinner"></span>Sending request to agent...';
+
+            try {
+                const response = await fetch('/api/send-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        oidc_scopes: oidcScopes
+                    })
+                });
+
+                const data = await response.json();
+                const timestamp = new Date().toLocaleString();
+
+                if (data.success) {
+                    outputDiv.className = 'output-box success';
+                    outputDiv.innerHTML = `
+                        <span class="status-badge success">SUCCESS</span><br>
+                        ${escapeHtml(data.response)}
+                        <div class="timestamp">Received at: ${timestamp}</div>
+                    `;
+                } else {
+                    outputDiv.className = 'output-box error';
+                    outputDiv.innerHTML = `
+                        <span class="status-badge error">ERROR</span><br>
+                        ${escapeHtml(data.error || 'Unknown error occurred')}
+                        <div class="timestamp">Failed at: ${timestamp}</div>
+                    `;
+                }
+            } catch (error) {
+                outputDiv.className = 'output-box error';
+                outputDiv.innerHTML = `
+                    <span class="status-badge error">ERROR</span><br>
+                    Network error: ${escapeHtml(error.message)}
+                    <div class="timestamp">Failed at: ${new Date().toLocaleString()}</div>
+                `;
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        function clearOutput() {
+            const outputDiv = document.getElementById('output');
+            outputDiv.className = 'output-box';
+            outputDiv.innerHTML = '<div class="empty-state">Output cleared. Ready for new request.</div>';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Allow Enter key to send (Ctrl+Enter for new line)
+        document.getElementById('messageInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

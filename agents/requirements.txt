@@ -5,3 +5,5 @@ hvac
 pyjwt
 pyjwt[crypto]
 httpx-auth
+flask
+flask-cors

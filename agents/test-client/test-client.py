@@ -40,7 +40,7 @@ VAULT_NAMESPACE = os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN = os.getenv("VAULT_TOKEN")
 
 ## Define these values for Vault as OIDC provider
-OPENID_CONNECT_SCOPES = os.getenv("OPENID_CONNECT_SCOPES", "openid")
+OPENID_CONNECT_SCOPES = os.getenv("OPENID_CONNECT_SCOPES", "")
 OPENID_CONNECT_PROVIDER_NAME = os.getenv("OPENID_CONNECT_PROVIDER_NAME")
 OPENID_CONNECT_CLIENT_NAME = os.getenv('OPENID_CONNECT_CLIENT_NAME')
 
@@ -52,7 +52,13 @@ class OIDCAuthenticationConfig:
         self.redirect_uri_domain = REDIRECT_URI_DOMAIN
         self.redirect_uri_port = REDIRECT_URI_PORT
         self.redirect_uri_endpoint = REDIRECT_URI_ENDPOINT
-        self.scope = OPENID_CONNECT_SCOPES
+
+        # Ensure "openid" scope is always included
+        scopes = OPENID_CONNECT_SCOPES.split()
+        if "openid" not in scopes:
+            scopes.append("openid")
+        self.scope = " ".join(scopes)
+
         self.vault_client = vault_client
         self._get_openid_configuration()
         self._get_client_secret()
