@@ -241,11 +241,11 @@ resource "vault_identity_oidc_provider" "agent" {
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]
-  scopes_supported = [
-    vault_identity_oidc_scope.helloworld_read.name,
-    vault_identity_oidc_scope.groups.name,
-    vault_identity_oidc_scope.user.name
-  ]
+  # scopes_supported = [
+  #   vault_identity_oidc_scope.helloworld_read.name,
+  #   vault_identity_oidc_scope.groups.name,
+  #   vault_identity_oidc_scope.user.name
+  # ]
 }
 
 ## Use for identity tokens

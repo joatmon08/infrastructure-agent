@@ -57,9 +57,8 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   }
 
   data = {
-    OPENID_CONNECT_URL = "${hcp_vault_cluster.main.vault_public_endpoint_url}/v1/identity/oidc/provider/agent/.well-known/openid-configuration"
-    USERINFO_ENDPOINT  = data.vault_identity_oidc_openid_config.agent.userinfo_endpoint
-    AGENT_URL          = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}/"
+    OPENID_CONNECT_PROVIDER_NAME = vault_identity_oidc_provider.agent.name
+    AGENT_URL                    = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}/"
   }
 }
 
@@ -69,7 +68,9 @@ resource "kubernetes_config_map_v1" "helloworld_agent_client" {
   }
 
   data = {
-    TOKEN_ENDPOINT         = data.vault_identity_oidc_openid_config.agent.token_endpoint
-    AUTHORIZATION_ENDPOINT = data.vault_identity_oidc_openid_config.agent.authorization_endpoint
+    AGENT_URL                    = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}/"
+    OPENID_CONNECT_SCOPES        = "openid ${vault_identity_oidc_scope.helloworld_read.name}"
+    OPENID_CONNECT_PROVIDER_NAME = vault_identity_oidc_provider.agent.name
+    OPENID_CONNECT_CLIENT_NAME   = vault_identity_oidc_client.agent.name
   }
 }
