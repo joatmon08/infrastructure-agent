@@ -38,8 +38,8 @@ resource "aws_ecr_repository" "helloworld_agent" {
   }
 }
 
-resource "aws_ecr_repository" "a2a_inspector" {
-  name                 = "a2a-inspector"
+resource "aws_ecr_repository" "test_client" {
+  name                 = "${var.project_name}-test-client"
   image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
@@ -47,7 +47,7 @@ resource "aws_ecr_repository" "a2a_inspector" {
   }
 
   tags = {
-    Name = "a2a-inspector"
+    Name = "${var.project_name}-test-client"
   }
 }
 
