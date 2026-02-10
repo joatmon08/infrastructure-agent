@@ -32,20 +32,6 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
           path      = "/"
           path_type = "Prefix"
         }
-
-        path {
-          backend {
-            service {
-              name = "test-client"
-              port {
-                number = 9000
-              }
-            }
-          }
-
-          path      = "/client"
-          path_type = "Prefix"
-        }
       }
     }
   }
