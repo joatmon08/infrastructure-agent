@@ -49,6 +49,16 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   disable_iss_validation = "true"
 }
 
+resource "vault_kubernetes_auth_backend_role" "test_client" {
+  backend                          = vault_auth_backend.kubernetes.path
+  role_name                        = "test-client"
+  bound_service_account_names      = ["test-client"]
+  bound_service_account_namespaces = ["default"]
+  token_ttl                        = 3600
+  token_policies                   = [vault_policy.agent_oidc_client.name]
+  audience                         = "vault"
+}
+
 resource "vault_policy" "agent_oidc" {
   name = "helloworld-agent-oidc"
 
