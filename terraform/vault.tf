@@ -10,6 +10,12 @@ resource "helm_release" "vault" {
   set = [{
     name  = "injector.externalVaultAddr"
     value = hcp_vault_cluster.main.vault_private_endpoint_url
+    },
+    {
+      name = "injector.extraEnvironmentVars"
+      value = yamlencode({
+        AGENT_INJECT_VAULT_NAMESPACE = hcp_vault_cluster.main.namespace
+      })
   }]
 }
 

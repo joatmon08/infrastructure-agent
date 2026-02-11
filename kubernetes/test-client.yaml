@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-client
+  labels:
+    app: test-client
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-client-token
+  labels:
+    app: test-client
+  annotations:
+    kubernetes.io/service-account.name: test-client
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-client
+  labels:
+    app: test-client
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+    name: http
+  selector:
+    app: test-client
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-client
+  labels:
+    app: test-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-client
+  template:
+    metadata:
+      labels:
+        app: test-client
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "test-client"
+        vault.hashicorp.com/agent-inject-token: "true"
+    spec:
+      serviceAccountName: test-client
+      containers:
+      - name: test-client
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-test-client:3494250c3ba1c9bb13a371a2d2ad52c1494f5f90
+        ports:
+        - containerPort: 9000
+          name: http
+          protocol: TCP
+        command: ["/bin/sh"]
+        args:
+          [
+            "-c",
+            "export VAULT_TOKEN=$(cat /vault/secrets/token) && cd /app && python __main__.py",
+          ]
+        env:
+        - name: AGENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: helloworld-agent-client
+              key: AGENT_URL
+        - name: OPENID_CONNECT_PROVIDER_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: helloworld-agent-client
+              key: OPENID_CONNECT_PROVIDER_NAME
+        - name: OPENID_CONNECT_CLIENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: helloworld-agent-client
+              key: OPENID_CONNECT_CLIENT_NAME
+        - name: VAULT_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: helloworld-agent-client
+              key: VAULT_ADDR
+        - name: VAULT_NAMESPACE
+          valueFrom:
+            configMapKeyRef:
+              name: helloworld-agent-client
+              key: VAULT_NAMESPACE
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+# Made with Bob
