@@ -4,6 +4,7 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
     annotations = {
       "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
       "alb.ingress.kubernetes.io/inbound-cidrs"    = "100.8.117.17/32"
+      "alb.ingress.kubernetes.io/success-codes"    = "200,201,404"
     }
   }
 
