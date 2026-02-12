@@ -1,0 +1,4 @@
+injector:
+  externalVaultAddr: 'https://infra-agent-dev-vault-private-vault-688d8645.a56142c3.z1.hashicorp.cloud:8200'
+  extraEnvironmentVars:
+    AGENT_INJECT_VAULT_NAMESPACE: ${VAULT_NAMESPACE}

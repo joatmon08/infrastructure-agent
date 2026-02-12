@@ -7,16 +7,9 @@ resource "helm_release" "vault" {
   chart      = "vault"
   version    = var.vault_helm_chart_version
 
-  set = [{
-    name  = "injector.externalVaultAddr"
-    value = hcp_vault_cluster.main.vault_private_endpoint_url
-    },
-    {
-      name = "injector.extraEnvironmentVars"
-      value = yamlencode({
-        AGENT_INJECT_VAULT_NAMESPACE = hcp_vault_cluster.main.namespace
-      })
-  }]
+  values = [templatefile("templates/vault.yaml.tpl", {
+    VAULT_NAMESPACE = hcp_vault_cluster.main.namespace
+  })]
 }
 
 
