@@ -24,15 +24,13 @@ server:
   # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
   # used to include variables required for auto-unseal.
   extraEnvironmentVars:
-    VAULT_CACERT: /vault/userconfig/tls-ca/ca.crt
+    VAULT_CACERT: /vault/userconfig/tls-server/ca.crt
 
   # extraVolumes is a list of extra volumes to mount. These will be exposed
   # to Vault in the path `/vault/userconfig/<name>/`.
   extraVolumes:
     - type: secret
       name: tls-server
-    - type: secret
-      name: tls-ca
 
   # This configures the Vault Statefulset to create a PVC for audit logs.
   # See https://www.vaultproject.io/docs/audit/index.html to know more
@@ -63,19 +61,19 @@ server:
           path = "/vault/data"
           retry_join {
             leader_api_addr = "https://vault-0.vault-internal:8200"
-            leader_ca_cert_file = "/vault/userconfig/tls-ca/ca.crt"
+            leader_ca_cert_file = "/vault/userconfig/tls-server/ca.crt"
             leader_client_cert_file = "/vault/userconfig/tls-server/tls.crt"
             leader_client_key_file = "/vault/userconfig/tls-server/tls.key"
           }
           retry_join {
             leader_api_addr = "https://vault-1.vault-internal:8200"
-            leader_ca_cert_file = "/vault/userconfig/tls-ca/ca.crt"
+            leader_ca_cert_file = "/vault/userconfig/tls-server/ca.crt"
             leader_client_cert_file = "/vault/userconfig/tls-server/tls.crt"
             leader_client_key_file = "/vault/userconfig/tls-server/tls.key"
           }
           retry_join {
             leader_api_addr = "https://vault-2.vault-internal:8200"
-            leader_ca_cert_file = "/vault/userconfig/tls-ca/ca.crt"
+            leader_ca_cert_file = "/vault/userconfig/tls-server/ca.crt"
             leader_client_cert_file = "/vault/userconfig/tls-server/tls.crt"
             leader_client_key_file = "/vault/userconfig/tls-server/tls.key"
           }
