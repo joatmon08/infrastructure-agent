@@ -94,3 +94,9 @@ variable "server_tls_servername" {
   description = "Vault server TLS servername"
   default     = "vault.joatmon08.com"
 }
+
+variable "use_vault_on_kubernetes" {
+  type        = bool
+  description = "Configure Vault on Kubernetes instead of using HCP Vault"
+  default     = true
+}

@@ -74,6 +74,6 @@ resource "kubernetes_secret_v1" "vault_tls_server" {
   data = {
     "tls.crt" = tls_locally_signed_cert.server_signed_cert.cert_pem
     "tls.key" = tls_private_key.server_key.private_key_pem
-    "ca.crt" = tls_self_signed_cert.ca_cert.cert_pem
+    "ca.crt"  = tls_self_signed_cert.ca_cert.cert_pem
   }
 }
