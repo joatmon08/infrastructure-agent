@@ -36,6 +36,9 @@ resource "tls_cert_request" "server_cert" {
 
   dns_names = [
     var.server_tls_servername,
+    "vault-0.vault-internal",
+    "vault-1.vault-internal",
+    "vault-2.vault-internal",
     "localhost"
   ]
 
