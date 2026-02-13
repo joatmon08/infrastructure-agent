@@ -1,13 +1,13 @@
 #!/bin/bash
 
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 224382219437.dkr.ecr.us-east-1.amazonaws.com
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ECR_URI}
 
 cd helloworld
 
-docker buildx build --platform linux/amd64 --file Dockerfile --tag 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:$(git rev-parse HEAD) .
-docker push 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:$(git rev-parse HEAD)
+docker buildx build --platform linux/amd64 --file Dockerfile --tag ${ECR_URI}/infra-agent-helloworld-agent:$(git rev-parse HEAD) .
+docker push ${ECR_URI}/infra-agent-helloworld-agent:$(git rev-parse HEAD)
 
 cd ../test-client
 
-docker buildx build --platform linux/amd64 --file Dockerfile --tag 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-test-client:$(git rev-parse HEAD) .
-docker push 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-test-client:$(git rev-parse HEAD)
+docker buildx build --platform linux/amd64 --file Dockerfile --tag ${ECR_URI}/infra-agent-test-client:$(git rev-parse HEAD) .
+docker push ${ECR_URI}/infra-agent-test-client:$(git rev-parse HEAD)
