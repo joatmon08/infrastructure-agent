@@ -88,3 +88,9 @@ variable "vault_helm_chart_version" {
   type        = string
   default     = "0.32.0"
 }
+
+variable "server_tls_servername" {
+  type        = string
+  description = "Vault server TLS servername"
+  default     = "vault.joatmon08.com"
+}

@@ -7,9 +7,11 @@ resource "helm_release" "vault" {
   chart      = "vault"
   version    = var.vault_helm_chart_version
 
-  values = [templatefile("templates/vault.yaml.tpl", {
-    VAULT_NAMESPACE = hcp_vault_cluster.main.namespace
-  })]
+  values = [file("templates/vault.yaml.tpl")]
+
+  # values = [templatefile("templates/hcp-vault.yaml.tpl", {
+  #   VAULT_NAMESPACE = hcp_vault_cluster.main.namespace
+  # })]
 }
 
 
