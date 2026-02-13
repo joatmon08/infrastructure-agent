@@ -7,7 +7,10 @@ resource "helm_release" "vault" {
   chart      = "vault"
   version    = var.vault_helm_chart_version
 
-  values = [file("templates/vault.yaml.tpl")]
+  values = [templatefile("templates/vault.yaml.tpl", {
+    LOAD_BALANCER_SOURCE_RANGES = yamlencode(concat(var.inbound_cidrs_for_lbs, [var.vpc_cidr])),
+    VAULT_CERTIFICATE_ARN       = aws_acm_certificate.vault.arn
+  })]
 }
 
 data "kubernetes_service_account_v1" "vault_auth" {
