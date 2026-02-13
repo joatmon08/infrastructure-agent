@@ -1,6 +1,6 @@
 resource "helm_release" "vault" {
   name             = "vault"
-  namespace        = "vault"
+  namespace        = var.kubernetes_namespace_vault
   create_namespace = true
 
   repository = "https://helm.releases.hashicorp.com"
@@ -8,25 +8,20 @@ resource "helm_release" "vault" {
   version    = var.vault_helm_chart_version
 
   values = [file("templates/vault.yaml.tpl")]
-
-  # values = [templatefile("templates/hcp-vault.yaml.tpl", {
-  #   VAULT_NAMESPACE = hcp_vault_cluster.main.namespace
-  # })]
 }
-
 
 data "kubernetes_service_account_v1" "vault_auth" {
   metadata {
-    name      = "vault"
-    namespace = "vault"
+    name      = helm_release.vault.name
+    namespace = helm_release.vault.namespace
   }
 }
 
 resource "kubernetes_secret_v1" "vault_auth" {
   depends_on = [helm_release.vault]
   metadata {
-    name      = "vault"
-    namespace = "vault"
+    name      = data.kubernetes_service_account_v1.vault_auth.metadata.0.name
+    namespace = data.kubernetes_service_account_v1.vault_auth.metadata.0.namespace
     annotations = {
       "kubernetes.io/service-account.name"      = data.kubernetes_service_account_v1.vault_auth.metadata.0.name
       "kubernetes.io/service-account.namespace" = data.kubernetes_service_account_v1.vault_auth.metadata.0.namespace
