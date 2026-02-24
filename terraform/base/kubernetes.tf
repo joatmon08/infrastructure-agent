@@ -1,3 +1,19 @@
+resource "kubernetes_storage_class_v1" "auto_mode" {
+  metadata {
+    name = "auto-ebs-sc"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+  storage_provisioner = "ebs.csi.eks.amazonaws.com"
+  reclaim_policy      = "Delete"
+  volume_binding_mode = "WaitForFirstConsumer"
+  parameters = {
+    type      = "gp3"
+    encrypted = "true"
+  }
+}
+
 resource "helm_release" "vault" {
   name             = "vault"
   namespace        = var.kubernetes_namespace_vault
@@ -11,4 +27,6 @@ resource "helm_release" "vault" {
     LOAD_BALANCER_SOURCE_RANGES = concat(var.inbound_cidrs_for_lbs, [var.vpc_cidr]),
     VAULT_CERTIFICATE_ARN       = aws_acm_certificate.vault.arn
   })]
+
+  depends_on = [kubernetes_storage_class_v1.auto_mode]
 }
