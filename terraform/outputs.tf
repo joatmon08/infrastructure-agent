@@ -106,47 +106,4 @@ output "configure_kubectl" {
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
 
-# HCP Vault Cluster Outputs
-output "vault_cluster_id" {
-  description = "The ID of the HCP Vault cluster"
-  value       = hcp_vault_cluster.main.cluster_id
-}
 
-output "vault_public_endpoint_url" {
-  description = "The public endpoint URL of the HCP Vault cluster"
-  value       = hcp_vault_cluster.main.vault_public_endpoint_url
-}
-
-output "vault_private_endpoint_url" {
-  description = "The private endpoint URL of the HCP Vault cluster"
-  value       = hcp_vault_cluster.main.vault_private_endpoint_url
-}
-
-output "vault_namespace" {
-  description = "The namespace of the HCP Vault cluster"
-  value       = hcp_vault_cluster.main.namespace
-}
-
-output "vault_admin_token" {
-  description = "The admin token for the HCP Vault cluster"
-  value       = hcp_vault_cluster_admin_token.main.token
-  sensitive   = true
-}
-
-output "helloworld_agent_client_login" {
-  description = "The login command for the helloworld-agent-client"
-  value       = "vault login -method=userpass username=${local.client_username} password=${random_password.helloworld_agent_client.result}"
-  sensitive   = true
-}
-
-output "helloworld_agent_server_login" {
-  description = "The login command for the helloworld-agent-server"
-  value       = "vault login -method=userpass username=${local.server_username} password=${random_password.helloworld_agent_server.result}"
-  sensitive   = true
-}
-
-output "end_user_login" {
-  description = "The login command for the helloworld-agent-server"
-  value       = "vault login -method=userpass username=${local.end_user} password=${random_password.end_user.result}"
-  sensitive   = true
-}
