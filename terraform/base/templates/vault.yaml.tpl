@@ -104,7 +104,7 @@ ui:
   enabled: true
   serviceType: "LoadBalancer"
   serviceNodePort: null
-  externalPort: 8200
+  externalPort: 443
   loadBalancerSourceRanges:
 %{ for range in LOAD_BALANCER_SOURCE_RANGES ~}
    - ${range}
@@ -112,5 +112,5 @@ ui:
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: ${VAULT_CERTIFICATE_ARN}
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "8200"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tls"
