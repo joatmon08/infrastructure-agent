@@ -106,4 +106,7 @@ output "configure_kubectl" {
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
 
-
+output "vault_endpoint" {
+  description = "Vault endpoint"
+  value       = "https://${data.kubernetes_service_v1.vault.status.0.load_balancer.0.ingress.0.hostname}"
+}

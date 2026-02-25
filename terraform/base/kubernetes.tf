@@ -36,3 +36,10 @@ resource "helm_release" "vault" {
     aws_iam_role_policy_attachment.vault_kms
   ]
 }
+
+data "kubernetes_service_v1" "vault" {
+  metadata {
+    name      = "${helm_release.vault.name}-ui"
+    namespace = helm_release.vault.namespace
+  }
+}
