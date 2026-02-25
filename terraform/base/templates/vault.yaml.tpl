@@ -30,6 +30,15 @@ server:
   # used to include variables required for auto-unseal.
   extraEnvironmentVars:
     VAULT_CACERT: /vault/userconfig/tls-server/ca.crt
+    AWS_REGION: ${AWS_REGION}
+
+  # Service account annotations for IRSA (IAM Roles for Service Accounts)
+  serviceAccount:
+    create: true
+    name: vault
+    createSecret: true
+    annotations:
+      eks.amazonaws.com/role-arn: ${VAULT_IAM_ROLE_ARN}
 
   # extraVolumes is a list of extra volumes to mount. These will be exposed
   # to Vault in the path `/vault/userconfig/<name>/`.
@@ -56,6 +65,12 @@ server:
       config: |
         ui = true
         cluster_name = "vault-integrated-storage"
+        
+        seal "awskms" {
+          region     = "${AWS_REGION}"
+          kms_key_id = "${KMS_KEY_ID}"
+        }
+
         listener "tcp" {
           address = "[::]:8200"
           cluster_address = "[::]:8201"
@@ -83,7 +98,7 @@ server:
             leader_client_cert_file = "/vault/userconfig/tls-server/tls.crt"
             leader_client_key_file = "/vault/userconfig/tls-server/tls.key"
           }
-        } 
+        }
 
 ui:
   enabled: true

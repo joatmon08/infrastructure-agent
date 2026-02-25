@@ -26,7 +26,13 @@ resource "helm_release" "vault" {
   values = [templatefile("templates/vault.yaml.tpl", {
     LOAD_BALANCER_SOURCE_RANGES = concat(var.inbound_cidrs_for_lbs, [var.vpc_cidr]),
     VAULT_CERTIFICATE_ARN       = aws_acm_certificate.vault.arn
+    AWS_REGION                  = var.aws_region
+    KMS_KEY_ID                  = aws_kms_key.vault.id
+    VAULT_IAM_ROLE_ARN          = aws_iam_role.vault.arn
   })]
 
-  depends_on = [kubernetes_storage_class_v1.auto_mode]
+  depends_on = [
+    kubernetes_storage_class_v1.auto_mode,
+    aws_iam_role_policy_attachment.vault_kms
+  ]
 }
