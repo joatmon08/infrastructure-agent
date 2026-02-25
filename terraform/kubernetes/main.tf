@@ -1,3 +1,15 @@
+data "http" "vault_cors" {
+  url    = "${data.terraform_remote_state.base.outputs.vault_endpoint}/sys/config/cors"
+  method = "POST"
+
+  request_headers = {
+    X-Vault-Token = var.vault_token
+  }
+
+  request_body = jsonencode({
+    allowed_origins = "*"
+  })
+}
 
 data "kubernetes_service_account_v1" "vault_auth" {
   metadata {
