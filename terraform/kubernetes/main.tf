@@ -1,12 +1,12 @@
+
 data "kubernetes_service_account_v1" "vault_auth" {
   metadata {
-    name      = helm_release.vault.name
-    namespace = helm_release.vault.namespace
+    name      = data.terraform_remote_state.base.outputs.helm_vault_name
+    namespace = data.terraform_remote_state.base.outputs.helm_vault_namespace
   }
 }
 
 resource "kubernetes_secret_v1" "vault_auth" {
-  depends_on = [helm_release.vault]
   metadata {
     name      = data.kubernetes_service_account_v1.vault_auth.metadata.0.name
     namespace = data.kubernetes_service_account_v1.vault_auth.metadata.0.namespace
@@ -20,14 +20,12 @@ resource "kubernetes_secret_v1" "vault_auth" {
 }
 
 resource "vault_auth_backend" "kubernetes" {
-  depends_on = [helm_release.vault]
-  type       = "kubernetes"
+  type = "kubernetes"
 }
 
 resource "vault_kubernetes_auth_backend_config" "kubernetes" {
-  depends_on             = [helm_release.vault]
   backend                = vault_auth_backend.kubernetes.path
-  kubernetes_host        = module.eks.cluster_endpoint
+  kubernetes_host        = data.terraform_remote_state.base.outputs.cluster_endpoint
   kubernetes_ca_cert     = kubernetes_secret_v1.vault_auth.data["ca.crt"]
   token_reviewer_jwt     = kubernetes_secret_v1.vault_auth.data.token
   disable_iss_validation = "true"
@@ -171,7 +169,7 @@ resource "vault_identity_oidc_assignment" "end_user" {
 }
 
 resource "vault_identity_oidc" "server" {
-  issuer = hcp_vault_cluster.main.vault_public_endpoint_url
+  issuer = data.terraform_remote_state.base.outputs.vault_endpoint
 }
 
 resource "vault_identity_oidc_key" "agent" {
@@ -230,7 +228,7 @@ EOT
 resource "vault_identity_oidc_provider" "agent" {
   name          = "agent"
   https_enabled = true
-  issuer_host   = replace(hcp_vault_cluster.main.vault_public_endpoint_url, "https://", "")
+  issuer_host   = replace(data.terraform_remote_state.base.outputs.vault_endpoint, "https://", "")
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]

@@ -17,28 +17,39 @@ terraform {
   }
 }
 
+data "terraform_remote_state" "base" {
+  backend = "remote"
+
+  config = {
+    organization = var.tfc_organization
+    workspaces = {
+      name = var.tfc_base_workspace
+    }
+  }
+}
+
 provider "vault" {
-  address = hcp_vault_cluster.main.vault_public_endpoint_url
-  token   = hcp_vault_cluster_admin_token.main.token
+  address = data.terraform_remote_state.base.outputs.vault_endpoint
+  token   = var.vault_token
 }
 
 provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  host                   = data.terraform_remote_state.base.outputs.cluster_endpoint
+  cluster_ca_certificate = base64decode(data.terraform_remote_state.base.outputs.cluster_certificate_authority_data)
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    args        = ["eks", "get-token", "--cluster-name", data.terraform_remote_state.base.outputs.cluster_name]
     command     = "aws"
   }
 }
 
 provider "helm" {
   kubernetes = {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    host                   = data.terraform_remote_state.base.outputs.cluster_endpoint
+    cluster_ca_certificate = base64decode(data.terraform_remote_state.base.outputs.cluster_certificate_authority_data)
     exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
-      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+      args        = ["eks", "get-token", "--cluster-name", data.terraform_remote_state.base.outputs.cluster_name]
       command     = "aws"
     }
   }
