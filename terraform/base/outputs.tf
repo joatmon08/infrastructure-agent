@@ -110,3 +110,13 @@ output "vault_endpoint" {
   description = "Vault endpoint"
   value       = "https://${data.kubernetes_service_v1.vault.status.0.load_balancer.0.ingress.0.hostname}"
 }
+
+output "helm_vault_name" {
+  description = "Name of Helm release for Vault"
+  value       = helm_release.vault.name
+}
+
+output "helm_vault_namespace" {
+  description = "Namespace of Helm release for Vault"
+  value       = helm_release.vault.namespace
+}
