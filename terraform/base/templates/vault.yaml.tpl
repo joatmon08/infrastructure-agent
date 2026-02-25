@@ -111,6 +111,4 @@ ui:
 %{ endfor ~}
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: ${VAULT_CERTIFICATE_ARN}
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tls"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
