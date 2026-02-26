@@ -29,8 +29,9 @@ data "terraform_remote_state" "base" {
 }
 
 provider "vault" {
-  address = data.terraform_remote_state.base.outputs.vault_endpoint
-  token   = var.vault_token
+  address         = data.terraform_remote_state.base.outputs.vault_endpoint
+  token           = var.vault_token
+  skip_tls_verify = true
 }
 
 provider "kubernetes" {
