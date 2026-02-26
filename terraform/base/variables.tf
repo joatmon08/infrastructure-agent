@@ -106,3 +106,9 @@ variable "inbound_cidrs_for_lbs" {
   description = "Comma-separated list of inbound CIDRs"
   default     = ["0.0.0.0/0"]
 }
+
+variable "allow_hcp_terraform_to_access_vault" {
+  type        = bool
+  description = "Allow HCP Terraform to configure Vault, sets CIDR range to 0.0.0.0/0 for Vault load balancer"
+  default     = true
+}

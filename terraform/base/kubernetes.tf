@@ -24,7 +24,7 @@ resource "helm_release" "vault" {
   version    = var.vault_helm_chart_version
 
   values = [templatefile("templates/vault.yaml.tpl", {
-    LOAD_BALANCER_SOURCE_RANGES = concat(var.inbound_cidrs_for_lbs, [var.vpc_cidr]),
+    LOAD_BALANCER_SOURCE_RANGES = var.allow_hcp_terraform_to_access_vault ? ["0.0.0.0/0"] : concat(var.inbound_cidrs_for_lbs, [var.vpc_cidr]),
     VAULT_CERTIFICATE_ARN       = aws_acm_certificate.vault.arn
     AWS_REGION                  = var.aws_region
     KMS_KEY_ID                  = aws_kms_key.vault.id
