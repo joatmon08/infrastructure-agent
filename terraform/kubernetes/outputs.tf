@@ -11,8 +11,13 @@ output "helloworld_agent_server_login" {
   sensitive   = true
 }
 
-output "end_user_login" {
-  description = "The login command for the helloworld-agent-server"
-  value       = "vault login -method=userpass username=${local.end_user} password=${random_password.end_user.result}"
+output "end_user_username" {
+  description = "The username for the end user"
+  value       = local.end_user
+}
+
+output "end_user_password" {
+  description = "The password for the end user"
+  value       = random_password.end_user.result
   sensitive   = true
 }
