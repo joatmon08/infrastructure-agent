@@ -28,8 +28,8 @@ AGENT_URL = os.getenv("AGENT_URL", 'http://localhost:9999/')
 OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
 
 VAULT_ADDR=os.getenv("VAULT_ADDR")
-VAULT_NAMESPACE=os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN=os.getenv("VAULT_TOKEN")
+VAULT_SKIP_VERIFY = os.getenv("VAULT_SKIP_VERIFY", "false").lower() == "true"
 
 if __name__ == "__main__":
     security_schemes = {
@@ -121,12 +121,11 @@ if __name__ == "__main__":
     vault_client = None
 
 
-    if VAULT_ADDR and VAULT_TOKEN and VAULT_NAMESPACE:
+    if VAULT_ADDR and VAULT_TOKEN:
         vault_client = hvac.Client(
             url=VAULT_ADDR,
             token=VAULT_TOKEN,
-            namespace=VAULT_NAMESPACE,
-            verify=True
+            verify=VAULT_SKIP_VERIFY
         )
 
     app.add_middleware(

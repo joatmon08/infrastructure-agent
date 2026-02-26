@@ -115,6 +115,17 @@
             background: #e0e0e0;
         }
 
+        #logoutBtn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        #logoutBtn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
         .output-section {
             margin-top: 20px;
         }
@@ -235,6 +246,9 @@
             <button id="clearBtn" onclick="clearOutput()">
                 Clear Output
             </button>
+            <button id="logoutBtn" onclick="logout()">
+                Logout
+            </button>
         </div>
 
         <div class="output-section">
@@ -281,6 +295,20 @@
                 const data = await response.json();
                 const timestamp = new Date().toLocaleString();
 
+                // Check if OAuth authentication is required
+                if (data.requires_auth && data.auth_url) {
+                    outputDiv.className = 'output-box loading';
+                    outputDiv.innerHTML = `
+                        <span class="status-badge loading">AUTHENTICATION REQUIRED</span><br>
+                        Opening authentication window...<br>
+                        <a href="${data.auth_url}" target="_blank" style="color: #667eea; text-decoration: underline;">Click here if window doesn't open</a>
+                        <div class="timestamp">Initiated at: ${timestamp}</div>
+                    `;
+                    // Open OAuth flow in new window
+                    window.open(data.auth_url, 'oauth', 'width=600,height=700');
+                    return;
+                }
+
                 if (data.success) {
                     outputDiv.className = 'output-box success';
                     outputDiv.innerHTML = `
@@ -312,6 +340,47 @@
             const outputDiv = document.getElementById('output');
             outputDiv.className = 'output-box';
             outputDiv.innerHTML = '<div class="empty-state">Output cleared. Ready for new request.</div>';
+        }
+
+        async function logout() {
+            const outputDiv = document.getElementById('output');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            logoutBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    outputDiv.className = 'output-box success';
+                    outputDiv.innerHTML = `
+                        <span class="status-badge success">LOGGED OUT</span><br>
+                        Successfully logged out. Your session has been cleared.
+                        <div class="timestamp">Logged out at: ${new Date().toLocaleString()}</div>
+                    `;
+                } else {
+                    outputDiv.className = 'output-box error';
+                    outputDiv.innerHTML = `
+                        <span class="status-badge error">ERROR</span><br>
+                        Failed to logout: ${escapeHtml(data.error || 'Unknown error')}
+                    `;
+                }
+            } catch (error) {
+                outputDiv.className = 'output-box error';
+                outputDiv.innerHTML = `
+                    <span class="status-badge error">ERROR</span><br>
+                    Network error during logout: ${escapeHtml(error.message)}
+                `;
+            } finally {
+                logoutBtn.disabled = false;
+            }
         }
 
         function escapeHtml(text) {

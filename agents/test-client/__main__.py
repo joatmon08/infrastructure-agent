@@ -1,12 +1,15 @@
 import asyncio
 import logging
 import os
+import secrets
+from typing import Optional
+from urllib.parse import urlencode
 from uuid import uuid4
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, session, url_for
 from flask_cors import CORS
+
 import httpx
-from httpx_auth import OAuth2AuthorizationCode
 import hvac
 
 from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
@@ -17,12 +20,15 @@ from a2a.utils.constants import (
     EXTENDED_AGENT_CARD_PATH,
 )
 
+from urllib.parse import urlparse
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Flask app setup
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", secrets.token_hex(32))
 CORS(app)
 
 # Configuration from environment variables
@@ -31,16 +37,12 @@ APP_PORT = int(os.getenv("APP_PORT", 9000))
 
 ## Required to get client credentials or generate a signed token from Vault
 VAULT_ADDR = os.getenv("VAULT_ADDR")
-VAULT_NAMESPACE = os.getenv("VAULT_NAMESPACE")
 VAULT_TOKEN = os.getenv("VAULT_TOKEN")
+VAULT_SKIP_VERIFY = os.getenv("VAULT_SKIP_VERIFY", "false").lower() == "true"
 
 ## Required for OIDC authentication
 OPENID_CONNECT_PROVIDER_NAME = os.getenv("OPENID_CONNECT_PROVIDER_NAME")
 OPENID_CONNECT_CLIENT_NAME = os.getenv("OPENID_CONNECT_CLIENT_NAME")
-
-REDIRECT_URI_DOMAIN = os.getenv("REDIRECT_URI_DOMAIN", "localhost")
-REDIRECT_URI_PORT = os.getenv("REDIRECT_URI_PORT", 9998)
-REDIRECT_URI_ENDPOINT = os.getenv("REDIRECT_URI_ENDPOINT", "callback")
 
 ## Required for Vault identity tokens
 VAULT_ROLE = os.getenv("VAULT_ROLE", "default")
@@ -48,10 +50,6 @@ VAULT_ROLE = os.getenv("VAULT_ROLE", "default")
 
 class OIDCAuthenticationConfig:
     def __init__(self, vault_client, oidc_scopes=""):
-        self.redirect_uri_domain = REDIRECT_URI_DOMAIN
-        self.redirect_uri_port = REDIRECT_URI_PORT
-        self.redirect_uri_endpoint = REDIRECT_URI_ENDPOINT
-
         # Ensure "openid" scope is always included
         scopes = oidc_scopes.split() if oidc_scopes else []
         if "openid" not in scopes:
@@ -72,7 +70,7 @@ class OIDCAuthenticationConfig:
             response = self.vault_client.read(
                 f"/identity/oidc/provider/{OPENID_CONNECT_PROVIDER_NAME}/.well-known/openid-configuration"
             )
-            self.authorization_endpoint = response["authorization_endpoint"]
+            self.authorization_endpoint = f"{response["authorization_endpoint"]}"
             self.token_endpoint = response["token_endpoint"]
         except Exception as e:
             logger.error(
@@ -97,25 +95,76 @@ class OIDCAuthenticationConfig:
             )
 
 
-def authorization_code_flow(config):
-    logger.info(
-        f"Attempting to authenticate with OAuth2AuthorizationCode with scopes {config.scope}"
-    )
-    kwargs = dict(
-        client_id=config.client_id,
-        client_secret=config.client_secret,
-        scope=config.scope,
-    )
+def initiate_oauth_flow(oidc_scopes: str = ""):
+    """Initiate OAuth2 authorization code flow and return redirect response."""
+    try:
+        # Build redirect URI from current request
+        redirect_uri = url_for('oauth_callback',_external=True)
+        
+        # Initialize Vault client
+        vault_client = hvac.Client(
+            url=VAULT_ADDR,
+            token=VAULT_TOKEN,
+            verify=not VAULT_SKIP_VERIFY
+        )
+        
+        # Get OIDC configuration
+        config = OIDCAuthenticationConfig(vault_client, oidc_scopes)
+        
+        if not config.authorization_endpoint or not config.client_id:
+            return jsonify({"error": "Failed to get OIDC configuration"}), 500
+        
+        # Generate state for CSRF protection
+        state = secrets.token_urlsafe(32)
+        session["oauth_state"] = state
+        session["oidc_scopes"] = oidc_scopes
+        session["redirect_uri"] = redirect_uri
+        
+        # Store config in session for callback
+        session["client_id"] = config.client_id
+        session["client_secret"] = config.client_secret
+        session["token_endpoint"] = config.token_endpoint
+        
+        # Build authorization URL
+        params = {
+            "client_id": config.client_id,
+            "response_type": "code",
+            "redirect_uri": redirect_uri,
+            "scope": config.scope,
+            "state": state,
+        }
+        
+        auth_url = f"{config.authorization_endpoint}?{urlencode(params)}"
+        logger.info(f"Redirecting to authorization URL: {auth_url}")
+        
+        response = redirect(auth_url)
+        response.headers['Origin'] = VAULT_ADDR
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error initiating OAuth flow: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-    auth = OAuth2AuthorizationCode(
-        authorization_url=config.authorization_endpoint,
-        token_url=config.token_endpoint,
-        redirect_uri_domain=config.redirect_uri_domain,
-        redirect_uri_port=config.redirect_uri_port,
-        redirect_uri_endpoint=config.redirect_uri_endpoint,
-        **kwargs,
-    )
-    return auth
+
+async def exchange_code_for_token(client_id: str, client_secret: str, token_endpoint: str, code: str, redirect_uri: str) -> str:
+    """Exchange authorization code for access token."""
+    token_data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri,
+        "client_id": client_id,
+        "client_secret": client_secret,
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            token_endpoint,
+            data=token_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        response.raise_for_status()
+        token_response = response.json()
+        return token_response["access_token"]
 
 
 async def get_token(vault_client):
@@ -130,7 +179,7 @@ async def get_token(vault_client):
         raise e
 
 
-async def send_agent_request(user_message: str, oidc_scopes: str = "") -> dict:
+async def send_agent_request(user_message: str, access_token: Optional[str] = None) -> dict:
     """Send a request to the agent and return the response."""
     base_url = AGENT_SERVER_URL
     response_text = []
@@ -157,13 +206,17 @@ async def send_agent_request(user_message: str, oidc_scopes: str = "") -> dict:
                     vault_client = hvac.Client(
                         url=VAULT_ADDR,
                         token=VAULT_TOKEN,
-                        namespace=VAULT_NAMESPACE,
+                        verify=not VAULT_SKIP_VERIFY
                     )
 
                     if OPENID_CONNECT_PROVIDER_NAME and OPENID_CONNECT_CLIENT_NAME:
-                        httpx_client.auth = authorization_code_flow(
-                            OIDCAuthenticationConfig(vault_client, oidc_scopes)
-                        )
+                        # Use the access token from OAuth flow
+                        if access_token:
+                            httpx_client.headers["Authorization"] = f"Bearer {access_token}"
+                        else:
+                            error_message = "OAuth authentication required but no access token provided"
+                            logger.error(error_message)
+                            return {"success": False, "error": error_message, "requires_auth": True}
                     else:
                         token = await get_token(vault_client)
                         httpx_client.headers["Authorization"] = f"Bearer {token}"
@@ -212,10 +265,10 @@ async def send_agent_request(user_message: str, oidc_scopes: str = "") -> dict:
                 return {"success": False, "error": error_message}
 
             async for event in stream:
-                if hasattr(event, "parts"):
-                    if hasattr(event.parts[0], "root"):
-                        if hasattr(event.parts[0].root, "text"):
-                            response_text.append(event.parts[0].root.text)
+                if hasattr(event, "parts") and event.parts:  # type: ignore
+                    if hasattr(event.parts[0], "root"):  # type: ignore
+                        if hasattr(event.parts[0].root, "text"):  # type: ignore
+                            response_text.append(event.parts[0].root.text)  # type: ignore
 
         return {
             "success": True,
@@ -236,21 +289,120 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/callback")
+def oauth_callback():
+    """Handle OAuth2 callback and exchange code for token."""
+    try:
+        # Get authorization code and state from callback
+        code = request.args.get("code")
+        state = request.args.get("state")
+        
+        if not code:
+            error = request.args.get("error", "Unknown error")
+            error_description = request.args.get("error_description", "")
+            logger.error(f"OAuth error: {error} - {error_description}")
+            return jsonify({"error": f"OAuth error: {error} - {error_description}"}), 400
+        
+        # Verify state to prevent CSRF
+        if state != session.get("oauth_state"):
+            logger.error("State mismatch - possible CSRF attack")
+            return jsonify({"error": "Invalid state parameter"}), 400
+        
+        # Retrieve config from session
+        client_id = session.get("client_id")
+        client_secret = session.get("client_secret")
+        token_endpoint = session.get("token_endpoint")
+        redirect_uri = session.get("redirect_uri")
+        
+        if not all([client_id, client_secret, token_endpoint, redirect_uri]):
+            return jsonify({"error": "Missing OAuth configuration in session"}), 400
+        
+        # Exchange code for token
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            access_token = loop.run_until_complete(
+                exchange_code_for_token(
+                    str(client_id),
+                    str(client_secret),
+                    str(token_endpoint),
+                    code,
+                    str(redirect_uri)
+                )
+            )
+            
+            # Store access token in session
+            session["access_token"] = access_token
+            logger.info("Successfully obtained access token")
+            
+            # Clean up OAuth state
+            session.pop("oauth_state", None)
+            session.pop("client_id", None)
+            session.pop("client_secret", None)
+            session.pop("token_endpoint", None)
+            session.pop("redirect_uri", None)
+            
+            return """
+            <html>
+                <body>
+                    <h1>Authentication Successful!</h1>
+                    <p>You can now close this window and return to the application.</p>
+                    <script>
+                        window.close();
+                    </script>
+                </body>
+            </html>
+            """
+        finally:
+            loop.close()
+            
+    except Exception as e:
+        logger.error(f"Error in OAuth callback: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/send-message", methods=["POST"])
 def send_message():
     """API endpoint to send a message to the agent."""
     data = request.get_json()
     user_message = data.get("message", "Give me a hello world")
     oidc_scopes = data.get("oidc_scopes", "")
+    
+    # Ensure "openid" scope is always included
+    scopes = oidc_scopes.split() if oidc_scopes else []
+    if "openid" not in scopes:
+        scopes.append("openid")
+    normalized_scopes = " ".join(scopes)
+    
+    # Get access token from session
+    access_token = session.get("access_token")
+    stored_scopes = session.get("oidc_scopes", "")
+    
+    # If OAuth is configured and no access token, or scopes have changed, initiate OAuth flow
+    if OPENID_CONNECT_PROVIDER_NAME and OPENID_CONNECT_CLIENT_NAME:
+        if not access_token or (normalized_scopes and normalized_scopes != stored_scopes):
+            # Store the requested scopes for this flow
+            session["requested_oidc_scopes"] = normalized_scopes
+            return initiate_oauth_flow(normalized_scopes)
 
     # Run the async function in a new event loop
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        result = loop.run_until_complete(send_agent_request(user_message, oidc_scopes))
+        result = loop.run_until_complete(
+            send_agent_request(user_message, normalized_scopes, access_token)
+        )
         return jsonify(result)
     finally:
         loop.close()
+
+
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    """Clear the OAuth session."""
+    session.pop("access_token", None)
+    session.pop("oidc_scopes", None)
+    return jsonify({"success": True})
 
 
 if __name__ == "__main__":

@@ -50,6 +50,7 @@ spec:
         vault.hashicorp.com/agent-inject: "true"
         vault.hashicorp.com/role: "test-client"
         vault.hashicorp.com/agent-inject-token: "true"
+        vault.hashicorp.com/agent-run-as-same-user: "true"
     spec:
       serviceAccountName: test-client
       containers:
@@ -67,10 +68,13 @@ spec:
           ]
         env:
         - name: AGENT_URL
-          valueFrom:
-            configMapKeyRef:
-              name: helloworld-agent-client
-              key: AGENT_URL
+          value: http://helloworld-agent-server:9999
+        - name: REDIRECT_URI_DOMAIN
+          value: k8s-default-hellowor-356e360717-725476956.us-east-1.elb.amazonaws.com
+        - name: REDIRECT_URI_PORT
+          value: "80"
+        - name: REDIRECT_URI_ENDPOINT
+          value: client/callback
         - name: OPENID_CONNECT_PROVIDER_NAME
           valueFrom:
             configMapKeyRef:
@@ -110,4 +114,12 @@ spec:
             port: 9000
           initialDelaySeconds: 5
           periodSeconds: 5
-# Made with Bob
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false

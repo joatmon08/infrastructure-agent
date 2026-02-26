@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: helloworld-agent-server
-        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:3494250c3ba1c9bb13a371a2d2ad52c1494f5f90
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:2e35965db030bccb8c4a9348845d2125500d3b8c
         ports:
         - containerPort: 9999
           name: http

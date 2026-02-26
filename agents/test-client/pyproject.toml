@@ -9,6 +9,5 @@ dependencies = [
     "flask>=3.1.2",
     "flask-cors>=6.0.2",
     "httpx[http2]>=0.28.1",
-    "httpx-auth>=0.23.1",
     "hvac>=2.4.0",
 ]
