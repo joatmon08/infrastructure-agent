@@ -8,8 +8,11 @@ data "http" "vault_cors" {
   }
 
   request_body = jsonencode({
-    enabled         = true,
-    allowed_origins = "http://localhost:9000",
+    enabled = true,
+    allowed_origins = [
+      "http://localhost:9000",
+      data.terraform_remote_state.base.outputs.vault_endpoint
+    ]
   })
 }
 
