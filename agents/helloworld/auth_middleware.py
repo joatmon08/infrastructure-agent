@@ -115,6 +115,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             userinfo = httpx.get(
                 f"{userinfo_endpoint}",
                 headers={"Authorization": f"Bearer {access_token}"},
+                verify=self.verify_ssl
             )
             return userinfo.json()
         except Exception as e:
