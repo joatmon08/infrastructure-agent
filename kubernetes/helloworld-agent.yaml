@@ -32,12 +32,14 @@ spec:
     spec:
       containers:
       - name: helloworld-agent-server
-        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:2e35965db030bccb8c4a9348845d2125500d3b8c
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-helloworld-agent:e59c2e0131a936967a8f199afef43fd86fbb41bc
         ports:
         - containerPort: 9999
           name: http
           protocol: TCP
         env:
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
         - name: AGENT_URL
           valueFrom:
             configMapKeyRef:

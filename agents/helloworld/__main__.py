@@ -133,7 +133,8 @@ if __name__ == "__main__":
         agent_card=public_agent_card,
         public_paths=["/.well-known/agent-card.json"],
         vault_client=vault_client,
-        openid_connect_url=OPENID_CONNECT_URL
+        openid_connect_url=OPENID_CONNECT_URL,
+        verify_ssl=not VAULT_SKIP_VERIFY
     )
 
     uvicorn.run(app, host="0.0.0.0", port=9999)

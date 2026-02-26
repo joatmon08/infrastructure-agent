@@ -47,12 +47,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
         public_paths: list[str],
         vault_client: hvac.Client | None,
         openid_connect_url: str | None,
+        verify_ssl: bool = True
     ):
         super().__init__(app)
         self.agent_card = agent_card
         self.public_paths = set(public_paths or [])
         self.vault_client = vault_client
         self.openid_connect_url = openid_connect_url
+        self.verify_ssl = verify_ssl
 
         scopes = get_scopes_from_agent_card(self.agent_card)
         self.a2a_auth = {"required_scopes": scopes}
@@ -90,7 +92,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def _get_userinfo_endpoint(self) -> str | None :
         try:
             config = httpx.get(
-                self.openid_connect_url
+                self.openid_connect_url,
+                verify=self.verify_ssl
             )
             return config.json()['userinfo_endpoint']
         except Exception as e:
