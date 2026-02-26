@@ -1,6 +1,7 @@
 data "http" "vault_cors" {
-  url    = "${data.terraform_remote_state.base.outputs.vault_endpoint}/sys/config/cors"
-  method = "POST"
+  url      = "${data.terraform_remote_state.base.outputs.vault_endpoint}/v1/sys/config/cors"
+  insecure = true
+  method   = "POST"
 
   request_headers = {
     X-Vault-Token = var.vault_token
