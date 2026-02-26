@@ -8,9 +8,8 @@ data "http" "vault_cors" {
   }
 
   request_body = jsonencode({
-    enabled         = false,
-    allowed_origins = "*",
-    allowed_headers = "Access-Control-Allow-Origin, Access-Control-Allow-Credentials"
+    enabled         = true,
+    allowed_origins = "http://localhost:9000",
   })
 }
 
