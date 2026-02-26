@@ -301,11 +301,26 @@
                     outputDiv.innerHTML = `
                         <span class="status-badge loading">AUTHENTICATION REQUIRED</span><br>
                         Opening authentication window...<br>
-                        <a href="${data.auth_url}" target="_blank" style="color: #667eea; text-decoration: underline;">Click here if window doesn't open</a>
+                        Please complete authentication and this page will automatically retry.
                         <div class="timestamp">Initiated at: ${timestamp}</div>
                     `;
-                    // Open OAuth flow in new window
-                    window.open(data.auth_url, 'oauth', 'width=600,height=700');
+                    
+                    // Open OAuth flow in popup window
+                    const popup = window.open(data.auth_url, 'oauth', 'width=600,height=700');
+                    
+                    // Poll to check if popup is closed
+                    const pollTimer = setInterval(() => {
+                        if (popup.closed) {
+                            clearInterval(pollTimer);
+                            // Retry sending the message after authentication
+                            outputDiv.innerHTML = `
+                                <span class="status-badge loading">LOADING</span><br>
+                                <span class="loading-spinner"></span>Retrying request after authentication...
+                            `;
+                            sendMessage();
+                        }
+                    }, 500);
+                    
                     return;
                 }
 

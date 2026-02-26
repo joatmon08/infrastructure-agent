@@ -95,8 +95,8 @@ class OIDCAuthenticationConfig:
             )
 
 
-def initiate_oauth_flow(oidc_scopes: str = ""):
-    """Initiate OAuth2 authorization code flow and return redirect response."""
+def get_oauth_auth_url(oidc_scopes: str = ""):
+    """Generate OAuth2 authorization URL and return it."""
     try:
         # Build redirect URI from current request
         redirect_uri = url_for('oauth_callback',_external=True)
@@ -112,7 +112,7 @@ def initiate_oauth_flow(oidc_scopes: str = ""):
         config = OIDCAuthenticationConfig(vault_client, oidc_scopes)
         
         if not config.authorization_endpoint or not config.client_id:
-            return jsonify({"error": "Failed to get OIDC configuration"}), 500
+            return None, "Failed to get OIDC configuration"
         
         # Generate state for CSRF protection
         state = secrets.token_urlsafe(32)
@@ -135,15 +135,13 @@ def initiate_oauth_flow(oidc_scopes: str = ""):
         }
         
         auth_url = f"{config.authorization_endpoint}?{urlencode(params)}"
-        logger.info(f"Redirecting to authorization URL: {auth_url}")
+        logger.info(f"Generated authorization URL: {auth_url}")
         
-        response = redirect(auth_url)
-        response.headers['Origin'] = VAULT_ADDR
-        return response
+        return auth_url, None
         
     except Exception as e:
-        logger.error(f"Error initiating OAuth flow: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error generating OAuth URL: {str(e)}")
+        return None, str(e)
 
 
 async def exchange_code_for_token(client_id: str, client_secret: str, token_endpoint: str, code: str, redirect_uri: str) -> str:
@@ -156,11 +154,11 @@ async def exchange_code_for_token(client_id: str, client_secret: str, token_endp
         "client_secret": client_secret,
     }
     
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=not VAULT_SKIP_VERIFY) as client:
         response = await client.post(
             token_endpoint,
             data=token_data,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
         )
         response.raise_for_status()
         token_response = response.json()
@@ -361,12 +359,16 @@ def oauth_callback():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/send-message", methods=["POST"])
+@app.route("/api/send-message", methods=["POST", "GET"])
 def send_message():
     """API endpoint to send a message to the agent."""
-    data = request.get_json()
-    user_message = data.get("message", "Give me a hello world")
-    oidc_scopes = data.get("oidc_scopes", "")
+    if request.method == "GET":
+        user_message = request.args.get("message", "Give me a hello world")
+        oidc_scopes = request.args.get("oidc_scopes", "")
+    else:
+        data = request.get_json()
+        user_message = data.get("message", "Give me a hello world")
+        oidc_scopes = data.get("oidc_scopes", "")
     
     # Ensure "openid" scope is always included
     scopes = oidc_scopes.split() if oidc_scopes else []
@@ -378,24 +380,26 @@ def send_message():
     access_token = session.get("access_token")
     stored_scopes = session.get("oidc_scopes", "")
     
-    # If OAuth is configured and no access token, or scopes have changed, initiate OAuth flow
+    # If OAuth is configured and no access token, or scopes have changed, return auth URL
     if OPENID_CONNECT_PROVIDER_NAME and OPENID_CONNECT_CLIENT_NAME:
         if not access_token or (normalized_scopes and normalized_scopes != stored_scopes):
             # Store the requested scopes for this flow
             session["requested_oidc_scopes"] = normalized_scopes
-            return initiate_oauth_flow(normalized_scopes)
+            auth_url, error = get_oauth_auth_url(normalized_scopes)
+            if error:
+                return jsonify({"success": False, "error": error}), 500
+            return jsonify({"success": False, "requires_auth": True, "auth_url": auth_url})
 
     # Run the async function in a new event loop
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
         result = loop.run_until_complete(
-            send_agent_request(user_message, normalized_scopes, access_token)
+            send_agent_request(user_message, access_token)
         )
         return jsonify(result)
     finally:
         loop.close()
-
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
