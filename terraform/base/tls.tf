@@ -12,6 +12,10 @@ resource "tls_self_signed_cert" "ca_cert" {
     common_name = "ca.${var.server_tls_servername}"
   }
 
+  dns_names = [
+    "*.elb.us-east-1.amazonaws.com"
+  ]
+
   validity_period_hours = 8760
 
   allowed_uses = [
