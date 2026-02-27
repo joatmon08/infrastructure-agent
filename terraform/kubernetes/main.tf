@@ -200,8 +200,9 @@ resource "vault_identity_oidc_key" "agent" {
 resource "vault_identity_oidc_client" "agent" {
   name = "agent"
   redirect_uris = [
-    "http://127.0.0.1:9998/callback",
-    "http://localhost:9998/callback",
+    "http://afdda4824cee549f5ace33dec4174559-1142533573.us-east-1.elb.amazonaws.com/callback",
+    "http://test-client/callback",
+    "http://localhost:9000/callback"
   ]
   assignments = [
     vault_identity_oidc_assignment.end_user.name,
