@@ -69,3 +69,6 @@ kubernetes/*-secret.yaml
 helm/*-secret.yaml
 
 .bob/
+
+client_secrets.json
+.vault-token

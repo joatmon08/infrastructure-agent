@@ -120,3 +120,9 @@ output "helm_vault_namespace" {
   description = "Namespace of Helm release for Vault"
   value       = helm_release.vault.namespace
 }
+
+output "ca_cert" {
+  description = "Output CA certificate for verification"
+  value       = base64encode(tls_self_signed_cert.ca_cert.cert_pem)
+  sensitive   = true
+}
