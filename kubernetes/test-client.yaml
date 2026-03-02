@@ -78,7 +78,7 @@ spec:
       serviceAccountName: test-client
       containers:
       - name: test-client
-        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-test-client:741552aeb1e3353bbf606c59b01a45725ac2b910
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-test-client:6edf79d4dee12d99897a654e0301fbfcd9a54fad
         ports:
         - containerPort: 9000
           name: http
@@ -87,7 +87,7 @@ spec:
         - name: AGENT_URL
           value: http://helloworld-agent-server:9999
         - name: BASE_URL
-          value: http://test-client
+          value: http://k8s-default-testclie-fa0a8948a8-9a744a5153b23d1b.elb.us-east-1.amazonaws.com
         - name: OIDC_PROVIDER_CONFIG_PATH
           value: /vault/secrets/oidc_provider.json
         - name: CLIENT_SECRETS_PATH
