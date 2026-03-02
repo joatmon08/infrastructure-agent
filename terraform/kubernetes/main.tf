@@ -9,6 +9,9 @@ data "http" "vault_cors" {
 
   request_body = jsonencode({
     enabled = true,
+    allowed_headers = [
+      "Access-Control-Allow-Origin"
+    ],
     allowed_origins = [
       "http://localhost:9000",
       data.terraform_remote_state.base.outputs.vault_endpoint
