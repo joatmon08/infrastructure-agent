@@ -200,10 +200,17 @@ resource "vault_identity_oidc_key" "agent" {
   rotation_period    = 3600
 }
 
+data "kubernetes_service_v1" "test_client" {
+  metadata {
+    name      = "test-client"
+    namespace = "default"
+  }
+}
+
 resource "vault_identity_oidc_client" "agent" {
   name = "agent"
   redirect_uris = [
-    "http://afdda4824cee549f5ace33dec4174559-1142533573.us-east-1.elb.amazonaws.com/callback",
+    "http://${data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}/callback",
     "http://test-client/callback",
     "http://localhost:9000/callback"
   ]
