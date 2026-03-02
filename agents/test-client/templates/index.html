@@ -313,18 +313,14 @@
 
                 if (data.success) {
                     outputDiv.className = 'output-box success';
-                    outputDiv.innerHTML = `
-                        <span class="status-badge success">SUCCESS</span><br>
-                        ${escapeHtml(data.response)}
-                        <div class="timestamp">Received at: ${timestamp}</div>
-                    `;
+                    outputDiv.innerHTML = `<span class="status-badge success">SUCCESS</span><br>
+${escapeHtml(data.response)}
+<div class="timestamp">Received at: ${timestamp}</div>`;
                 } else {
                     outputDiv.className = 'output-box error';
-                    outputDiv.innerHTML = `
-                        <span class="status-badge error">ERROR</span><br>
-                        ${escapeHtml(data.error || 'Unknown error occurred')}
-                        <div class="timestamp">Failed at: ${timestamp}</div>
-                    `;
+                    outputDiv.innerHTML = `<span class="status-badge error">ERROR</span><br>
+${escapeHtml(data.error || 'Unknown error occurred')}
+<div class="timestamp">Failed at: ${timestamp}</div>`;
                 }
 
             } catch (error) {
@@ -367,14 +363,20 @@
                 const data = await response.json();
                 const sendBtn = document.getElementById('sendBtn');
                 const authStatusInput = document.getElementById('authStatusInput');
+                const oidcScopesInput = document.getElementById('oidcScopesInput');
                 
                 sendBtn.disabled = !data.authenticated;
                 
                 if (data.authenticated) {
-                    const scopesText = data.scopes ? `Scopes: ${data.scopes}` : 'Scopes: openid';
-                    authStatusInput.value = `✓ Logged in\n${scopesText}`;
+                    const scopesText = data.scopes ? `scopes: ${data.scopes}` : 'scopes: openid';
+                    authStatusInput.value = `✓ Logged in with ${scopesText}`;
                     authStatusInput.style.backgroundColor = '#e8f5e9';
                     authStatusInput.style.color = '#2e7d32';
+                    
+                    // Populate the OIDC Scopes textarea with the logged-in scopes
+                    if (data.scopes) {
+                        oidcScopesInput.value = data.scopes;
+                    }
                 } else {
                     authStatusInput.value = 'Please log in your agent with correct scopes.';
                     authStatusInput.style.backgroundColor = '#f0f0f0';

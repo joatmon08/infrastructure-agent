@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-from multiprocessing import Value
 import os
 import secrets
 from typing import Optional
@@ -206,24 +205,19 @@ async def send_agent_request(user_message: str, access_token: Optional[str] = No
             )
 
             try:
-                stream = client.send_message(message)
+                logger.info("Sending message")
+                response = ""
+                async for event in client.send_message(message):
+                    if event.kind == "message":
+                        parts = event.parts
+                        for part in parts:
+                            response += part.root.text
+                return {"success": True, "response": response}
             except Exception as e:
                 error_message = f"Error sending message: {str(e)}"
                 logger.error(error_message)
                 return {"success": False, "error": error_message}
 
-            async for event in stream:
-                if hasattr(event, "parts") and event.parts:  # type: ignore
-                    if hasattr(event.parts[0], "root"):  # type: ignore
-                        if hasattr(event.parts[0].root, "text"):  # type: ignore
-                            response_text.append(event.parts[0].root.text)  # type: ignore
-
-        return {
-            "success": True,
-            "response": (
-                "".join(response_text) if response_text else "No response received"
-            ),
-        }
     except httpx.HTTPStatusError as e:
         error_message = f"HTTP Status Error: {str(e)}"
         logger.error(error_message)
@@ -304,7 +298,7 @@ def oauth_callback():
         return jsonify({"error": f"OAuth callback failed. {str(e)}"}), 500
 
 @app.route("/api/send-message", methods=["POST", "GET"])
-def send_message():
+async def send_message():
     """API endpoint to send a message to the agent."""
     if request.method == "GET":
         user_message = request.args.get("message", "Give me a hello world")
@@ -318,16 +312,8 @@ def send_message():
     if not access_token:
         return jsonify({"success": False, "error": "Log in first to get access token"}), 401
 
-    # Run the async function in a new event loop
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        result = loop.run_until_complete(
-            send_agent_request(user_message, access_token)
-        )
-        return jsonify(result)
-    finally:
-        loop.close()
+    return await send_agent_request(user_message, access_token)
+
 
 @app.route("/api/auth-status", methods=["GET"])
 def auth_status():
