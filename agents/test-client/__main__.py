@@ -27,12 +27,11 @@ logger = logging.getLogger(__name__)
 # Configuration from environment variables
 AGENT_SERVER_URL = os.getenv("AGENT_URL", "http://localhost:9999")
 APP_PORT = int(os.getenv("APP_PORT", 9000))
+OIDC_PROVIDER_CONFIG_PATH = os.getenv("OIDC_PROVIDER_CONFIG_PATH", "./oidc_provider.json")
 CLIENT_SECRETS_PATH = os.getenv("CLIENT_SECRETS_PATH", "./client_secrets.json")
 
-## Required to get client credentials or generate a signed token from Vault
-VAULT_ADDR = os.getenv("VAULT_ADDR")
-VAULT_TOKEN = os.getenv("VAULT_TOKEN")
-VAULT_SKIP_VERIFY = os.getenv("VAULT_SKIP_VERIFY", "false").lower() == "true"
+# TLS verification
+VERIFY_TLS = os.getenv("VERIFY_TLS", "false").lower() == "true"
 
 ## Base URL for the application (used for OAuth redirect URIs)
 ## This prevents Host header injection attacks
@@ -45,7 +44,7 @@ CORS(app, origins=["*"])
 
 
 class OIDCAuthenticationConfig:
-    def __init__(self, client_secrets_path, oidc_scopes=""):
+    def __init__(self, client_secrets_path, oidc_provider_config_path, oidc_scopes=""):
         # Ensure "openid" scope is always included
         scopes = oidc_scopes.split() if oidc_scopes else []
         if "openid" not in scopes:
@@ -54,31 +53,40 @@ class OIDCAuthenticationConfig:
 
         try:
             with open(client_secrets_path, 'r') as f:
-                config = json.load(f)
+                client_secrets = json.load(f)
             
-            self.client_id = config["client_id"]
-            self.client_secret = config["client_secret"]
-            self.authorization_endpoint = config["authorization_endpoint"]
-            self.issuer = config["issuer"]
-            self.token_endpoint = config["token_endpoint"]
-            self.userinfo_endpoint = config["userinfo_endpoint"]
-            self.redirect_uris = config["redirect_uris"]
+            self.client_id = client_secrets["client_id"]
+            self.client_secret = client_secrets["client_secret"]
+            self.redirect_uris = client_secrets["redirect_uris"]
+
         except Exception as e:
             raise ValueError(f"Cannot load client secrets from {client_secrets_path}: {str(e)}")
+
+        try:
+            with open(oidc_provider_config_path, 'r') as f:
+                oidc_provider = json.load(f)
+
+            self.authorization_endpoint = oidc_provider["authorization_endpoint"]
+            self.issuer = oidc_provider["issuer"]
+            self.token_endpoint = oidc_provider["token_endpoint"]
+            self.userinfo_endpoint = oidc_provider["userinfo_endpoint"]
+        
+        except Exception as e:
+            raise ValueError(f"Cannot load OIDC provider configuration from {oidc_provider_config_path}: {str(e)}")
 
     def validate_redirect_uri(self, redirect_uri):
         if redirect_uri not in self.redirect_uris:
             raise ValueError(f"Redirect URI {redirect_uri} not in allowed list")
 
 
-def get_oauth_auth_url(client_secrets_path, oidc_scopes: str = ""):
+def get_oauth_auth_url(client_secrets_path, oidc_provider_config_path, oidc_scopes: str = ""):
     """Generate OAuth2 authorization URL and return it."""
     try:
         # Build redirect URI from current request
         redirect_uri = f"{BASE_URL}{url_for('oauth_callback')}"
         
         # Get OIDC configuration
-        config = OIDCAuthenticationConfig(client_secrets_path, oidc_scopes)
+        config = OIDCAuthenticationConfig(client_secrets_path, oidc_provider_config_path, oidc_scopes)
         
         if not config.authorization_endpoint or not config.client_id:
             logger.error("OIDC configuration missing required values")
@@ -126,7 +134,7 @@ async def exchange_code_for_token(client_id: str, client_secret: str, token_endp
         "client_secret": client_secret,
     }
     
-    async with httpx.AsyncClient(verify=not VAULT_SKIP_VERIFY) as client:
+    async with httpx.AsyncClient(verify=VERIFY_TLS) as client:
         response = await client.post(
             token_endpoint,
             data=token_data,
@@ -144,7 +152,7 @@ async def send_agent_request(user_message: str, access_token: Optional[str] = No
     error_message = None
 
     try:
-        async with httpx.AsyncClient(http2=True, timeout=60, verify=not VAULT_SKIP_VERIFY) as httpx_client:
+        async with httpx.AsyncClient(http2=True, timeout=60, verify=VERIFY_TLS) as httpx_client:
             resolver = A2ACardResolver(
                 httpx_client=httpx_client,
                 base_url=base_url,
@@ -241,7 +249,7 @@ def login():
     if "openid" not in scope_list:
         scope_list.append("openid")
     normalized_scopes = " ".join(scope_list)
-    auth_url, error = get_oauth_auth_url(CLIENT_SECRETS_PATH, oidc_scopes=normalized_scopes)
+    auth_url, error = get_oauth_auth_url(CLIENT_SECRETS_PATH, OIDC_PROVIDER_CONFIG_PATH, oidc_scopes=normalized_scopes)
     if error:
         return jsonify({"error": error}), 500
     return redirect(auth_url, code=307)
