@@ -20,16 +20,9 @@ from a2a.utils.constants import (
     EXTENDED_AGENT_CARD_PATH,
 )
 
-from urllib.parse import urlparse
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Flask app setup
-app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", secrets.token_hex(32))
-CORS(app)
 
 # Configuration from environment variables
 AGENT_SERVER_URL = os.getenv("AGENT_URL", "http://localhost:9999")
@@ -46,6 +39,11 @@ OPENID_CONNECT_CLIENT_NAME = os.getenv("OPENID_CONNECT_CLIENT_NAME")
 
 ## Required for Vault identity tokens
 VAULT_ROLE = os.getenv("VAULT_ROLE", "default")
+
+# Flask app setup
+app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", secrets.token_hex(32))
+CORS(app, origins=["*"])
 
 
 class OIDCAuthenticationConfig:
@@ -184,7 +182,7 @@ async def send_agent_request(user_message: str, access_token: Optional[str] = No
     error_message = None
 
     try:
-        async with httpx.AsyncClient(http2=True, timeout=60) as httpx_client:
+        async with httpx.AsyncClient(http2=True, timeout=60, verify=not VAULT_SKIP_VERIFY) as httpx_client:
             resolver = A2ACardResolver(
                 httpx_client=httpx_client,
                 base_url=base_url,
@@ -274,7 +272,10 @@ async def send_agent_request(user_message: str, access_token: Optional[str] = No
                 "".join(response_text) if response_text else "No response received"
             ),
         }
-
+    except httpx.HTTPStatusError as e:
+        error_message = f"HTTP Status Error: {str(e)}"
+        logger.error(error_message)
+        return {"success": False, "error": error_message}
     except Exception as e:
         error_message = f"Unexpected error: {str(e)}"
         logger.error(error_message, exc_info=True)
@@ -285,6 +286,19 @@ async def send_agent_request(user_message: str, access_token: Optional[str] = No
 def index():
     """Render the main UI page."""
     return render_template("index.html")
+
+
+@app.route("/login")
+def login():
+    scopes = request.args.get("scopes", "")
+    scope_list = scopes.split() if scopes else []
+    if "openid" not in scope_list:
+        scope_list.append("openid")
+    normalized_scopes = " ".join(scope_list)
+    auth_url, error = get_oauth_auth_url(normalized_scopes)
+    if error:
+        return jsonify({"error": error}), 500
+    return redirect(auth_url, code=307)
 
 
 @app.route("/callback")
@@ -340,17 +354,7 @@ def oauth_callback():
             session.pop("token_endpoint", None)
             session.pop("redirect_uri", None)
             
-            return """
-            <html>
-                <body>
-                    <h1>Authentication Successful!</h1>
-                    <p>You can now close this window and return to the application.</p>
-                    <script>
-                        window.close();
-                    </script>
-                </body>
-            </html>
-            """
+            return redirect(url_for('index'))
         finally:
             loop.close()
             
@@ -358,37 +362,20 @@ def oauth_callback():
         logger.error(f"Error in OAuth callback: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
-
 @app.route("/api/send-message", methods=["POST", "GET"])
 def send_message():
     """API endpoint to send a message to the agent."""
     if request.method == "GET":
         user_message = request.args.get("message", "Give me a hello world")
-        oidc_scopes = request.args.get("oidc_scopes", "")
     else:
         data = request.get_json()
         user_message = data.get("message", "Give me a hello world")
-        oidc_scopes = data.get("oidc_scopes", "")
-    
-    # Ensure "openid" scope is always included
-    scopes = oidc_scopes.split() if oidc_scopes else []
-    if "openid" not in scopes:
-        scopes.append("openid")
-    normalized_scopes = " ".join(scopes)
     
     # Get access token from session
     access_token = session.get("access_token")
-    stored_scopes = session.get("oidc_scopes", "")
     
-    # If OAuth is configured and no access token, or scopes have changed, return auth URL
-    if OPENID_CONNECT_PROVIDER_NAME and OPENID_CONNECT_CLIENT_NAME:
-        if not access_token or (normalized_scopes and normalized_scopes != stored_scopes):
-            # Store the requested scopes for this flow
-            session["requested_oidc_scopes"] = normalized_scopes
-            auth_url, error = get_oauth_auth_url(normalized_scopes)
-            if error:
-                return jsonify({"success": False, "error": error}), 500
-            return jsonify({"success": False, "requires_auth": True, "auth_url": auth_url})
+    if not access_token:
+        return jsonify({"success": False, "error": "Log in first to get access token"}), 401
 
     # Run the async function in a new event loop
     loop = asyncio.new_event_loop()
@@ -400,6 +387,17 @@ def send_message():
         return jsonify(result)
     finally:
         loop.close()
+
+@app.route("/api/auth-status", methods=["GET"])
+def auth_status():
+    """Return whether the session has a valid access token and the scopes."""
+    has_token = bool(session.get("access_token"))
+    scopes = session.get("oidc_scopes", "")
+    return jsonify({
+        "authenticated": has_token,
+        "scopes": scopes
+    })
+
 
 @app.route("/api/logout", methods=["POST"])
 def logout():

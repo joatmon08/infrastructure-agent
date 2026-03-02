@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -115,6 +116,21 @@
             background: #e0e0e0;
         }
 
+        #loginBtn {
+            background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%);
+            color: white;
+        }
+
+        #loginBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(67, 160, 71, 0.4);
+        }
+
+        #loginBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .output-section {
             margin-top: 20px;
         }
@@ -163,8 +179,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .status-badge {
@@ -206,30 +227,39 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🤖 Hello World Client Agent Tester</h1>
         <p class="subtitle">Send messages to the agent and view responses</p>
 
         <div class="input-section">
-            <label for="messageInput">Message to Hello World Server Agent:</label>
-            <textarea
-                id="messageInput"
-                placeholder="Enter your message here (e.g., 'Give me a hello world')"
-            >Give me a hello world</textarea>
+            <label for="authStatusInput">Authentication Status:</label>
+            <textarea id="authStatusInput" readonly
+                style="min-height: 60px; background-color: #f0f0f0; cursor: default;">Please log in your agent with correct scopes.</textarea>
         </div>
 
         <div class="input-section">
             <label for="oidcScopesInput">OIDC Scopes:</label>
-            <textarea
-                id="oidcScopesInput"
+            <textarea id="oidcScopesInput"
                 placeholder="Enter space-delimited OIDC scopes (e.g., 'profile email'). 'openid' will be automatically added."
-                style="min-height: 60px;"
-            ></textarea>
+                style="min-height: 60px;"></textarea>
         </div>
 
         <div class="button-container">
-            <button id="sendBtn" onclick="sendMessage()">
+            <button id="loginBtn" onclick="login()">
+                Login
+            </button>
+        </div>
+
+        <div class="input-section">
+            <label for="messageInput">Message to Hello World Server Agent:</label>
+            <textarea id="messageInput"
+                placeholder="Enter your message here (e.g., 'Give me a hello world')">Give me a hello world.</textarea>
+        </div>
+
+        <div class="button-container">
+            <button id="sendBtn" onclick="sendMessage()" disabled>
                 Send Request
             </button>
             <button id="clearBtn" onclick="clearOutput()">
@@ -251,10 +281,10 @@
             const oidcScopesInput = document.getElementById('oidcScopesInput');
             const outputDiv = document.getElementById('output');
             const sendBtn = document.getElementById('sendBtn');
-            
+
             const message = messageInput.value.trim();
             const oidcScopes = oidcScopesInput.value.trim();
-            
+
             if (!message) {
                 outputDiv.className = 'output-box error';
                 outputDiv.innerHTML = '<span class="status-badge error">ERROR</span><br>Please enter a message.';
@@ -296,6 +326,7 @@
                         <div class="timestamp">Failed at: ${timestamp}</div>
                     `;
                 }
+
             } catch (error) {
                 outputDiv.className = 'output-box error';
                 outputDiv.innerHTML = `
@@ -306,6 +337,16 @@
             } finally {
                 sendBtn.disabled = false;
             }
+        }
+
+        function login() {
+            const oidcScopesInput = document.getElementById('oidcScopesInput');
+            const scopes = oidcScopesInput.value.trim();
+            const params = new URLSearchParams();
+            if (scopes) {
+                params.set('scopes', scopes);
+            }
+            window.location.href = '/login?' + params.toString();
         }
 
         function clearOutput() {
@@ -320,13 +361,43 @@
             return div.innerHTML;
         }
 
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/auth-status');
+                const data = await response.json();
+                const sendBtn = document.getElementById('sendBtn');
+                const authStatusInput = document.getElementById('authStatusInput');
+                
+                sendBtn.disabled = !data.authenticated;
+                
+                if (data.authenticated) {
+                    const scopesText = data.scopes ? `Scopes: ${data.scopes}` : 'Scopes: openid';
+                    authStatusInput.value = `✓ Logged in\n${scopesText}`;
+                    authStatusInput.style.backgroundColor = '#e8f5e9';
+                    authStatusInput.style.color = '#2e7d32';
+                } else {
+                    authStatusInput.value = 'Please log in your agent with correct scopes.';
+                    authStatusInput.style.backgroundColor = '#f0f0f0';
+                    authStatusInput.style.color = '#666';
+                }
+            } catch (e) {
+                // If the check fails, leave the button disabled and show default message
+                const authStatusInput = document.getElementById('authStatusInput');
+                authStatusInput.value = 'Please log in your agent with correct scopes.';
+            }
+        }
+
         // Allow Enter key to send (Ctrl+Enter for new line)
-        document.getElementById('messageInput').addEventListener('keydown', function(e) {
+        document.getElementById('messageInput').addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
+
+        // Check auth status on page load
+        checkAuthStatus();
     </script>
 </body>
+
 </html>
