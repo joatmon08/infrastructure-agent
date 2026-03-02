@@ -40,6 +40,10 @@ OPENID_CONNECT_CLIENT_NAME = os.getenv("OPENID_CONNECT_CLIENT_NAME")
 ## Required for Vault identity tokens
 VAULT_ROLE = os.getenv("VAULT_ROLE", "default")
 
+## Base URL for the application (used for OAuth redirect URIs)
+## This prevents Host header injection attacks
+BASE_URL = os.getenv("BASE_URL", f"http://localhost:{APP_PORT}")
+
 # Flask app setup
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", secrets.token_hex(32))
@@ -97,7 +101,7 @@ def get_oauth_auth_url(oidc_scopes: str = ""):
     """Generate OAuth2 authorization URL and return it."""
     try:
         # Build redirect URI from current request
-        redirect_uri = url_for('oauth_callback',_external=True)
+        redirect_uri = f"{BASE_URL}{url_for('oauth_callback')}"
         
         # Initialize Vault client
         vault_client = hvac.Client(

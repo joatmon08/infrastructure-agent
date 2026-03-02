@@ -31,20 +31,20 @@ The UI uses the same environment variables as the original test-client.py:
 
 ### Required Variables:
 - `AGENT_URL` - URL of the agent server (default: `http://localhost:9999`)
+- `BASE_URL` - Base URL of this application for OAuth redirects (default: `http://localhost:9000`)
+  - **Security Note**: This prevents Host header injection attacks by using a trusted URL for OAuth callbacks
+  - Example: `https://test-client.example.com` or `http://test-client` (for Kubernetes internal services)
 
 ### Optional Variables (for authentication):
 - `VAULT_ADDR` - Vault server address
 - `VAULT_NAMESPACE` - Vault namespace
 - `VAULT_TOKEN` - Vault authentication token
 - `VAULT_ROLE` - Vault role for identity tokens (default: `default`)
+- `VAULT_SKIP_VERIFY` - Skip TLS verification for Vault (default: `false`)
 
 ### Optional Variables (for OIDC):
-- `OPENID_CONNECT_SCOPES` - OIDC scopes (default: `openid`)
 - `OPENID_CONNECT_PROVIDER_NAME` - OIDC provider name in Vault
 - `OPENID_CONNECT_CLIENT_NAME` - OIDC client name in Vault
-- `REDIRECT_URI_DOMAIN` - Redirect URI domain (default: `localhost`)
-- `REDIRECT_URI_PORT` - Redirect URI port (default: `9998`)
-- `REDIRECT_URI_ENDPOINT` - Redirect URI endpoint (default: `callback`)
 
 ## Running the UI
 
