@@ -1,3 +1,5 @@
 .venv
 __pycache__
 test-client.py
+client_secrets.json
+oidc_provider.json

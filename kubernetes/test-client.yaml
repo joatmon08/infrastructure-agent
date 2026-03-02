@@ -21,10 +21,13 @@ metadata:
   name: test-client
   labels:
     app: test-client
+  annotations:
+    service.beta.kubernetes.io/load-balancer-source-ranges: "100.8.117.17/32"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
-  - port: 9000
+  - port: 80
     targetPort: 9000
     protocol: TCP
     name: http
@@ -51,50 +54,44 @@ spec:
         vault.hashicorp.com/role: "test-client"
         vault.hashicorp.com/agent-inject-token: "true"
         vault.hashicorp.com/agent-run-as-same-user: "true"
+        vault.hashicorp.com/tls-skip-verify: "true"
+        vault.hashicorp.com/agent-inject-secret-client_secrets.json: "identity/oidc/client/agent"
+        vault.hashicorp.com/agent-inject-template-client_secrets.json: |
+          {
+          {{- with secret "identity/oidc/client/agent" }}
+              "client_id": "{{ .Data.client_id }}",
+              "client_secret": "{{ .Data.client_secret }}",
+              "redirect_uris": {{ .Data.redirect_uris | toJSON }}
+          {{- end }}
+          }
+        vault.hashicorp.com/agent-inject-secret-oidc_provider.json: "identity/oidc/provider/agent/.well-known/openid-configuration"
+        vault.hashicorp.com/agent-inject-template-oidc_provider.json: |
+          {
+          {{- with secret "identity/oidc/provider/agent/.well-known/openid-configuration" }}
+              "authorization_endpoint": "{{ .Data.authorization_endpoint }}",
+              "issuer": "{{ .Data.issuer }}",
+              "token_endpoint": "{{ .Data.token_endpoint }}",
+              "userinfo_endpoint": "{{ .Data.userinfo_endpoint }}"
+          {{- end }}
+          }
     spec:
       serviceAccountName: test-client
       containers:
       - name: test-client
-        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-test-client:3494250c3ba1c9bb13a371a2d2ad52c1494f5f90
+        image: 224382219437.dkr.ecr.us-east-1.amazonaws.com/infra-agent-test-client:741552aeb1e3353bbf606c59b01a45725ac2b910
         ports:
         - containerPort: 9000
           name: http
           protocol: TCP
-        command: ["/bin/sh"]
-        args:
-          [
-            "-c",
-            "export VAULT_TOKEN=$(cat /vault/secrets/token) && cd /app && python __main__.py",
-          ]
         env:
         - name: AGENT_URL
           value: http://helloworld-agent-server:9999
-        - name: REDIRECT_URI_DOMAIN
-          value: k8s-default-hellowor-356e360717-725476956.us-east-1.elb.amazonaws.com
-        - name: REDIRECT_URI_PORT
-          value: "80"
-        - name: REDIRECT_URI_ENDPOINT
-          value: client/callback
-        - name: OPENID_CONNECT_PROVIDER_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: helloworld-agent-client
-              key: OPENID_CONNECT_PROVIDER_NAME
-        - name: OPENID_CONNECT_CLIENT_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: helloworld-agent-client
-              key: OPENID_CONNECT_CLIENT_NAME
-        - name: VAULT_ADDR
-          valueFrom:
-            configMapKeyRef:
-              name: helloworld-agent-client
-              key: VAULT_ADDR
-        - name: VAULT_NAMESPACE
-          valueFrom:
-            configMapKeyRef:
-              name: helloworld-agent-client
-              key: VAULT_NAMESPACE
+        - name: BASE_URL
+          value: http://test-client
+        - name: OIDC_PROVIDER_CONFIG_PATH
+          value: /vault/secrets/oidc_provider.json
+        - name: CLIENT_SECRETS_PATH
+          value: /vault/secrets/client_secrets.json
         resources:
           requests:
             memory: "128Mi"

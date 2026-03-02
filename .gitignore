@@ -71,4 +71,5 @@ helm/*-secret.yaml
 .bob/
 
 client_secrets.json
+oidc_provider.json
 .vault-token
