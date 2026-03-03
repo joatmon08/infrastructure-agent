@@ -207,13 +207,17 @@ data "kubernetes_service_v1" "test_client" {
   }
 }
 
-resource "vault_identity_oidc_client" "agent" {
-  name = "agent"
-  redirect_uris = [
-    "http://${data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}/callback",
+locals {
+  test_client_dev_redirect_uris = [
     "http://test-client/callback",
     "http://localhost:9000/callback"
   ]
+  test_client_redirect_uris = data.kubernetes_service_v1.test_client.status != null ? concat(local.test_client_dev_redirect_uris, ["http://${data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}/callback"]) : local.test_client_dev_redirect_uris
+}
+
+resource "vault_identity_oidc_client" "agent" {
+  name          = "agent"
+  redirect_uris = local.test_client_redirect_uris
   assignments = [
     vault_identity_oidc_assignment.end_user.name,
   ]
