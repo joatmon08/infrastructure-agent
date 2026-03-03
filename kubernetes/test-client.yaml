@@ -15,25 +15,6 @@ metadata:
     kubernetes.io/service-account.name: test-client
 type: kubernetes.io/service-account-token
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: test-client
-  labels:
-    app: test-client
-  annotations:
-    service.beta.kubernetes.io/load-balancer-source-ranges: "100.8.117.17/32"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
-    targetPort: 9000
-    protocol: TCP
-    name: http
-  selector:
-    app: test-client
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -85,9 +66,15 @@ spec:
           protocol: TCP
         env:
         - name: AGENT_URL
-          value: http://helloworld-agent-server:9999
+          valueFrom:
+            configMapKeyRef:
+              name: helloworld-agent-server
+              key: AGENT_URL
         - name: BASE_URL
-          value: http://k8s-default-testclie-fa0a8948a8-9a744a5153b23d1b.elb.us-east-1.amazonaws.com
+          valueFrom:
+            configMapKeyRef:
+              name: test-client
+              key: BASE_URL
         - name: OIDC_PROVIDER_CONFIG_PATH
           value: /vault/secrets/oidc_provider.json
         - name: CLIENT_SECRETS_PATH

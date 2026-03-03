@@ -22,7 +22,7 @@ from auth_middleware import AuthMiddleware
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-AGENT_URL = os.getenv("AGENT_URL", 'http://localhost:9999/')
+AGENT_URL = os.getenv("AGENT_URL", 'http://localhost:9999')
 
 ## Define these values for Vault as OIDC provider
 OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
