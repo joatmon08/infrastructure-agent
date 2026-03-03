@@ -19,11 +19,6 @@ output "public_subnets" {
   value       = module.vpc.public_subnets
 }
 
-output "nat_gateway_ids" {
-  description = "List of NAT Gateway IDs"
-  value       = module.vpc.natgw_ids
-}
-
 # EKS Cluster Outputs
 output "cluster_id" {
   description = "The ID of the EKS cluster"
@@ -45,11 +40,6 @@ output "cluster_security_group_id" {
   value       = module.eks.cluster_security_group_id
 }
 
-output "cluster_iam_role_arn" {
-  description = "IAM role ARN of the EKS cluster"
-  value       = module.eks.cluster_iam_role_arn
-}
-
 output "cluster_certificate_authority_data" {
   description = "Base64 encoded certificate data required to communicate with the cluster"
   value       = module.eks.cluster_certificate_authority_data
@@ -61,43 +51,10 @@ output "cluster_oidc_issuer_url" {
   value       = module.eks.cluster_oidc_issuer_url
 }
 
-output "oidc_provider_arn" {
-  description = "ARN of the OIDC Provider for EKS"
-  value       = module.eks.oidc_provider_arn
-}
-
-# Node Group Outputs
-output "eks_managed_node_groups" {
-  description = "Map of attribute maps for all EKS managed node groups created"
-  value       = module.eks.eks_managed_node_groups
-}
-
-output "eks_managed_node_groups_autoscaling_group_names" {
-  description = "List of the autoscaling group names created by EKS managed node groups"
-  value       = module.eks.eks_managed_node_groups_autoscaling_group_names
-}
-
-# ECR Repository Outputs
-output "ecr_repository_arns" {
-  description = "List of ARNs for all ECR repositories"
-  value = [
-    aws_ecr_repository.ollama.arn,
-    aws_ecr_repository.langflow.arn
-  ]
-}
-
-output "ecr_repository_urls" {
-  description = "List of URLs for all ECR repositories"
-  value = [
-    aws_ecr_repository.ollama.repository_url,
-    aws_ecr_repository.langflow.repository_url
-  ]
-}
-
-# IAM Policy Output
-output "ecr_pull_policy_arn" {
-  description = "ARN of the IAM policy for ECR pull access"
-  value       = aws_iam_policy.ecr_pull_policy.arn
+# ECR Repository
+output "ecr_repository_uri" {
+  description = "URI for ECR repository"
+  value       = aws_ecr_repository.helloworld_agent.registry_id
 }
 
 # Configuration Output
