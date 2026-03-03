@@ -57,6 +57,7 @@ resource "kubernetes_service_v1" "test_client" {
       app = local.client_username
     }
     annotations = {
+      "service.beta.kubernetes.io/aws-load-balancer-type"      = "nlb"
       "service.beta.kubernetes.io/load-balancer-source-ranges" = join(",", var.inbound_cidrs_for_lbs)
       "service.beta.kubernetes.io/aws-load-balancer-scheme"    = "internet-facing"
     }
