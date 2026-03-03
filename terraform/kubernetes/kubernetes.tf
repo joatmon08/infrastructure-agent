@@ -1,9 +1,12 @@
+locals {
+  inbound_cidrs_for_agent_server = concat(var.inbound_cidrs_for_lbs, [data.terraform_remote_state.base.outputs.vpc_cidr_block])
+}
 resource "kubernetes_ingress_v1" "helloworld_agent_server" {
   metadata {
     name = local.server_username
     annotations = {
       "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
-      "alb.ingress.kubernetes.io/inbound-cidrs"    = "${join(",", [for s in var.inbound_cidrs_for_lbs : s])}"
+      "alb.ingress.kubernetes.io/inbound-cidrs"    = "${join(",", [for s in local.inbound_cidrs_for_agent_server : s])}"
       "alb.ingress.kubernetes.io/success-codes"    = "200,201,404"
     }
   }
