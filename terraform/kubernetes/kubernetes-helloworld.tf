@@ -73,6 +73,8 @@ resource "kubernetes_service_v1" "test_client" {
       name        = "http"
     }
 
+    load_balancer_class = "eks.amazonaws.com/nlb"
+
     selector = {
       app = local.client_username
     }
