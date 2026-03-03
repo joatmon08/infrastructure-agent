@@ -46,7 +46,7 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
 
   data = {
     OPENID_CONNECT_URL = "${data.terraform_remote_state.base.outputs.vault_endpoint}/v1/identity/oidc/provider/${vault_identity_oidc_provider.agent.name}/.well-known/openid-configuration"
-    AGENT_URL          = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
+    AGENT_URL          = kubernetes_ingress_v1.helloworld_agent_server.status != null ? "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}" : ""
   }
 }
 
@@ -84,7 +84,7 @@ resource "kubernetes_config_map_v1" "test_client" {
   }
 
   data = {
-    BASE_URL = "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}"
+    BASE_URL = kubernetes_service_v1.test_client.status != null ? "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}" : ""
   }
 
   depends_on = [kubernetes_service_v1.test_client]
