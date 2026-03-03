@@ -1,41 +1,10 @@
-locals {
-  inbound_cidrs_for_agent_server = concat(var.inbound_cidrs_for_lbs, [data.terraform_remote_state.base.outputs.vpc_cidr_block])
-}
-
-data "aws_caller_identity" "current" {}
-
-resource "aws_s3_bucket" "access_logs" {
-  bucket = "${var.project_name}-${var.environment}-access-logs"
-}
-
-resource "aws_s3_bucket_policy" "access_logs" {
-  bucket = aws_s3_bucket.access_logs.id
-
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-      },
-      "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::${var.project_name}-${var.environment}-access-logs/alb/${local.server_username}/*"
-    }
-  ]
-}
-POLICY
-}
-
 resource "kubernetes_ingress_v1" "helloworld_agent_server" {
   metadata {
     name = local.server_username
     annotations = {
-      "alb.ingress.kubernetes.io/healthcheck-path"         = "/.well-known/agent-card.json"
-      "alb.ingress.kubernetes.io/inbound-cidrs"            = "${join(",", [for s in local.inbound_cidrs_for_agent_server : s])}"
-      "alb.ingress.kubernetes.io/success-codes"            = "200,201,404"
-      "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${aws_s3_bucket.access_logs.bucket},access_logs.s3.prefix=alb/${local.server_username}"
+      "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
+      "alb.ingress.kubernetes.io/inbound-cidrs"    = "${join(",", [for s in var.inbound_cidrs_for_lbs : s])}"
+      "alb.ingress.kubernetes.io/success-codes"    = "200,201,404"
     }
   }
 
