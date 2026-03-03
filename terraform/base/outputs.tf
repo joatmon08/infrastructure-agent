@@ -54,7 +54,7 @@ output "cluster_oidc_issuer_url" {
 # ECR Repository
 output "ecr_repository_uri" {
   description = "URI for ECR repository"
-  value       = split(aws_ecr_repository.helloworld_agent.repository_url, "/").0
+  value       = split("/", aws_ecr_repository.helloworld_agent.repository_url).0
 }
 
 # Configuration Output
