@@ -37,6 +37,30 @@ resource "helm_release" "vault" {
   ]
 }
 
+resource "helm_release" "vault_secrets_operator" {
+  name             = "vault-secrets-operator"
+  namespace        = var.kubernetes_namespace_vault
+  create_namespace = false
+
+  repository = "https://helm.releases.hashicorp.com"
+  chart      = "vault-secrets-operator"
+  version    = var.vault_secrets_operator_helm_chart_version
+
+  values = [
+    yamlencode({
+      defaultVaultConnection = {
+        enabled       = true
+        address       = "https://vault.${var.kubernetes_namespace_vault}.svc.cluster.local:8200"
+        skipTLSVerify = true
+      }
+    })
+  ]
+
+  depends_on = [
+    helm_release.vault
+  ]
+}
+
 data "kubernetes_service_v1" "vault" {
   metadata {
     name      = "${helm_release.vault.name}-ui"

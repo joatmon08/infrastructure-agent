@@ -89,6 +89,12 @@ variable "vault_helm_chart_version" {
   default     = "0.32.0"
 }
 
+variable "vault_secrets_operator_helm_chart_version" {
+  description = "Version of the HashiCorp Vault Secrets Operator Helm chart to use"
+  type        = string
+  default     = "1.3.0"
+}
+
 variable "server_tls_servername" {
   type        = string
   description = "Vault server TLS servername"
