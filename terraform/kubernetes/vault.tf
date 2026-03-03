@@ -53,8 +53,8 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
 
 resource "vault_kubernetes_auth_backend_role" "test_client" {
   backend                          = vault_auth_backend.kubernetes.path
-  role_name                        = "test-client"
-  bound_service_account_names      = ["test-client"]
+  role_name                        = local.client_username
+  bound_service_account_names      = [local.client_username]
   bound_service_account_namespaces = ["default"]
   token_ttl                        = 3600
   token_policies                   = [vault_policy.agent_oidc_client.name]
@@ -125,7 +125,7 @@ resource "random_password" "end_user" {
 }
 
 locals {
-  client_username = "helloworld-agent-client"
+  client_username = "test-client"
   server_username = "helloworld-agent-server"
   end_user        = "end-user"
 }
@@ -200,19 +200,12 @@ resource "vault_identity_oidc_key" "agent" {
   rotation_period    = 3600
 }
 
-data "kubernetes_service_v1" "test_client" {
-  metadata {
-    name      = "test-client"
-    namespace = "default"
-  }
-}
-
 locals {
   test_client_dev_redirect_uris = [
-    "http://test-client/callback",
+    "http://${kubernetes_service_v1.test_client.metadata.0.name}/callback",
     "http://localhost:9000/callback"
   ]
-  test_client_redirect_uris = data.kubernetes_service_v1.test_client.status != null ? concat(local.test_client_dev_redirect_uris, ["http://${data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}/callback"]) : local.test_client_dev_redirect_uris
+  test_client_redirect_uris = kubernetes_service_v1.test_client.status != null ? concat(local.test_client_dev_redirect_uris, ["http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}/callback"]) : local.test_client_dev_redirect_uris
 }
 
 resource "vault_identity_oidc_client" "agent" {
