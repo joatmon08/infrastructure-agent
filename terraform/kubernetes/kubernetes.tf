@@ -46,19 +46,6 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
 
   data = {
     OPENID_CONNECT_URL = "${data.terraform_remote_state.base.outputs.vault_endpoint}/v1/identity/oidc/provider/${vault_identity_oidc_provider.agent.name}/.well-known/openid-configuration"
-    AGENT_URL          = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}/"
-  }
-}
-
-resource "kubernetes_config_map_v1" "helloworld_agent_client" {
-  metadata {
-    name = local.client_username
-  }
-
-  data = {
-    AGENT_URL                    = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
-    OPENID_CONNECT_PROVIDER_NAME = vault_identity_oidc_provider.agent.name
-    OPENID_CONNECT_CLIENT_NAME   = vault_identity_oidc_client.agent.name
-    VAULT_ADDR                   = data.terraform_remote_state.base.outputs.vault_endpoint
+    AGENT_URL          = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
   }
 }
