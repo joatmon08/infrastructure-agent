@@ -52,9 +52,9 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
 
 resource "kubernetes_service_v1" "test_client" {
   metadata {
-    name = "test-client"
+    name = local.client_username
     labels = {
-      app = "test-client"
+      app = local.client_username
     }
     annotations = {
       "service.beta.kubernetes.io/load-balancer-source-ranges" = join(",", var.inbound_cidrs_for_lbs)
@@ -73,14 +73,14 @@ resource "kubernetes_service_v1" "test_client" {
     }
 
     selector = {
-      app = "test-client"
+      app = local.client_username
     }
   }
 }
 
 resource "kubernetes_config_map_v1" "test_client" {
   metadata {
-    name = "test-client"
+    name = local.client_username
   }
 
   data = {
