@@ -49,3 +49,41 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
     AGENT_URL          = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
   }
 }
+
+resource "kubernetes_service_v1" "test_client" {
+  metadata {
+    name = "test-client"
+    labels = {
+      app = "test-client"
+    }
+    annotations = {
+      "service.beta.kubernetes.io/load-balancer-source-ranges" = join(",", var.inbound_cidrs_for_lbs)
+      "service.beta.kubernetes.io/aws-load-balancer-scheme"    = "internet-facing"
+    }
+  }
+
+  spec {
+    type = "LoadBalancer"
+
+    port {
+      port        = 80
+      target_port = 9000
+      protocol    = "TCP"
+      name        = "http"
+    }
+
+    selector = {
+      app = "test-client"
+    }
+  }
+}
+
+resource "kubernetes_config_map_v1" "test_client" {
+  metadata {
+    name = "test-client"
+  }
+
+  data = {
+    BASE_URL = "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}"
+  }
+}
