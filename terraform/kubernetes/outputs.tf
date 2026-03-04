@@ -24,7 +24,7 @@ output "end_user_password" {
 
 output "test_client_url" {
   description = "URL to access test-client"
-  value       = "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}"
+  value       = kubernetes_service_v1.test_client.status != null ? "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}" : ""
 }
 
 output "helloworld_agent_server_url" {

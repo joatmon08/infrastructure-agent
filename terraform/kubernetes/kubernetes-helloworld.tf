@@ -69,15 +69,3 @@ resource "kubernetes_service_v1" "test_client" {
     }
   }
 }
-
-resource "kubernetes_config_map_v1" "test_client" {
-  metadata {
-    name = local.client_username
-  }
-
-  data = {
-    BASE_URL = kubernetes_service_v1.test_client.status != null ? "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}" : ""
-  }
-
-  depends_on = [kubernetes_service_v1.test_client]
-}
