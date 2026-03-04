@@ -39,17 +39,6 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
   depends_on = [kubernetes_ingress_class_v1.alb, kubernetes_manifest.ingressclassparams_alb]
 }
 
-resource "kubernetes_config_map_v1" "helloworld_agent_server" {
-  metadata {
-    name = local.server_username
-  }
-
-  data = {
-    OPENID_CONNECT_URL = "${data.terraform_remote_state.base.outputs.vault_endpoint}/v1/identity/oidc/provider/${vault_identity_oidc_provider.agent.name}/.well-known/openid-configuration"
-    AGENT_URL          = kubernetes_ingress_v1.helloworld_agent_server.status != null ? "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}" : ""
-  }
-}
-
 resource "kubernetes_service_v1" "test_client" {
   metadata {
     name = local.client_username

@@ -31,3 +31,8 @@ output "helloworld_agent_server_url" {
   description = "URL to access helloworld-agent-server"
   value       = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
 }
+
+output "openid_connect_url" {
+  description = "OpenID Connect URL for the helloworld agent"
+  value       = "${data.terraform_remote_state.base.outputs.vault_endpoint}/v1/identity/oidc/provider/${vault_identity_oidc_provider.agent.name}/.well-known/openid-configuration"
+}
