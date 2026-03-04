@@ -21,3 +21,13 @@ output "end_user_password" {
   value       = random_password.end_user.result
   sensitive   = true
 }
+
+output "test_client_url" {
+  description = "URL to access test-client"
+  value       = "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}"
+}
+
+output "helloworld_agent_server_url" {
+  description = "URL to access helloworld-agent-server"
+  value       = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
+}
