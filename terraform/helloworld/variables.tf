@@ -27,6 +27,12 @@ variable "tfc_base_workspace" {
   default     = "base"
 }
 
+variable "tfc_kubernetes_workspace" {
+  type        = string
+  description = "TFC kubernetes workspace name"
+  default     = "kubernetes"
+}
+
 variable "app_name" {
   description = "Application name for the helloworld agent"
   type        = string
@@ -44,17 +50,6 @@ variable "app_port" {
   description = "Port the application listens on"
   type        = number
   default     = 9999
-}
-
-variable "openid_connect_url" {
-  description = "OpenID Connect URL for authentication"
-  type        = string
-}
-
-variable "agent_url" {
-  description = "Agent URL for the helloworld agent"
-  type        = string
-  default     = ""
 }
 
 variable "vault_skip_verify" {

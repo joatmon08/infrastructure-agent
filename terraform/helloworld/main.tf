@@ -8,6 +8,18 @@ locals {
   app_image = "${data.terraform_remote_state.base.outputs.helloworld_agent_ecr_repository_url}@${data.aws_ecr_image.helloworld_agent_latest.image_digest}"
 }
 
+# ConfigMap for the helloworld agent
+resource "kubernetes_config_map_v1" "helloworld_agent_server" {
+  metadata {
+    name = var.app_name
+  }
+
+  data = {
+    AGENT_URL          = data.terraform_remote_state.kubernetes.outputs.helloworld_agent_server_url
+    OPENID_CONNECT_URL = data.terraform_remote_state.kubernetes.outputs.openid_connect_url
+  }
+}
+
 # Service for the helloworld agent
 resource "kubernetes_service_v1" "helloworld_agent_server" {
   metadata {
@@ -75,13 +87,23 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
           }
 
           env {
-            name  = "AGENT_URL"
-            value = var.agent_url
+            name = "AGENT_URL"
+            value_from {
+              config_map_key_ref {
+                name = var.app_name
+                key  = "AGENT_URL"
+              }
+            }
           }
 
           env {
-            name  = "OPENID_CONNECT_URL"
-            value = var.openid_connect_url
+            name = "OPENID_CONNECT_URL"
+            value_from {
+              config_map_key_ref {
+                name = var.app_name
+                key  = "OPENID_CONNECT_URL"
+              }
+            }
           }
 
           resources {

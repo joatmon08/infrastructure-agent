@@ -36,6 +36,17 @@ data "terraform_remote_state" "base" {
   }
 }
 
+data "terraform_remote_state" "kubernetes" {
+  backend = "remote"
+
+  config = {
+    organization = var.tfc_organization
+    workspaces = {
+      name = var.tfc_kubernetes_workspace
+    }
+  }
+}
+
 provider "kubernetes" {
   host                   = data.terraform_remote_state.base.outputs.cluster_endpoint
   cluster_ca_certificate = base64decode(data.terraform_remote_state.base.outputs.cluster_certificate_authority_data)
