@@ -57,14 +57,14 @@ output "ecr_repository_uri" {
   value       = split("/", aws_ecr_repository.helloworld_agent.repository_url)[0]
 }
 
-output "helloworld_agent_ecr_repository_url" {
-  description = "Full URL of the helloworld agent ECR repository"
-  value       = aws_ecr_repository.helloworld_agent.repository_url
-}
-
 output "helloworld_agent_ecr_repository_name" {
   description = "Name of the helloworld agent ECR repository"
   value       = aws_ecr_repository.helloworld_agent.name
+}
+
+output "test_client_ecr_repository_name" {
+  description = "Name of the test client ECR repository"
+  value       = aws_ecr_repository.test_client.name
 }
 
 # Configuration Output
