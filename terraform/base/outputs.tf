@@ -67,6 +67,16 @@ output "helloworld_agent_ecr_repository_name" {
   value       = aws_ecr_repository.helloworld_agent.name
 }
 
+output "test_client_ecr_repository_url" {
+  description = "Full URL of the test-client agent ECR repository"
+  value       = aws_ecr_repository.test_client.repository_url
+}
+
+output "test_client_ecr_repository_name" {
+  description = "Name of the test-client agent ECR repository"
+  value       = aws_ecr_repository.test_client.name
+}
+
 # Configuration Output
 output "configure_kubectl" {
   description = "Command to configure kubectl"
