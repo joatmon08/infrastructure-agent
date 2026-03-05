@@ -5,13 +5,15 @@ data "aws_ecr_image" "helloworld_agent_latest" {
 }
 
 locals {
-  app_image = "${data.terraform_remote_state.base.outputs.helloworld_agent_ecr_repository_url}@${data.aws_ecr_image.helloworld_agent_latest.image_digest}"
+  helloworld_agent_name  = "helloworld-agent-server"
+  helloworld_agent_image = "${data.terraform_remote_state.base.outputs.helloworld_agent_ecr_repository_url}@${data.aws_ecr_image.helloworld_agent_latest.image_digest}"
+  helloworld_agent_port  = 9999
 }
 
 # ConfigMap for the helloworld agent
 resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   metadata {
-    name = var.app_name
+    name = local.helloworld_agent_name
   }
 
   data = {
@@ -23,9 +25,9 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
 # Service for the helloworld agent
 resource "kubernetes_service_v1" "helloworld_agent_server" {
   metadata {
-    name = var.app_name
+    name = local.helloworld_agent_name
     labels = {
-      app = var.app_name
+      app = local.helloworld_agent_name
     }
   }
 
@@ -33,14 +35,14 @@ resource "kubernetes_service_v1" "helloworld_agent_server" {
     type = "ClusterIP"
 
     port {
-      port        = var.app_port
-      target_port = var.app_port
+      port        = local.helloworld_agent_port
+      target_port = local.helloworld_agent_port
       protocol    = "TCP"
       name        = "http"
     }
 
     selector = {
-      app = var.app_name
+      app = local.helloworld_agent_name
     }
   }
 }
@@ -48,9 +50,9 @@ resource "kubernetes_service_v1" "helloworld_agent_server" {
 # Deployment for the helloworld agent
 resource "kubernetes_deployment_v1" "helloworld_agent_server" {
   metadata {
-    name = var.app_name
+    name = local.helloworld_agent_name
     labels = {
-      app = var.app_name
+      app = local.helloworld_agent_name
     }
   }
 
@@ -59,24 +61,24 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
 
     selector {
       match_labels = {
-        app = var.app_name
+        app = local.helloworld_agent_name
       }
     }
 
     template {
       metadata {
         labels = {
-          app = var.app_name
+          app = local.helloworld_agent_name
         }
       }
 
       spec {
         container {
-          name  = var.app_name
-          image = local.app_image
+          name  = local.helloworld_agent_name
+          image = local.helloworld_agent_image
 
           port {
-            container_port = var.app_port
+            container_port = local.helloworld_agent_port
             name           = "http"
             protocol       = "TCP"
           }
@@ -90,7 +92,7 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
             name = "AGENT_URL"
             value_from {
               config_map_key_ref {
-                name = var.app_name
+                name = kubernetes_config_map_v1.helloworld_agent_server.metadata[0].name
                 key  = "AGENT_URL"
               }
             }
@@ -100,7 +102,7 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
             name = "OPENID_CONNECT_URL"
             value_from {
               config_map_key_ref {
-                name = var.app_name
+                name = kubernetes_config_map_v1.helloworld_agent_server.metadata[0].name
                 key  = "OPENID_CONNECT_URL"
               }
             }
@@ -120,7 +122,7 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
           liveness_probe {
             http_get {
               path = "/.well-known/agent-card.json"
-              port = var.app_port
+              port = local.helloworld_agent_port
             }
             initial_delay_seconds = 30
             period_seconds        = 10
@@ -129,7 +131,7 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
           readiness_probe {
             http_get {
               path = "/.well-known/agent-card.json"
-              port = var.app_port
+              port = local.helloworld_agent_port
             }
             initial_delay_seconds = 5
             period_seconds        = 5
@@ -159,8 +161,9 @@ data "aws_ecr_image" "test_client_latest" {
 }
 
 locals {
-  test_client_image = "${data.terraform_remote_state.base.outputs.test_client_ecr_repository_url}@${data.aws_ecr_image.test_client_latest.image_digest}"
   test_client_name  = "test-client"
+  test_client_image = "${data.terraform_remote_state.base.outputs.test_client_ecr_repository_url}@${data.aws_ecr_image.test_client_latest.image_digest}"
+  test_client_port  = 9000
 }
 
 # ServiceAccount for test-client
@@ -260,7 +263,7 @@ resource "kubernetes_deployment_v1" "test_client" {
           image = local.test_client_image
 
           port {
-            container_port = 9000
+            container_port = local.test_client_port
             name           = "http"
             protocol       = "TCP"
           }
@@ -269,7 +272,7 @@ resource "kubernetes_deployment_v1" "test_client" {
             name = "AGENT_URL"
             value_from {
               config_map_key_ref {
-                name = var.app_name
+                name = kubernetes_config_map_v1.helloworld_agent_server.metadata[0].name
                 key  = "AGENT_URL"
               }
             }
@@ -279,7 +282,7 @@ resource "kubernetes_deployment_v1" "test_client" {
             name = "BASE_URL"
             value_from {
               config_map_key_ref {
-                name = local.test_client_name
+                name = kubernetes_config_map_v1.test_client.metadata[0].name
                 key  = "BASE_URL"
               }
             }
@@ -309,7 +312,7 @@ resource "kubernetes_deployment_v1" "test_client" {
           liveness_probe {
             http_get {
               path = "/"
-              port = 9000
+              port = local.test_client_port
             }
             initial_delay_seconds = 30
             period_seconds        = 10
@@ -318,7 +321,7 @@ resource "kubernetes_deployment_v1" "test_client" {
           readiness_probe {
             http_get {
               path = "/"
-              port = 9000
+              port = local.test_client_port
             }
             initial_delay_seconds = 5
             period_seconds        = 5
