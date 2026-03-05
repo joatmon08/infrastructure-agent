@@ -109,16 +109,6 @@ resource "vault_auth_backend" "userpass" {
   type = "userpass"
 }
 
-resource "random_password" "helloworld_agent_client" {
-  length  = 16
-  special = false
-}
-
-resource "random_password" "helloworld_agent_server" {
-  length  = 16
-  special = false
-}
-
 resource "random_password" "end_user" {
   length  = 16
   special = false
@@ -128,30 +118,6 @@ locals {
   client_username = "test-client"
   server_username = "helloworld-agent-server"
   end_user        = "end-user"
-}
-
-resource "vault_generic_endpoint" "helloworld_agent_server" {
-  path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.server_username}"
-  ignore_absent_fields = true
-  data_json            = <<EOT
-{
-  "token_policies": ["${vault_policy.agent_identity_introspect.name}"],
-  "token_ttl": "1h",
-  "password": "${random_password.helloworld_agent_server.result}"
-}
-EOT
-}
-
-resource "vault_generic_endpoint" "helloworld_agent_client" {
-  path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.client_username}"
-  ignore_absent_fields = true
-  data_json            = <<EOT
-{
-  "token_policies": ["${vault_policy.agent_oidc_client.name}", "${vault_policy.agent_identity_token.name}"],
-  "token_ttl": "6h",
-  "password": "${random_password.helloworld_agent_client.result}"
-}
-EOT
 }
 
 resource "vault_generic_endpoint" "end_user" {
