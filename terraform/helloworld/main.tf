@@ -22,6 +22,31 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   }
 }
 
+# Service for the helloworld agent
+resource "kubernetes_service_v1" "helloworld_agent_server" {
+  metadata {
+    name = local.helloworld_agent_name
+    labels = {
+      app = local.helloworld_agent_name
+    }
+  }
+
+  spec {
+    type = "ClusterIP"
+
+    port {
+      port        = local.helloworld_agent_port
+      target_port = local.helloworld_agent_port
+      protocol    = "TCP"
+      name        = "http"
+    }
+
+    selector = {
+      app = local.helloworld_agent_name
+    }
+  }
+}
+
 # Deployment for the helloworld agent
 resource "kubernetes_deployment_v1" "helloworld_agent_server" {
   metadata {
