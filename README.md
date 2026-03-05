@@ -15,49 +15,54 @@ This example repository includes demo code for:
 
 Log into the HCP Terraform.
 
-#### Set up workspace
+- Create a new project called `infrastructure-agent`. It groups the workspaces related to this repository.
 
-Create a workspace called `base`.
+Configure the workspace for base infrastructure.
 
-Go to "Settings".
+- Create a workspace called `base`.
 
-Go to "Version Control".
+- Set the project to `infrastructure-agent`.
 
-Connect the workspace to this repository (`joatmon08/infrastructre-agent`).
+- Go to "Settings".
 
-Update "Terraform Working Directory" to `terraform/base`.
+- Scroll down to "Remote state sharing".
 
-Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
+- Select "Share with all workspaces in this project".
 
-Update the "Syntax" to "Patterns".
+- Go to "Version Control".
 
-Add the pattern `terraform/base/**/*`.
+- Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
 
-#### Set up a variable set.
+- Update "Terraform Working Directory" to `terraform/base`.
 
-Go back to the list of wokspaces.
+- Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
 
-Go to "Settings".
+- Update the "Syntax" to "Patterns".
 
-Go to "Variable Sets".
+- Add the pattern `terraform/base/**/*`.
 
-Create an organization variable set.
+Go back to the list of workspaces.
 
-Apply to the `base` workspace (or the project that will contain the rest of the workspaces).
+- Go to "Settings".
 
-Add the following variables:
+- Go to "Variable Sets".
 
-- `aws_region`
-- `environment`
-- `inbound_cidrs_for_lbs`
-- `project_name`
-- AWS credentials (preferred using environment variables)
+- Create an organization variable set.
+
+- Apply to the `base` workspace (or the project that will contain the rest of the workspaces).
+
+- Add the following variables:
+    - `aws_region`
+    - `environment`
+    - `inbound_cidrs_for_lbs`
+    - `project_name`
+    - AWS credentials (preferred using environment variables)
 
 ### Deploy base infrastructure
 
-Go to the `base` workspace.
+- Go to the `base` workspace.
 
-Select "New run".
+- Select "New run".
 
 This will show a run that creates a EKS cluster in
 [auto-mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html),
@@ -65,18 +70,16 @@ ECR repositories for various images, a Vault cluster on the Kubernetes cluster w
 [auto-unseal using AWS KMS](https://developer.hashicorp.com/vault/tutorials/auto-unseal/autounseal-aws-kms).
 It also deploys the `StorageClass` for EBS volumes to be managed by auto-mode.
 
-After the infrastructure finishes running, log into the Kubernetes cluster.
+- After the infrastructure finishes running, log into the Kubernetes cluster.
+    ```bash
+    aws eks update-kubeconfig --region us-east-1 --name infra-agent
+    ```
 
-```bash
-aws eks update-kubeconfig --region us-east-1 --name infra-agent
-```
-
-Initialize Vault. Save the output of the command to a file, as you will need the Vault root token
+- Initialize Vault. Save the output of the command to a file, as you will need the Vault root token
 to further configure Vault.
-
-```bash
-kubectl exec -it vault-0 -n vault -- vault operator init > secrets.txt
-```
+    ```bash
+    kubectl exec -it vault-0 -n vault -- vault operator init > secrets.txt
+    ```
 
 ## Agent2Agent with Vault as OIDC provider
 
@@ -85,56 +88,49 @@ Each of them use [Agent2Agent protocol](https://a2a-protocol.org/latest/) for ag
 discovery and communication. The extended agent skills in `helloworld-agent` require proper authentication
 and authorization by Vault in order for other agents to access.
 
-### Build agent images
-
-You need to build and push images to the ECR repositories created in your AWS account.
-
-Run `build-helloworld.sh` to automatically build and push to the account ECR repositories.
-
-```bash
-bash build-helloworld.sh
-```
-
 ### Set up HCP Terraform
 
-Log into the HCP Terraform.
+Log into HCP Terraform.
 
-#### Set up workspace
+- Create a workspace called `kubernetes`.
 
-Create a workspace called `kubernetes`.
+- Set the project to `infrastructure-agent`.
 
-Go to "Settings".
+- Go to "Settings".
 
-Go to "Version Control".
+- Scroll down to "Remote state sharing".
 
-Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
+- Select "Share with all workspaces in this project".
 
-Update "Terraform Working Directory" to `terraform/kubernetes`.
+- Go to "Version Control".
 
-Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
+- Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
 
-Update the "Syntax" to "Patterns".
+- Update "Terraform Working Directory" to `terraform/kubernetes`.
 
-Add the pattern `terraform/kubernetes/**/*`.
+- Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
 
-#### Set up variables
+- Update the "Syntax" to "Patterns".
 
-Go to the `kubernetes` workspace.
+- Add the pattern `terraform/kubernetes/**/*`.
 
-Go to "Variables".
+Now set up the variables.
 
-Add the following workspace variables:
+- Go to the `kubernetes` workspace.
 
-- `vault_token` (sensitive) - The Vault root token from the initialization step
-- `inbound_cidrs_for_lbs` (HCL) - List of CIDR blocks allowed to access load balancers (can override with `["0.0.0.0/0"]`)
+- Go to "Variables".
+
+- Add the following workspace variables:
+    - `vault_token` (sensitive) - The Vault root token from the initialization step
+    - `inbound_cidrs_for_lbs` (HCL) - List of CIDR blocks allowed to access load balancers (can override with `["0.0.0.0/0"]`)
 
 The workspace will also use the organization variable set created for the `base` workspace.
 
 ### Configure Vault and Kubernetes
 
-Go to the `kubernetes` workspace.
+- Go to the `kubernetes` workspace.
 
-Select "New run".
+- Select "New run".
 
 This will deploy the Kubernetes resources for the agents, including Vault OIDC configuration,
 Kubernetes service accounts, and the necessary Vault policies.
@@ -154,12 +150,108 @@ The configuration creates:
 
 The configuration also creates services on Kubernetes for `test-client` and `helloworld-agent-server`.
 
-- **helloworld-agent-server** - A Vault userpass authentication user that is allowed to access the Vault OIDC endpoints
-- **test-client** - Vault authentication role that allows access to OIDC endpoints for the test-client Kubernetes service account
+- **helloworld-agent-server** - Uses a Kubernetes ingress with AWS ALB for access
+- **test-client** - Uses a Kubernetes service with AWS NLB for access
+
+### Deploy agents
+
+You need to build and push images to the ECR repositories created in your AWS account.
+
+- Run `build-helloworld.sh` to automatically build and push to the account ECR repositories.
+
+    ```bash
+    bash build-helloworld.sh
+    ```
+
+Next, set up HCP Terraform to deploy the agents. Log into the HCP Terraform.
+
+- Create a workspace called `helloworld`.
+
+- Set the project to `infrastructure-agent`.
+
+- Go to "Settings".
+
+- Go to "Version Control".
+
+- Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
+
+- Update "Terraform Working Directory" to `terraform/helloworld`.
+
+- Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
+
+- Update the "Syntax" to "Patterns".
+
+- Add the pattern `terraform/helloworld/**/*`.
+
+Set up the variables.
+
+- Go to the `helloworld` workspace.
+
+- Go to "Variables".
+
+- Add the following workspace variable:
+    - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
+
+The workspace will also use the organization variable set created for the `base` workspace.
+
+Note: Most variables have defaults in `terraform.auto.tfvars` and can be overridden if needed.
+
+### Deploy agent infrastructure
+
+- Go to the `helloworld` workspace.
+
+- Select "New run".
+
+This will deploy the Kubernetes deployment and service for the helloworld-agent-server.
+The agent will be accessible via the ingress created in the `kubernetes` workspace.
+
+After the run completes, you can access the test-client at the URL from the `kubernetes` workspace outputs:
+
+```bash
+terraform output test_client_url
+```
+
+Use the end-user credentials retrieved earlier to authenticate with the agent.
+
+### Try the agents
+
+After deploying the components for this demo, you can access the test-client agent UI at:
+
+```bash
+open $(cd terraform/kubernetes && terraform output -raw test_client_url)
+```
+
+This opens an A2A client with a UI.
+
+![Test Client Home](assets/test-client-home.png)
+
+Define the scopes you want the agent to use to
+connect to `helloworld-agent-server`.
+
+Use the "Login" button, which redirects you
+to Vault as an OIDC provider.
+
+Log into Vault using the `end-user` username and password.
+
+```shell
+cd terraform/kubernetes && terraform output -raw end_user_username
+cd terraform/kubernetes && terraform output -raw end_user_password
+```
+
+If your client agent does not define the proper scopes and sends
+a request to the `helloworld-agent-server`, your agent gets a 403 FORBIDDEN for accessing helloworld skills.
+
+![Test Client 403 Forbidden](assets/test-client-403.png)
+
+If your client agent defines the correct scope (`helloworld-read`)
+and sends a request to `helloworld-agent-server`, your agent gets a 200 SUCCESS
+with a "Hello World" message.
+
+![Test Client 200 Success](assets/test-client-200.png)
 
 ## LangFlow
 
-Update `build.sh` to the correct ECR repository.
+Update `langflow-build.sh` to the correct ECR repository.
 
 Build the images and push them to ECR.
 

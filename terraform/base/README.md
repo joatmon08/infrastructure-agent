@@ -1,9 +1,12 @@
-# AWS Infrastructure with Terraform
+# Base Infrastructure with Terraform
 
-This Terraform configuration creates a complete AWS infrastructure including:
+This Terraform configuration creates the foundational AWS infrastructure including:
 - VPC with public and private subnets across multiple availability zones
 - NAT Gateway for private subnet internet access
-- EKS (Elastic Kubernetes Service) cluster with managed node groups
+- EKS (Elastic Kubernetes Service) cluster with Auto Mode
+- HashiCorp Vault deployed on Kubernetes with AWS KMS auto-unseal
+- ECR repositories for container images
+- TLS certificates for Vault
 
 ## Architecture
 
@@ -11,16 +14,33 @@ The infrastructure includes:
 
 ### VPC Module
 - **VPC**: Custom VPC with configurable CIDR block
-- **Subnets**: Public and private subnets across 3 availability zones
+- **Subnets**: Public and private subnets across availability zones
 - **Internet Gateway**: For public subnet internet access
 - **NAT Gateway**: For private subnet outbound internet access
 - **Route Tables**: Separate routing for public and private subnets
 
-### EKS Module
+### EKS Module with Auto Mode
 - **EKS Cluster**: Managed Kubernetes control plane
-- **Managed Node Groups**: Auto-scaling worker nodes
-- **Cluster Addons**: CoreDNS, kube-proxy, and VPC CNI
-- **IAM Roles**: Automatically configured for cluster and nodes
+- **Auto Mode**: Automatically manages compute capacity with node pools (general-purpose, system)
+- **IRSA**: IAM Roles for Service Accounts enabled
+- **Cluster Endpoint**: Public access enabled
+
+### Vault Deployment
+- **Vault Server**: Deployed via Helm chart on Kubernetes
+- **Auto-Unseal**: AWS KMS integration for automatic unsealing
+- **TLS**: Self-signed certificates for secure communication
+- **Load Balancer**: AWS NLB for external access
+- **Vault Secrets Operator**: For Kubernetes secrets management
+
+### ECR Repositories
+- **helloworld-agent**: Container registry for helloworld agent images
+- **test-client**: Container registry for test client images
+
+### Security
+- **KMS Key**: For Vault auto-unseal
+- **IAM Roles**: For Vault service account
+- **TLS Certificates**: Self-signed CA and Vault certificates
+- **ACM Certificate**: For Vault load balancer
 
 ## Prerequisites
 
