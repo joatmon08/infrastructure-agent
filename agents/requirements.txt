@@ -1,9 +1,0 @@
-a2a-sdk[http-server]>=0.3.0
-uvicorn
-python-dotenv
-hvac
-pyjwt
-pyjwt[crypto]
-httpx-auth
-flask
-flask-cors
