@@ -114,12 +114,6 @@ resource "random_password" "end_user" {
   special = false
 }
 
-locals {
-  client_username = "test-client"
-  server_username = "helloworld-agent-server"
-  end_user        = "end-user"
-}
-
 resource "vault_generic_endpoint" "end_user" {
   path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.end_user}"
   ignore_absent_fields = true
@@ -164,14 +158,6 @@ resource "vault_identity_oidc_key" "agent" {
   allowed_client_ids = ["*"]
   verification_ttl   = 7200
   rotation_period    = 3600
-}
-
-locals {
-  test_client_dev_redirect_uris = [
-    "http://${kubernetes_service_v1.test_client.metadata.0.name}/callback",
-    "http://localhost:9000/callback"
-  ]
-  test_client_redirect_uris = kubernetes_service_v1.test_client.status != null ? concat(local.test_client_dev_redirect_uris, ["http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}/callback"]) : local.test_client_dev_redirect_uris
 }
 
 resource "vault_identity_oidc_client" "agent" {
