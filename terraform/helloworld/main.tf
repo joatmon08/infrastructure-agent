@@ -4,12 +4,6 @@ data "aws_ecr_image" "helloworld_agent_latest" {
   most_recent     = true
 }
 
-locals {
-  helloworld_agent_name  = "helloworld-agent-server"
-  helloworld_agent_image = "${data.terraform_remote_state.base.outputs.helloworld_agent_ecr_repository_url}@${data.aws_ecr_image.helloworld_agent_latest.image_digest}"
-  helloworld_agent_port  = 9999
-}
-
 # ConfigMap for the helloworld agent
 resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   metadata {
@@ -158,12 +152,6 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
 data "aws_ecr_image" "test_client_latest" {
   repository_name = data.terraform_remote_state.base.outputs.test_client_ecr_repository_name
   most_recent     = true
-}
-
-locals {
-  test_client_name  = "test-client"
-  test_client_image = "${data.terraform_remote_state.base.outputs.test_client_ecr_repository_url}@${data.aws_ecr_image.test_client_latest.image_digest}"
-  test_client_port  = 9000
 }
 
 # ServiceAccount for test-client
