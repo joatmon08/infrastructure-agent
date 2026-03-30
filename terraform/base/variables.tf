@@ -8,6 +8,11 @@ variable "environment" {
   description = "Environment name (e.g., dev, staging, prod)"
   type        = string
   default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be dev, staging, or prod."
+  }
 }
 
 variable "project_name" {
@@ -20,6 +25,11 @@ variable "vpc_cidr" {
   description = "CIDR block for VPC"
   type        = string
   default     = "10.0.0.0/16"
+
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0))
+    error_message = "VPC CIDR must be a valid IPv4 CIDR block."
+  }
 }
 
 variable "private_subnet_cidrs" {
@@ -50,6 +60,11 @@ variable "cluster_version" {
   description = "Kubernetes version for EKS cluster (Auto Mode requires 1.33+)"
   type        = string
   default     = "1.33"
+
+  validation {
+    condition     = can(regex("^1\\.(3[3-9]|[4-9][0-9])$", var.cluster_version))
+    error_message = "Cluster version must be 1.33 or higher for Auto Mode."
+  }
 }
 
 variable "opensearch_namespace" {
@@ -69,6 +84,11 @@ variable "hvn_cidr" {
   description = "CIDR block for HCP HVN"
   type        = string
   default     = "172.25.16.0/20"
+
+  validation {
+    condition     = can(cidrhost(var.hvn_cidr, 0))
+    error_message = "HVN CIDR must be a valid IPv4 CIDR block."
+  }
 }
 
 variable "vault_tier" {
