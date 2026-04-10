@@ -1,5 +1,6 @@
 import asyncio
 import json
+import jwt
 import logging
 import os
 import secrets
@@ -124,7 +125,7 @@ def get_oauth_auth_url(client_secrets_path, oidc_provider_config_path, oidc_scop
         return None, str(e)
 
 
-async def exchange_code_for_token(client_id: str, client_secret: str, token_endpoint: str, code: str, redirect_uri: str) -> str:
+async def exchange_code_for_token(client_id: str, client_secret: str, token_endpoint: str, code: str, redirect_uri: str) -> dict:
     """Exchange authorization code for access token."""
     token_data = {
         "grant_type": "authorization_code",
@@ -142,7 +143,7 @@ async def exchange_code_for_token(client_id: str, client_secret: str, token_endp
         )
         response.raise_for_status()
         token_response = response.json()
-        return token_response["access_token"]
+        return token_response
 
 
 async def send_agent_request(user_message: str, access_token: Optional[str] = None) -> dict:
@@ -284,15 +285,15 @@ def oauth_callback():
         client_id, client_secret, token_endpoint, redirect_uri = oauth_config.values()
         
         # Exchange code for token
-        access_token = asyncio.run(
+        response = asyncio.run(
             exchange_code_for_token(
                 client_id, client_secret, token_endpoint, code, redirect_uri
             )
         )
         
         # Store access token in session
-        session["access_token"] = access_token
-        logger.info("Successfully obtained access token")
+        session["access_token"] = response['access_token']
+        logger.info(response['id_token'])
         
         # Clean up OAuth state
         cleanup_keys = ["oauth_state", "client_id", "client_secret", "token_endpoint", "redirect_uri"]
