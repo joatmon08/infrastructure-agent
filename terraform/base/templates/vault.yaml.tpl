@@ -45,6 +45,10 @@ server:
   extraVolumes:
     - type: secret
       name: tls-server
+    - type: pvc
+      name: vault-plugins-pvc
+      path: /vault/plugins
+      readOnly: true
 
   # This configures the Vault Statefulset to create a PVC for audit logs.
   # See https://www.vaultproject.io/docs/audit/index.html to know more
@@ -65,6 +69,7 @@ server:
       config: |
         ui = true
         cluster_name = "vault-integrated-storage"
+        plugin_directory = "/vault/plugins"
         
         seal "awskms" {
           region     = "${AWS_REGION}"

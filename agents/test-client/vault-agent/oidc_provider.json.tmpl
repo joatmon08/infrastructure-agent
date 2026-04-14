@@ -1,0 +1,8 @@
+{
+{{- with secret "identity/oidc/provider/agent/.well-known/openid-configuration" }}
+    "auth_uri": "{{ .Data.authorization_endpoint }}",
+    "issuer": "{{ .Data.issuer }}",
+    "token_uri": "{{ .Data.token_endpoint }}",
+    "userinfo_uri": "{{ .Data.userinfo_endpoint }}",
+{{- end }}
+}

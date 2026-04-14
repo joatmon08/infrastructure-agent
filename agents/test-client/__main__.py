@@ -290,10 +290,9 @@ def oauth_callback():
                 client_id, client_secret, token_endpoint, code, redirect_uri
             )
         )
-        
-        # Store access token in session
-        session["access_token"] = response['access_token']
-        logger.info(response['id_token'])
+
+        # Store id token in session
+        session["id_token"] = response['id_token']
         
         # Clean up OAuth state
         cleanup_keys = ["oauth_state", "client_id", "client_secret", "token_endpoint", "redirect_uri"]

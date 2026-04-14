@@ -3,10 +3,9 @@ output "end_user_username" {
   value       = local.end_user
 }
 
-output "end_user_password" {
-  description = "The password for the end user"
-  value       = random_password.end_user.result
-  sensitive   = true
+output "end_user_password_path" {
+  description = "Path to the end user password in Vault KV store"
+  value       = "${vault_mount.credentials.path}/data/${vault_kv_secret_v2.end_user_password.name}"
 }
 
 output "test_client_url" {

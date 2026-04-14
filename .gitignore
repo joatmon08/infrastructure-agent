@@ -56,6 +56,7 @@ terraform.rc
 
 # IDE
 .vscode/
+agents/*/.vscode/
 .idea/
 *.swp
 *.swo
@@ -73,3 +74,6 @@ helm/*-secret.yaml
 client_secrets.json
 oidc_provider.json
 .vault-token
+
+infrastructure-agent.code-workspace
+pyrightconfig.json

@@ -104,26 +104,56 @@ path "identity/oidc/introspect/*" {
 }
 EOT
 }
+resource "vault_policy" "credentials_read" {
+  name = "credentials-read"
+
+  policy = <<EOT
+path "${vault_mount.credentials.path}/data/${vault_kv_secret_v2.end_user_password.name}" {
+  capabilities = ["read"]
+}
+EOT
+}
+
 
 resource "vault_auth_backend" "userpass" {
   type = "userpass"
 }
 
-resource "random_password" "end_user" {
+# Enable KV v2 secrets engine for storing credentials
+resource "vault_mount" "credentials" {
+  path        = "credentials"
+  type        = "kv"
+  options     = { version = "2" }
+  description = "KV v2 secrets engine for storing user credentials"
+}
+
+# Generate password using ephemeral resource (not stored in state)
+ephemeral "random_password" "end_user" {
   length  = 16
   special = false
 }
 
+# Store the password in Vault KV store using write-only attribute
+resource "vault_kv_secret_v2" "end_user_password" {
+  mount = vault_mount.credentials.path
+  name  = "end-user"
+  data_json_wo = jsonencode({
+    username = local.end_user
+    password = ephemeral.random_password.end_user.result
+  })
+}
+
+# Create the userpass user with the ephemeral password
 resource "vault_generic_endpoint" "end_user" {
   path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.end_user}"
   ignore_absent_fields = true
-  data_json            = <<EOT
-{
-  "token_policies": ["${vault_policy.agent_oidc.name}"],
-  "token_ttl": "1h",
-  "password": "${random_password.end_user.result}"
-}
-EOT
+  data_json = jsonencode({
+    token_policies = [vault_policy.agent_oidc.name]
+    token_ttl      = "1h"
+    password       = ephemeral.random_password.end_user.result
+  })
+
+  depends_on = [vault_kv_secret_v2.end_user_password]
 }
 
 resource "vault_identity_entity" "end_user" {
@@ -169,6 +199,18 @@ resource "vault_identity_oidc_client" "agent" {
   key              = vault_identity_oidc_key.agent.name
   id_token_ttl     = 3600
   access_token_ttl = 7200
+}
+
+resource "vault_identity_oidc_scope" "may_act" {
+  name        = "may-act"
+  template    = <<EOT
+{
+  "may_act": {
+    "sub": "${local.client_username}"
+  }
+}
+EOT
+  description = "`may-act` claim makes a statement that one party is authorized to become the actor and act on behalf of another party"
 }
 
 resource "vault_identity_oidc_scope" "helloworld_read" {
