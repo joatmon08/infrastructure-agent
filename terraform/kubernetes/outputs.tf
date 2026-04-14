@@ -33,10 +33,6 @@ output "end_user_username" {
   value       = local.end_user
 }
 
-output "end_user_password_path" {
-  description = "Path to the end user password in Vault KV store"
-  value       = "${vault_mount.credentials.path}/data/${vault_kv_secret_v2.end_user_password.name}"
-}
 
 output "test_client_url" {
   description = "URL to access test-client"
@@ -48,7 +44,35 @@ output "helloworld_agent_server_url" {
   value       = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
 }
 
-output "openid_connect_url" {
-  description = "OpenID Connect URL for the helloworld agent"
-  value       = "${local.vault_endpoint}/v1/identity/oidc/provider/${vault_identity_oidc_provider.agent.name}/.well-known/openid-configuration"
+
+output "ca_cert" {
+  description = "Output CA certificate for verification"
+  value       = base64encode(tls_self_signed_cert.ca_cert.cert_pem)
+  sensitive   = true
+}
+
+output "client_username" {
+  description = "Client username for test-client"
+  value       = local.client_username
+}
+
+output "test_client_redirect_uris" {
+  description = "Test client redirect URIs"
+  value       = local.test_client_redirect_uris
+}
+
+output "cluster_endpoint" {
+  description = "Kubernetes cluster endpoint"
+  value       = data.terraform_remote_state.base.outputs.cluster_endpoint
+}
+
+output "cluster_name" {
+  description = "Kubernetes cluster name"
+  value       = data.terraform_remote_state.base.outputs.cluster_name
+}
+
+output "cluster_certificate_authority_data" {
+  description = "Kubernetes cluster certificate authority data"
+  value       = data.terraform_remote_state.base.outputs.cluster_certificate_authority_data
+  sensitive   = true
 }

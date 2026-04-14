@@ -109,12 +109,6 @@ variable "vault_secrets_operator_helm_chart_version" {
   default     = "1.3.0"
 }
 
-variable "server_tls_servername" {
-  type        = string
-  description = "Vault server TLS servername"
-  default     = "vault.joatmon08.com"
-}
-
 variable "kubernetes_namespace_vault" {
   type        = string
   description = "Kubernetes namespace for Vault"

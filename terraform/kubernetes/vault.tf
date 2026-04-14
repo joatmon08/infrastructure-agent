@@ -1,280 +1,308 @@
-data "http" "vault_cors" {
-  url      = "${local.vault_endpoint}/v1/sys/config/cors"
-  insecure = true
-  method   = "POST"
+resource "helm_release" "vault" {
+  name             = "vault"
+  namespace        = var.kubernetes_namespace_vault
+  create_namespace = true
 
-  request_headers = {
-    X-Vault-Token = var.vault_token
-  }
+  repository = "https://helm.releases.hashicorp.com"
+  chart      = "vault"
+  version    = var.vault_helm_chart_version
 
-  request_body = jsonencode({
-    enabled = true,
-    allowed_headers = [
-      "Access-Control-Allow-Origin"
-    ],
-    allowed_origins = [
-      "http://localhost:9000",
-      local.vault_endpoint
-    ]
-  })
+  values = [templatefile("${path.module}/templates/vault.yaml.tpl", {
+    LOAD_BALANCER_SOURCE_RANGES = var.allow_hcp_terraform_to_access_vault ? ["0.0.0.0/0"] : concat(var.inbound_cidrs_for_lbs, [data.terraform_remote_state.base.outputs.vpc_cidr_block]),
+    AWS_REGION                  = var.aws_region
+    KMS_KEY_ID                  = data.terraform_remote_state.base.outputs.vault_kms_key_id
+    VAULT_IAM_ROLE_ARN          = data.terraform_remote_state.base.outputs.vault_iam_role_arn
+  })]
+
+  depends_on = [
+    kubernetes_storage_class_v1.auto_mode
+  ]
 }
 
-data "kubernetes_service_account_v1" "vault_auth" {
+data "kubernetes_service_v1" "vault" {
   metadata {
-    name      = helm_release.vault.name
+    name      = "${helm_release.vault.name}-ui"
     namespace = helm_release.vault.namespace
   }
 }
 
-resource "kubernetes_secret_v1" "vault_auth" {
+resource "aws_efs_file_system" "vault_plugins" {
+  creation_token = "${var.project_name}-vault-plugins"
+  encrypted      = true
+  kms_key_id     = data.terraform_remote_state.base.outputs.vault_kms_key_arn
+
+  performance_mode = "generalPurpose"
+  throughput_mode  = "bursting"
+
+  lifecycle_policy {
+    transition_to_ia = "AFTER_30_DAYS"
+  }
+
+  tags = {
+    Name        = "${var.project_name}-vault-plugins"
+    Purpose     = "vault-plugin-storage"
+    Environment = var.environment
+    Project     = var.project_name
+    ManagedBy   = "Terraform"
+  }
+}
+
+resource "aws_security_group" "vault_plugins_efs" {
+  name_prefix = "${var.project_name}-vault-plugins-efs-"
+  description = "Security group for Vault plugins EFS mount targets"
+  vpc_id      = data.terraform_remote_state.base.outputs.vpc_id
+
+  ingress {
+    description = "NFS from VPC"
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = [data.terraform_remote_state.base.outputs.vpc_cidr_block]
+  }
+
+  egress {
+    description = "Allow all outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.project_name}-vault-plugins-efs"
+    Environment = var.environment
+    Project     = var.project_name
+    ManagedBy   = "Terraform"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_efs_mount_target" "vault_plugins" {
+  for_each = toset(data.terraform_remote_state.base.outputs.private_subnets)
+
+  file_system_id  = aws_efs_file_system.vault_plugins.id
+  subnet_id       = each.value
+  security_groups = [aws_security_group.vault_plugins_efs.id]
+}
+
+resource "kubernetes_storage_class_v1" "efs" {
   metadata {
-    name      = data.kubernetes_service_account_v1.vault_auth.metadata.0.name
-    namespace = data.kubernetes_service_account_v1.vault_auth.metadata.0.namespace
-    annotations = {
-      "kubernetes.io/service-account.name"      = data.kubernetes_service_account_v1.vault_auth.metadata.0.name
-      "kubernetes.io/service-account.namespace" = data.kubernetes_service_account_v1.vault_auth.metadata.0.namespace
+    name = "efs-sc"
+  }
+
+  storage_provisioner = "efs.csi.aws.com"
+  reclaim_policy      = "Retain"
+  volume_binding_mode = "Immediate"
+
+  parameters = {
+    provisioningMode = "efs-ap"
+    fileSystemId     = aws_efs_file_system.vault_plugins.id
+    directoryPerms   = "755"
+    gidRangeStart    = "1000"
+    gidRangeEnd      = "2000"
+    basePath         = "/plugins"
+  }
+
+  depends_on = [
+    aws_efs_file_system.vault_plugins,
+    aws_efs_mount_target.vault_plugins
+  ]
+}
+
+resource "kubernetes_persistent_volume_claim_v1" "vault_plugins" {
+  metadata {
+    name      = "vault-plugins-pvc"
+    namespace = var.kubernetes_namespace_vault
+    labels = {
+      app  = "vault"
+      type = "plugins"
     }
   }
 
-  type = "kubernetes.io/service-account-token"
+  spec {
+    access_modes       = ["ReadWriteMany"]
+    storage_class_name = kubernetes_storage_class_v1.efs.metadata[0].name
+
+    resources {
+      requests = {
+        storage = "5Gi"
+      }
+    }
+  }
+
+  depends_on = [
+    kubernetes_storage_class_v1.efs,
+    helm_release.vault
+  ]
 }
 
-resource "vault_auth_backend" "kubernetes" {
-  type = "kubernetes"
-}
+resource "aws_iam_policy" "efs_csi_driver" {
+  name_prefix = "${var.project_name}-efs-csi-driver-"
+  description = "IAM policy for EFS CSI driver"
 
-resource "vault_kubernetes_auth_backend_config" "kubernetes" {
-  backend                = vault_auth_backend.kubernetes.path
-  kubernetes_host        = data.terraform_remote_state.base.outputs.cluster_endpoint
-  kubernetes_ca_cert     = kubernetes_secret_v1.vault_auth.data["ca.crt"]
-  token_reviewer_jwt     = kubernetes_secret_v1.vault_auth.data.token
-  disable_iss_validation = "true"
-}
-
-resource "vault_kubernetes_auth_backend_role" "test_client" {
-  backend                          = vault_auth_backend.kubernetes.path
-  role_name                        = local.client_username
-  bound_service_account_names      = [local.client_username]
-  bound_service_account_namespaces = ["default"]
-  token_ttl                        = 3600
-  token_policies                   = [vault_policy.agent_oidc_client.name]
-}
-
-resource "vault_policy" "agent_oidc" {
-  name = "helloworld-agent-oidc"
-
-  policy = <<EOT
-path "identity/oidc/provider/agent/authorize" {
-  capabilities = [ "read" ]
-}
-EOT
-}
-
-resource "vault_policy" "agent_oidc_client" {
-  name = "helloworld-agent-oidc-client"
-
-  policy = <<EOT
-path "identity/oidc/client/agent" {
-  capabilities = [ "read" ]
-}
-EOT
-}
-
-resource "vault_policy" "agent_identity_token" {
-  name = "helloworld-agent-client-token"
-
-  policy = <<EOT
-path "identity/oidc/token/helloworld-reader" {
-  capabilities = ["read"]
-}
-EOT
-}
-
-
-resource "vault_policy" "agent_identity_introspect" {
-  name = "helloworld-agent-server-token-inspect"
-
-  policy = <<EOT
-path "identity/oidc/introspect" {
-  capabilities = ["update"]
-}
-
-path "identity/oidc/introspect/*" {
-  capabilities = ["read"]
-}
-EOT
-}
-resource "vault_policy" "credentials_read" {
-  name = "credentials-read"
-
-  policy = <<EOT
-path "${vault_mount.credentials.path}/data/${vault_kv_secret_v2.end_user_password.name}" {
-  capabilities = ["read"]
-}
-EOT
-}
-
-
-resource "vault_auth_backend" "userpass" {
-  type = "userpass"
-}
-
-# Enable KV v2 secrets engine for storing credentials
-resource "vault_mount" "credentials" {
-  path        = "credentials"
-  type        = "kv"
-  options     = { version = "2" }
-  description = "KV v2 secrets engine for storing user credentials"
-}
-
-# Generate password using ephemeral resource (not stored in state)
-ephemeral "random_password" "end_user" {
-  length  = 16
-  special = false
-}
-
-# Store the password in Vault KV store using write-only attribute
-resource "vault_kv_secret_v2" "end_user_password" {
-  mount = vault_mount.credentials.path
-  name  = "end-user"
-  data_json_wo = jsonencode({
-    username = local.end_user
-    password = ephemeral.random_password.end_user.result
-  })
-}
-
-# Create the userpass user with the ephemeral password
-resource "vault_generic_endpoint" "end_user" {
-  path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.end_user}"
-  ignore_absent_fields = true
-  data_json = jsonencode({
-    token_policies = [vault_policy.agent_oidc.name]
-    token_ttl      = "1h"
-    password       = ephemeral.random_password.end_user.result
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticfilesystem:DescribeAccessPoints",
+          "elasticfilesystem:DescribeFileSystems",
+          "elasticfilesystem:DescribeMountTargets",
+          "elasticfilesystem:CreateAccessPoint",
+          "elasticfilesystem:DeleteAccessPoint"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeAvailabilityZones"
+        ]
+        Resource = "*"
+      }
+    ]
   })
 
-  depends_on = [vault_kv_secret_v2.end_user_password]
-}
-
-resource "vault_identity_entity" "end_user" {
-  name = local.end_user
-}
-
-resource "vault_identity_group" "agent" {
-  name = "agent"
-  type = "internal"
-  member_entity_ids = [
-    vault_identity_entity.end_user.id
-  ]
-}
-
-resource "vault_identity_oidc_assignment" "end_user" {
-  name = "${local.end_user}-assignment"
-  entity_ids = [
-    vault_identity_entity.end_user.id,
-  ]
-  group_ids = [
-    vault_identity_group.agent.id,
-  ]
-}
-
-resource "vault_identity_oidc" "server" {
-  issuer = local.vault_endpoint
-}
-
-resource "vault_identity_oidc_key" "agent" {
-  name               = "agent"
-  algorithm          = "RS256"
-  allowed_client_ids = ["*"]
-  verification_ttl   = 7200
-  rotation_period    = 3600
-}
-
-resource "vault_identity_oidc_client" "agent" {
-  name          = "agent"
-  redirect_uris = local.test_client_redirect_uris
-  assignments = [
-    vault_identity_oidc_assignment.end_user.name,
-  ]
-  key              = vault_identity_oidc_key.agent.name
-  id_token_ttl     = 3600
-  access_token_ttl = 7200
-}
-
-resource "vault_identity_oidc_scope" "may_act" {
-  name        = "may-act"
-  template    = <<EOT
-{
-  "may_act": {
-    "sub": "${local.client_username}"
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+    ManagedBy   = "Terraform"
   }
 }
-EOT
-  description = "`may-act` claim makes a statement that one party is authorized to become the actor and act on behalf of another party"
+
+resource "aws_iam_role_policy_attachment" "vault_efs" {
+  role       = data.terraform_remote_state.base.outputs.vault_iam_role_name
+  policy_arn = aws_iam_policy.efs_csi_driver.arn
 }
 
-resource "vault_identity_oidc_scope" "helloworld_read" {
-  name        = "helloworld-read"
-  template    = <<EOT
-{
-  "hello_world": "read"
-}
-EOT
-  description = "helloworld read scope"
-}
+resource "kubernetes_config_map_v1" "vault_plugin_loader_script" {
+  metadata {
+    name      = "vault-plugin-loader-script"
+    namespace = var.kubernetes_namespace_vault
+    labels = {
+      app       = "vault"
+      component = "plugin-loader"
+    }
+  }
 
-resource "vault_identity_oidc_scope" "user" {
-  name        = "user"
-  template    = <<EOT
-{
-    "username": {{identity.entity.name}}
-}
-EOT
-  description = "The user scope provides claims using Vault identity entity metadata"
-}
+  data = {
+    "load-plugins.sh" = templatefile("${path.module}/templates/vault-plugin-loader.sh.tpl", {
+      PLUGINS = var.vault_plugins
+    })
+  }
 
-
-resource "vault_identity_oidc_scope" "groups" {
-  name        = "groups"
-  template    = <<EOT
-{
-  "groups": {{identity.entity.groups.names}}
-}
-EOT
-  description = "The groups scope provides the groups claims using Vault group membership"
-}
-
-resource "vault_identity_oidc_provider" "agent" {
-  name          = "agent"
-  https_enabled = true
-  issuer_host   = replace(local.vault_endpoint, "https://", "")
-  allowed_client_ids = [
-    vault_identity_oidc_client.agent.client_id
-  ]
-  scopes_supported = [
-    vault_identity_oidc_scope.helloworld_read.name,
-    vault_identity_oidc_scope.groups.name,
-    vault_identity_oidc_scope.user.name
+  depends_on = [
+    helm_release.vault
   ]
 }
 
-## Use for identity tokens
-resource "vault_identity_oidc_role" "helloworld_reader" {
-  name     = "helloworld-reader"
-  key      = "default"
-  template = <<EOT
-{
-  "scope": "hello_world:read"
-}
-EOT
-}
+resource "kubernetes_job_v1" "vault_plugin_loader" {
+  count = length(var.vault_plugins) > 0 ? 1 : 0
 
-resource "vault_identity_entity_alias" "end_user" {
-  name           = local.end_user
-  mount_accessor = vault_auth_backend.userpass.accessor
-  canonical_id   = vault_identity_entity.end_user.id
-}
+  metadata {
+    name      = "vault-plugin-loader-${formatdate("YYYYMMDDhhmmss", timestamp())}"
+    namespace = var.kubernetes_namespace_vault
+    labels = {
+      app       = "vault"
+      component = "plugin-loader"
+    }
+  }
 
-data "vault_identity_oidc_openid_config" "agent" {
-  name = vault_identity_oidc_provider.agent.name
+  spec {
+    ttl_seconds_after_finished = 300
+
+    template {
+      metadata {
+        labels = {
+          app       = "vault"
+          component = "plugin-loader"
+        }
+      }
+
+      spec {
+        restart_policy       = "OnFailure"
+        service_account_name = "vault"
+
+        container {
+          name  = "plugin-loader"
+          image = "hashicorp/vault:${var.vault_helm_chart_version}"
+
+          command = ["/bin/sh", "/scripts/load-plugins.sh"]
+
+          volume_mount {
+            name       = "plugins"
+            mount_path = "/vault/plugins"
+          }
+
+          volume_mount {
+            name       = "scripts"
+            mount_path = "/scripts"
+            read_only  = true
+          }
+
+          resources {
+            requests = {
+              memory = "128Mi"
+              cpu    = "100m"
+            }
+            limits = {
+              memory = "256Mi"
+              cpu    = "200m"
+            }
+          }
+
+          security_context {
+            run_as_non_root = true
+            run_as_user     = 100
+            run_as_group    = 1000
+            capabilities {
+              drop = ["ALL"]
+            }
+            read_only_root_filesystem = false
+          }
+        }
+
+        volume {
+          name = "plugins"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim_v1.vault_plugins.metadata[0].name
+          }
+        }
+
+        volume {
+          name = "scripts"
+          config_map {
+            name         = kubernetes_config_map_v1.vault_plugin_loader_script.metadata[0].name
+            default_mode = "0755"
+          }
+        }
+
+        security_context {
+          fs_group = 1000
+        }
+      }
+    }
+  }
+
+  wait_for_completion = true
+
+  timeouts {
+    create = "5m"
+    update = "5m"
+  }
+
+  depends_on = [
+    kubernetes_config_map_v1.vault_plugin_loader_script,
+    kubernetes_persistent_volume_claim_v1.vault_plugins
+  ]
+
+  lifecycle {
+    replace_triggered_by = [
+      kubernetes_config_map_v1.vault_plugin_loader_script
+    ]
+  }
 }

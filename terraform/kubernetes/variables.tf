@@ -57,6 +57,13 @@ variable "allow_hcp_terraform_to_access_vault" {
   default     = true
 }
 
+variable "server_tls_servername" {
+  type        = string
+  description = "Vault server TLS servername"
+  default     = "vault.joatmon08.com"
+}
+
+
 variable "vault_plugins" {
   description = "List of Vault plugins to download and install"
   type = list(object({
