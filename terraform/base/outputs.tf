@@ -82,24 +82,3 @@ output "configure_kubectl" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
-
-output "vault_endpoint" {
-  description = "Vault endpoint"
-  value       = "https://${data.kubernetes_service_v1.vault.status.0.load_balancer.0.ingress.0.hostname}"
-}
-
-output "helm_vault_name" {
-  description = "Name of Helm release for Vault"
-  value       = helm_release.vault.name
-}
-
-output "helm_vault_namespace" {
-  description = "Namespace of Helm release for Vault"
-  value       = helm_release.vault.namespace
-}
-
-output "ca_cert" {
-  description = "Output CA certificate for verification"
-  value       = base64encode(tls_self_signed_cert.ca_cert.cert_pem)
-  sensitive   = true
-}

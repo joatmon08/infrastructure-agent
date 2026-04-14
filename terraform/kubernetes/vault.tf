@@ -1,5 +1,5 @@
 data "http" "vault_cors" {
-  url      = "${data.terraform_remote_state.base.outputs.vault_endpoint}/v1/sys/config/cors"
+  url      = "${local.vault_endpoint}/v1/sys/config/cors"
   insecure = true
   method   = "POST"
 
@@ -14,15 +14,15 @@ data "http" "vault_cors" {
     ],
     allowed_origins = [
       "http://localhost:9000",
-      data.terraform_remote_state.base.outputs.vault_endpoint
+      local.vault_endpoint
     ]
   })
 }
 
 data "kubernetes_service_account_v1" "vault_auth" {
   metadata {
-    name      = data.terraform_remote_state.base.outputs.helm_vault_name
-    namespace = data.terraform_remote_state.base.outputs.helm_vault_namespace
+    name      = helm_release.vault.name
+    namespace = helm_release.vault.namespace
   }
 }
 
@@ -179,7 +179,7 @@ resource "vault_identity_oidc_assignment" "end_user" {
 }
 
 resource "vault_identity_oidc" "server" {
-  issuer = data.terraform_remote_state.base.outputs.vault_endpoint
+  issuer = local.vault_endpoint
 }
 
 resource "vault_identity_oidc_key" "agent" {
@@ -247,7 +247,7 @@ EOT
 resource "vault_identity_oidc_provider" "agent" {
   name          = "agent"
   https_enabled = true
-  issuer_host   = replace(data.terraform_remote_state.base.outputs.vault_endpoint, "https://", "")
+  issuer_host   = replace(local.vault_endpoint, "https://", "")
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]

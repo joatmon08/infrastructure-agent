@@ -103,12 +103,6 @@ variable "vault_public_endpoint" {
   default     = true
 }
 
-variable "vault_helm_chart_version" {
-  description = "Version of the HashiCorp Vault Helm chart to use"
-  type        = string
-  default     = "0.32.0"
-}
-
 variable "vault_secrets_operator_helm_chart_version" {
   description = "Version of the HashiCorp Vault Secrets Operator Helm chart to use"
   type        = string
@@ -125,16 +119,4 @@ variable "kubernetes_namespace_vault" {
   type        = string
   description = "Kubernetes namespace for Vault"
   default     = "vault"
-}
-
-variable "inbound_cidrs_for_lbs" {
-  type        = list(string)
-  description = "Comma-separated list of inbound CIDRs"
-  default     = ["0.0.0.0/0"]
-}
-
-variable "allow_hcp_terraform_to_access_vault" {
-  type        = bool
-  description = "Allow HCP Terraform to configure Vault, sets CIDR range to 0.0.0.0/0 for Vault load balancer"
-  default     = true
 }

@@ -1,3 +1,33 @@
+output "vault_endpoint" {
+  description = "Vault endpoint"
+  value       = local.vault_endpoint
+}
+
+output "helm_vault_name" {
+  description = "Name of Helm release for Vault"
+  value       = helm_release.vault.name
+}
+
+output "helm_vault_namespace" {
+  description = "Namespace of Helm release for Vault"
+  value       = helm_release.vault.namespace
+}
+
+output "vault_plugins_efs_id" {
+  description = "EFS file system ID for Vault plugins"
+  value       = aws_efs_file_system.vault_plugins.id
+}
+
+output "vault_plugins_pvc_name" {
+  description = "PVC name for Vault plugins"
+  value       = kubernetes_persistent_volume_claim_v1.vault_plugins.metadata[0].name
+}
+
+output "vault_plugin_loader_job_name" {
+  description = "Name of the plugin loader job"
+  value       = length(var.vault_plugins) > 0 ? kubernetes_job_v1.vault_plugin_loader[0].metadata[0].name : "no-plugins-configured"
+}
+
 output "end_user_username" {
   description = "The username for the end user"
   value       = local.end_user
@@ -20,5 +50,5 @@ output "helloworld_agent_server_url" {
 
 output "openid_connect_url" {
   description = "OpenID Connect URL for the helloworld agent"
-  value       = "${data.terraform_remote_state.base.outputs.vault_endpoint}/v1/identity/oidc/provider/${vault_identity_oidc_provider.agent.name}/.well-known/openid-configuration"
+  value       = "${local.vault_endpoint}/v1/identity/oidc/provider/${vault_identity_oidc_provider.agent.name}/.well-known/openid-configuration"
 }
