@@ -59,7 +59,7 @@ variable "single_nat_gateway" {
 variable "cluster_version" {
   description = "Kubernetes version for EKS cluster (Auto Mode requires 1.33+)"
   type        = string
-  default     = "1.33"
+  default     = "1.35"
 
   validation {
     condition     = can(regex("^1\\.(3[3-9]|[4-9][0-9])$", var.cluster_version))
