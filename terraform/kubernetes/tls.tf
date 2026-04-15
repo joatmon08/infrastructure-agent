@@ -1,7 +1,7 @@
 resource "aws_acm_certificate" "vault" {
   private_key       = base64decode(var.vault_server_certificate_key)
   certificate_body  = base64decode(var.vault_server_certificate)
-  certificate_chain = "${base64decode(var.vault_server_certificate)}${base64decode(var.vault_server_ca_certificate)}"
+  certificate_chain = "${base64decode(var.vault_server_certificate)}\n${base64decode(var.vault_server_ca_certificate)}"
 }
 
 resource "kubernetes_secret_v1" "vault_tls_server" {
