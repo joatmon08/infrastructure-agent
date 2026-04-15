@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 echo "Starting Vault plugin loader..."
@@ -18,8 +18,8 @@ download_plugin() {
   
   echo "Downloading plugin: $${plugin_name}"
   
-  # Download plugin
-  curl -L -o "$${PLUGIN_DIR}/$${plugin_name}" "$${plugin_url}"
+
+  wget --output-document=$${PLUGIN_DIR}/$${plugin_name} $${plugin_url}
   
   # Verify SHA256 checksum if provided
   if [ -n "$${plugin_sha256}" ]; then
