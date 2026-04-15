@@ -57,23 +57,6 @@ variable "allow_hcp_terraform_to_access_vault" {
   default     = true
 }
 
-variable "vault_server_certificate" {
-  type        = string
-  description = "base64 encoded certificate used to deploy Vault servers"
-}
-
-
-variable "vault_server_certificate_key" {
-  type        = string
-  description = "base64 encoded private key for certificates used to deploy Vault servers"
-  sensitive   = true
-}
-
-variable "vault_server_ca_certificate" {
-  type        = string
-  description = "base64 encoded CA certificate used to deploy Vault servers"
-}
-
 variable "vault_plugins" {
   description = "List of Vault plugins to download and install"
   type = list(object({
