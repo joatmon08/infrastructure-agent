@@ -7,7 +7,7 @@ resource "aws_acm_certificate" "vault" {
 resource "kubernetes_secret_v1" "vault_tls_server" {
   metadata {
     name      = "tls-server"
-    namespace = helm_release.vault.namespace
+    namespace = var.kubernetes_namespace_vault
   }
   type = "kubernetes.io/tls"
   data = {

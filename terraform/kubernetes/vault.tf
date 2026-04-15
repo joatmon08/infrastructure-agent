@@ -15,7 +15,8 @@ resource "helm_release" "vault" {
   })]
 
   depends_on = [
-    kubernetes_storage_class_v1.auto_mode
+    kubernetes_storage_class_v1.auto_mode,
+    kubernetes_secret_v1.vault_tls_server
   ]
 }
 
