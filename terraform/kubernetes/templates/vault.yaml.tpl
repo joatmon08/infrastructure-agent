@@ -10,7 +10,16 @@ global:
       memory: 256Mi
       cpu: 250m
 
+injector:
+  agentImage:
+    repository: "hashicorp/vault"
+    tag: "2.0"
+
 server:
+  image:
+    repository: "hashicorp/vault"
+    tag: "2.0"
+
   # For HA configuration and because we need to manually init the vault,
   # we need to define custom readiness/liveness Probe settings
   readinessProbe:
