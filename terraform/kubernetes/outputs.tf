@@ -61,6 +61,26 @@ output "test_client_redirect_uris" {
   value       = local.test_client_redirect_uris
 }
 
+output "vault_kms_key_id" {
+  description = "KMS key ID used for Vault auto-unseal"
+  value       = aws_kms_key.vault.key_id
+}
+
+output "vault_kms_key_arn" {
+  description = "KMS key ARN used for Vault resources"
+  value       = aws_kms_key.vault.arn
+}
+
+output "vault_iam_role_arn" {
+  description = "IAM role ARN for the Vault service account"
+  value       = aws_iam_role.vault.arn
+}
+
+output "vault_iam_role_name" {
+  description = "IAM role name for the Vault service account"
+  value       = aws_iam_role.vault.name
+}
+
 output "cluster_endpoint" {
   description = "Kubernetes cluster endpoint"
   value       = data.terraform_remote_state.base.outputs.cluster_endpoint

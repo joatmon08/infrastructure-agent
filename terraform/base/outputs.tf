@@ -51,6 +51,11 @@ output "cluster_oidc_issuer_url" {
   value       = module.eks.cluster_oidc_issuer_url
 }
 
+output "oidc_provider_arn" {
+  description = "The ARN of the EKS OIDC provider"
+  value       = module.eks.oidc_provider_arn
+}
+
 # ECR Repository
 output "ecr_repository_uri" {
   description = "URI for ECR repository"

@@ -10,8 +10,8 @@ resource "helm_release" "vault" {
   values = [templatefile("${path.module}/templates/vault.yaml.tpl", {
     LOAD_BALANCER_SOURCE_RANGES = var.allow_hcp_terraform_to_access_vault ? ["0.0.0.0/0"] : concat(var.inbound_cidrs_for_lbs, [data.terraform_remote_state.base.outputs.vpc_cidr_block]),
     AWS_REGION                  = var.aws_region
-    KMS_KEY_ID                  = data.terraform_remote_state.base.outputs.vault_kms_key_id
-    VAULT_IAM_ROLE_ARN          = data.terraform_remote_state.base.outputs.vault_iam_role_arn
+    KMS_KEY_ID                  = aws_kms_key.vault.key_id
+    VAULT_IAM_ROLE_ARN          = aws_iam_role.vault.arn
   })]
 
   depends_on = [
@@ -29,7 +29,7 @@ data "kubernetes_service_v1" "vault" {
 resource "aws_efs_file_system" "vault_plugins" {
   creation_token = "${var.project_name}-vault-plugins"
   encrypted      = true
-  kms_key_id     = data.terraform_remote_state.base.outputs.vault_kms_key_arn
+  kms_key_id     = aws_kms_key.vault.arn
 
   performance_mode = "generalPurpose"
   throughput_mode  = "bursting"
@@ -175,7 +175,7 @@ resource "aws_iam_policy" "efs_csi_driver" {
 }
 
 resource "aws_iam_role_policy_attachment" "vault_efs" {
-  role       = data.terraform_remote_state.base.outputs.vault_iam_role_name
+  role       = aws_iam_role.vault.name
   policy_arn = aws_iam_policy.efs_csi_driver.arn
 }
 
