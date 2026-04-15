@@ -44,13 +44,6 @@ output "helloworld_agent_server_url" {
   value       = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
 }
 
-
-output "ca_cert" {
-  description = "Output CA certificate for verification"
-  value       = base64encode(tls_self_signed_cert.ca_cert.cert_pem)
-  sensitive   = true
-}
-
 output "client_username" {
   description = "Client username for test-client"
   value       = local.client_username
