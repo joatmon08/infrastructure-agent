@@ -13,12 +13,12 @@ global:
 injector:
   agentImage:
     repository: "hashicorp/vault"
-    tag: "2.0"
+    tag: "${VAULT_VERSION}"
 
 server:
   image:
     repository: "hashicorp/vault"
-    tag: "2.0"
+    tag: "${VAULT_VERSION}"
 
   # For HA configuration and because we need to manually init the vault,
   # we need to define custom readiness/liveness Probe settings

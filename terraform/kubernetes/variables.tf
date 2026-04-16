@@ -39,6 +39,12 @@ variable "vault_token" {
   sensitive   = true
 }
 
+variable "vault_version" {
+  type        = string
+  description = "Version of Vault"
+  default     = "2.0"
+}
+
 variable "vault_helm_chart_version" {
   description = "Version of the HashiCorp Vault Helm chart to use"
   type        = string
