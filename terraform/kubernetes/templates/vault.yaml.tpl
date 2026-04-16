@@ -83,7 +83,7 @@ server:
       config: |
         ui = true
         cluster_name = "vault-integrated-storage"
-        plugin_directory = "/vault/plugins/${VAULT_PLUGINS_PVC_NAME}"
+        plugin_directory = "/vault/plugins"
         
         seal "awskms" {
           region     = "${AWS_REGION}"
