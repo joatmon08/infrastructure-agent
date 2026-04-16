@@ -49,15 +49,20 @@ server:
     annotations:
       eks.amazonaws.com/role-arn: ${VAULT_IAM_ROLE_ARN}
 
-  # extraVolumes is a list of extra volumes to mount. These will be exposed
-  # to Vault in the path `/vault/userconfig/<name>/`.
-  extraVolumes:
-    - type: secret
-      name: tls-server
-    - type: pvc
-      name: vault-plugins-pvc
-      path: /vault/plugins
+  volumes:
+    - name: secret
+      secret:
+        secretName: tls-server
+    - name: plugins
+      persistentVolumeClaim:
+        claimName: ${VAULT_PLUGINS_PVC_NAME}
+
+  volumeMounts:
+    - mountPath: /vault/plugins
+      name: plugins
       readOnly: true
+    - mountPath: /vault/userconfig/tls-server
+      name: secret
 
   # This configures the Vault Statefulset to create a PVC for audit logs.
   # See https://www.vaultproject.io/docs/audit/index.html to know more
@@ -78,7 +83,7 @@ server:
       config: |
         ui = true
         cluster_name = "vault-integrated-storage"
-        plugin_directory = "/vault/plugins"
+        plugin_directory = "/vault/plugins/${VAULT_PLUGINS_PVC_NAME}"
         
         seal "awskms" {
           region     = "${AWS_REGION}"

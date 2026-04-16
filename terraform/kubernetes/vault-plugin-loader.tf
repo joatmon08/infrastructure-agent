@@ -11,11 +11,8 @@ resource "aws_efs_file_system" "vault_plugins" {
   }
 
   tags = {
-    Name        = "${var.project_name}-vault-plugins"
-    Purpose     = "vault-plugin-storage"
-    Environment = var.environment
-    Project     = var.project_name
-    ManagedBy   = "Terraform"
+    Name    = "${var.project_name}-vault-plugins"
+    Purpose = "vault-plugin-storage"
   }
 }
 
@@ -41,10 +38,7 @@ resource "aws_security_group" "vault_plugins_efs" {
   }
 
   tags = {
-    Name        = "${var.project_name}-vault-plugins-efs"
-    Environment = var.environment
-    Project     = var.project_name
-    ManagedBy   = "Terraform"
+    Name = "${var.project_name}-vault-plugins-efs"
   }
 
   lifecycle {
@@ -106,8 +100,7 @@ resource "kubernetes_persistent_volume_claim_v1" "vault_plugins" {
   }
 
   depends_on = [
-    kubernetes_storage_class_v1.efs,
-    helm_release.vault
+    kubernetes_storage_class_v1.efs
   ]
 }
 

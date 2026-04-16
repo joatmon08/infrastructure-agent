@@ -13,6 +13,7 @@ resource "helm_release" "vault" {
     KMS_KEY_ID                  = aws_kms_key.vault.key_id
     VAULT_IAM_ROLE_ARN          = aws_iam_role.vault.arn
     VAULT_VERSION               = var.vault_version
+    VAULT_PLUGINS_PVC_NAME      = kubernetes_persistent_volume_claim_v1.vault_plugins.metadata[0].name
   })]
 
   depends_on = [
