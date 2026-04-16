@@ -1,9 +1,12 @@
 locals {
-  client_username = data.terraform_remote_state.kubernetes.outputs.client_username
-  end_user        = data.terraform_remote_state.kubernetes.outputs.end_user_username
+  client_username = "test-client"
+  end_user        = "end-user"
   vault_endpoint  = data.terraform_remote_state.kubernetes.outputs.vault_endpoint
 
-  test_client_redirect_uris = data.terraform_remote_state.kubernetes.outputs.test_client_redirect_uris
+  test_client_redirect_uris = data.terraform_remote_state.kubernetes.outputs.test_client_url != "" ? [
+    "http://localhost:9000/callback",
+    "${data.terraform_remote_state.kubernetes.outputs.test_client_url}/callback"
+  ] : ["http://localhost:9000/callback"]
 
   sts_key_name = "agent"
 

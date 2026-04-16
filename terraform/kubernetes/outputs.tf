@@ -28,12 +28,6 @@ output "vault_plugin_loader_job_name" {
   value       = length(var.vault_plugins) > 0 ? kubernetes_job_v1.vault_plugin_loader[0].metadata[0].name : "no-plugins-configured"
 }
 
-output "end_user_username" {
-  description = "The username for the end user"
-  value       = local.end_user
-}
-
-
 output "test_client_url" {
   description = "URL to access test-client"
   value       = kubernetes_service_v1.test_client.status != null ? "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}" : ""
@@ -42,16 +36,6 @@ output "test_client_url" {
 output "helloworld_agent_server_url" {
   description = "URL to access helloworld-agent-server"
   value       = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
-}
-
-output "client_username" {
-  description = "Client username for test-client"
-  value       = local.client_username
-}
-
-output "test_client_redirect_uris" {
-  description = "Test client redirect URIs"
-  value       = local.test_client_redirect_uris
 }
 
 output "vault_kms_key_id" {
