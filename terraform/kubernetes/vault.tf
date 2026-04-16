@@ -140,46 +140,6 @@ resource "kubernetes_persistent_volume_claim_v1" "vault_plugins" {
   ]
 }
 
-resource "aws_iam_policy" "efs_csi_driver" {
-  name_prefix = "${var.project_name}-efs-csi-driver-"
-  description = "IAM policy for EFS CSI driver"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "elasticfilesystem:DescribeAccessPoints",
-          "elasticfilesystem:DescribeFileSystems",
-          "elasticfilesystem:DescribeMountTargets",
-          "elasticfilesystem:CreateAccessPoint",
-          "elasticfilesystem:DeleteAccessPoint"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ec2:DescribeAvailabilityZones"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
-    ManagedBy   = "Terraform"
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "vault_efs" {
-  role       = aws_iam_role.vault.name
-  policy_arn = aws_iam_policy.efs_csi_driver.arn
-}
-
 resource "kubernetes_config_map_v1" "vault_plugin_loader_script" {
   metadata {
     name      = "vault-plugin-loader-script"
