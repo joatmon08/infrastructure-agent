@@ -29,10 +29,7 @@ resource "aws_iam_role" "efs_csi_driver" {
   assume_role_policy = data.aws_iam_policy_document.efs_csi_driver_assume_role.json
 
   tags = {
-    Name        = "${var.project_name}-efs-csi-driver"
-    Environment = var.environment
-    Project     = var.project_name
-    ManagedBy   = "Terraform"
+    Name = "${var.project_name}-efs-csi-driver"
   }
 }
 
@@ -65,12 +62,6 @@ resource "aws_iam_policy" "efs_csi_driver" {
       }
     ]
   })
-
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
-    ManagedBy   = "Terraform"
-  }
 }
 
 resource "aws_iam_role_policy_attachment" "efs_csi_driver" {
