@@ -21,12 +21,6 @@ data "terraform_remote_state" "base" {
   }
 }
 
-provider "vault" {
-  address         = data.terraform_remote_state.base.outputs.vault_endpoint
-  token           = var.vault_token
-  skip_tls_verify = true
-}
-
 provider "kubernetes" {
   host                   = data.terraform_remote_state.base.outputs.cluster_endpoint
   cluster_ca_certificate = base64decode(data.terraform_remote_state.base.outputs.cluster_certificate_authority_data)

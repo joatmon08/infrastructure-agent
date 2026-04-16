@@ -33,12 +33,6 @@ variable "tfc_base_workspace" {
   default     = "base"
 }
 
-variable "vault_token" {
-  type        = string
-  description = "Vault token"
-  sensitive   = true
-}
-
 variable "vault_version" {
   type        = string
   description = "Version of Vault"
