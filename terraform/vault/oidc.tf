@@ -3,7 +3,7 @@ resource "vault_identity_oidc_scope" "may_act" {
   template    = <<EOT
 {
   "client_id": "${vault_identity_oidc_client.agent.client_id}",
-  "may_act": ${[for agent, _ in var.client_agents : { client_id = agent, sub = vault_identity_entity.client_agents[agent].id }]}
+  "may_act": ${local.may_act_claim}
 }
 EOT
   description = "May act claim that includes what agents can act on behalf of user"

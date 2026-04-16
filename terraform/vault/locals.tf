@@ -6,4 +6,6 @@ locals {
   test_client_redirect_uris = data.terraform_remote_state.kubernetes.outputs.test_client_redirect_uris
 
   sts_key_name = "agent"
+
+  may_act_claim = jsonencode([for agent, info in var.client_agents : { client_id = agent, sub = vault_identity_entity.client_agents[agent].id }])
 }
