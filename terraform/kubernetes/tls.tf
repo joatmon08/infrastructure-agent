@@ -42,7 +42,7 @@ resource "kubernetes_certificate_signing_request_v1" "vault" {
     ]
   }
 
-  auto_approve = false
+  auto_approve = true
 }
 
 resource "kubernetes_secret_v1" "vault_tls_server" {
