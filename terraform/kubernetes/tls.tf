@@ -29,7 +29,7 @@ resource "kubernetes_certificate_signing_request_v1" "vault" {
   }
 
   spec {
-    signer_name = "beta.eks.amazonaws.com/app-serving"
+    signer_name = "kubernetes.io/kubelet-serving"
 
     expiration_seconds = 8640000
 
