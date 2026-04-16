@@ -25,6 +25,11 @@ template_config {
 }
 
 template {
-  source = "vault-agent/client_secrets.json.ctmpl"
+  source = "vault-agent/client_secrets.json.tmpl"
   destination = "client_secrets.json"
+} 
+
+template {
+  source = "vault-agent/oidc_provider.json.tmpl"
+  destination = "oidc_provider.json"
 } 
