@@ -10,7 +10,7 @@ data "terraform_remote_state" "kubernetes" {
 }
 
 provider "vault" {
-  address         = data.terraform_remote_state.kubernetes.outputs.vault_endpoint
+  address         = local.vault_endpoint
   token           = var.vault_token
   skip_tls_verify = true
 }
