@@ -60,4 +60,12 @@ module "eks" {
     enabled    = true
     node_pools = ["general-purpose", "system"]
   }
+
+  # EKS Addons
+  addons = {
+    aws-efs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = aws_iam_role.efs_csi_driver.arn
+    }
+  }
 }
