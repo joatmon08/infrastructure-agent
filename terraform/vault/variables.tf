@@ -14,3 +14,17 @@ variable "vault_token" {
   description = "Vault token"
   sensitive   = true
 }
+
+variable "client_agents" {
+  type = map(object({
+    k8s_namespace = string,
+    claims        = map(string),
+  }))
+  description = "Client agents that request actor tokens. Must include Kubernetes namespace and claims added to token."
+}
+
+variable "oauth_token_exchange_secrets_path" {
+  type        = string
+  description = "Vault path for oauth token exchange secrets"
+  default     = "sts"
+}
