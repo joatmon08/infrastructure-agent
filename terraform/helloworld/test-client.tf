@@ -90,9 +90,9 @@ resource "kubernetes_deployment_v1" "test_client" {
             {{- end }}
             }
           EOT
-          "vault.hashicorp.com/agent-inject-secret-actor-token"   = "identity/oidc/token/test-client"
-          "vault.hashicorp.com/agent-inject-template-actor-token" = <<-EOT
-            {{- with secret "identity/oidc/token/test-client" }}
+          "vault.hashicorp.com/agent-inject-secret-actor_token"           = "identity/oidc/token/test-client"
+          "vault.hashicorp.com/agent-inject-template-actor_token"         = <<-EOT
+            {{- with secret "identity/oidc/token/test-client" -}}
             {{ .Data.token }}
             {{- end }}
           EOT
@@ -140,6 +140,21 @@ resource "kubernetes_deployment_v1" "test_client" {
           env {
             name  = "CLIENT_SECRETS_PATH"
             value = "/vault/secrets/client_secrets.json"
+          }
+
+          env {
+            name  = "ACTOR_TOKEN_PATH"
+            value = "/vault/secrets/actor_token"
+          }
+
+          env {
+            name  = "VAULT_ADDR"
+            value = "https://vault.vault"
+          }
+
+          env {
+            name  = "VAULT_TOKEN_PATH"
+            value = "/vault/secrets/token"
           }
 
           resources {
