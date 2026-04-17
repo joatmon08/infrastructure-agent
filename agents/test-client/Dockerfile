@@ -28,7 +28,7 @@ RUN addgroup -S -g 1001 nonroot \
  && adduser -S -G nonroot -u 1001 -h nonroot nonroot
 
 # Copy the Python version
-COPY --from=builder --chown=python:python /python /python
+COPY --from=builder /python /python
 
 # Copy the application from the builder
 COPY --from=builder --chown=nonroot:nonroot /app /app

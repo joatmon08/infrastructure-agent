@@ -1,5 +1,11 @@
 .venv
+.vscode
 __pycache__
 test-client.py
 client_secrets.json
 oidc_provider.json
+token
+vault-agent.log
+.vault-token
+actor_token
+vault-agent
