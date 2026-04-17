@@ -21,7 +21,8 @@ resource "vault_generic_endpoint" "sts_config" {
 {
   "client_id": "${vault_identity_oidc_client.agent.client_id}",
   "client_secret": "${vault_identity_oidc_client.agent.client_secret}",
-  "subject_token_jwks_uri": "${data.vault_identity_oidc_openid_config.provider.jwks_uri}"
+  "subject_token_jwks_uri": "${data.vault_identity_oidc_openid_config.provider.jwks_uri}",
+  "subject_token_jwks_skip_verify": true,
 }
 EOT
 
@@ -50,7 +51,8 @@ resource "vault_generic_endpoint" "sts_role" {
 {
   "key": "${local.sts_key_name}",
   "issuer": "${data.vault_identity_oidc_openid_config.provider.issuer}",
-  "actor_token_jwks_uri": "https://vault-ui.vault/v1/identity/oidc/.well-known/keys"
+  "actor_token_jwks_uri": "https://vault-ui.vault/v1/identity/oidc/.well-known/keys",
+  "actor_token_jwks_skip_verify": true
 }
 EOT
 
