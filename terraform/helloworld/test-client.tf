@@ -149,7 +149,7 @@ resource "kubernetes_deployment_v1" "test_client" {
 
           env {
             name  = "VAULT_ADDR"
-            value = "https://vault-active.vault"
+            value = "https://vault-ui.vault"
           }
 
           env {
