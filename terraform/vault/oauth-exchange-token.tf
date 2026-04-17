@@ -50,7 +50,7 @@ resource "vault_generic_endpoint" "sts_role" {
 {
   "key": "${local.sts_key_name}",
   "issuer": "${data.vault_identity_oidc_openid_config.provider.issuer}",
-  "actor_token_jwks_uri": "${local.vault_endpoint}/v1/identity/oidc/.well-known/keys"
+  "actor_token_jwks_uri": "https://vault-ui.vault/v1/identity/oidc/.well-known/keys"
 }
 EOT
 
