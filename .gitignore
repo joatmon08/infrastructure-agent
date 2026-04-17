@@ -73,6 +73,7 @@ helm/*-secret.yaml
 
 client_secrets.json
 oidc_provider.json
+actor_token
 .vault-token
 
 infrastructure-agent.code-workspace

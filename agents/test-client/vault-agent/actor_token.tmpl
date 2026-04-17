@@ -1,0 +1,3 @@
+{{- with secret "identity/oidc/token/test-client" -}}
+{{ .Data.token }}
+{{- end }}
