@@ -12,7 +12,7 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
 
   data = {
     AGENT_URL          = data.terraform_remote_state.kubernetes.outputs.helloworld_agent_server_url
-    OPENID_CONNECT_URL = data.terraform_remote_state.kubernetes.outputs.openid_connect_url
+    OPENID_CONNECT_URL = data.terraform_remote_state.vault.outputs.openid_connect_url
   }
 }
 
