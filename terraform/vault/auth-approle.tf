@@ -7,7 +7,7 @@ resource "vault_approle_auth_backend_role" "client_agents" {
   backend        = vault_auth_backend.approle.path
   role_name      = each.key
   role_id        = each.key
-  token_policies = [vault_policy.actor_token[each.key].name, vault_policy.agent_oidc_client.name]
+  token_policies = [vault_policy.actor_token[each.key].name, vault_policy.agent_oidc_client.name, vault_policy.oauth_exchange_token[each.key].name]
 }
 
 ephemeral "vault_approle_auth_backend_role_secret_id" "client_agents" {

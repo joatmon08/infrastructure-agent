@@ -56,3 +56,14 @@ EOT
 
   depends_on = [vault_generic_endpoint.sts_key]
 }
+
+resource "vault_policy" "oauth_exchange_token" {
+  for_each = var.client_agents
+  name     = "agent-oauth-exchange-token"
+
+  policy = <<EOT
+path "${var.oauth_token_exchange_secrets_path}/token/${each.key}" {
+  capabilities = [ "read" ]
+}
+EOT
+}
