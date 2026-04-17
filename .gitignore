@@ -75,6 +75,7 @@ client_secrets.json
 oidc_provider.json
 actor_token
 .vault-token
+token
 
 infrastructure-agent.code-workspace
 pyrightconfig.json

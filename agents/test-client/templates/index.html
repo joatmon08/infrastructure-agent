@@ -38,6 +38,14 @@
             text-align: center;
         }
 
+        h2 {
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-align: left;
+        }
+
         .subtitle {
             color: #666;
             text-align: center;
@@ -127,6 +135,21 @@
         }
 
         #loginBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #delegateBtn {
+            background: linear-gradient(135deg, #2196f3 0%, #1565c0 100%);
+            color: white;
+        }
+
+        #delegateBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        #delegateBtn:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
@@ -233,16 +256,12 @@
         <h1>🤖 Hello World Client Agent Tester</h1>
         <p class="subtitle">Send messages to the agent and view responses</p>
 
-        <div class="input-section">
-            <label for="authStatusInput">Authentication Status:</label>
-            <textarea id="authStatusInput" readonly
-                style="min-height: 60px; background-color: #f0f0f0; cursor: default;">Please log in your agent with correct scopes.</textarea>
-        </div>
+        <h2>Step 1: User Login for Subject Token</h2>
 
         <div class="input-section">
-            <label for="oidcScopesInput">OIDC Scopes:</label>
+            <label for="oidcScopesInput">Subject Token Scopes for OIDC Provider</label>
             <textarea id="oidcScopesInput"
-                placeholder="Enter space-delimited OIDC scopes (e.g., 'profile email'). 'openid' will be automatically added."
+                placeholder="Enter space-delimited OIDC scopes (e.g., 'may-act'). 'openid' will be automatically added."
                 style="min-height: 60px;"></textarea>
         </div>
 
@@ -251,6 +270,43 @@
                 Login
             </button>
         </div>
+
+        <div class="output-section">
+            <label for="authStatusInput">Authentication Status:</label>
+            <textarea id="authStatusInput" readonly
+                style="min-height: 60px; background-color: #f0f0f0; cursor: default;">Please log in your agent with correct scopes.</textarea>
+        </div>
+
+        <h2>Step 2: Delegate to Client On Behalf Of User</h2>
+
+        <div class="input-section">
+            <label for="delegationAudienceInput">Agent Server</label>
+            <textarea id="delegationAudienceInput"
+                placeholder="Enter the target A2A agent server (e.g., `helloworld-server`)"
+                style="min-height: 60px;"></textarea>
+        </div>
+
+        <div class="input-section">
+            <label for="delegationScopeInput">Scopes</label>
+            <textarea id="delegationScopeInput"
+                placeholder="Enter scopes for delegated access (e.g., `helloworld:read`)"
+                style="min-height: 60px;"></textarea>
+        </div>
+
+        <div class="button-container">
+            <button id="delegateBtn" onclick="delegateAccess()" disabled>
+                Delegate
+            </button>
+        </div>
+
+        <div class="output-section">
+            <label>Delegation Access Token:</label>
+            <div id="delegationOutput" class="output-box">
+                <div class="empty-state">No delegation access token yet. Click "Delegate" to start.</div>
+            </div>
+        </div>
+
+        <h2>Step 3: Use Exchange Token for Server Request</h2>
 
         <div class="input-section">
             <label for="messageInput">Message to Hello World Server Agent:</label>
@@ -276,6 +332,63 @@
     </div>
 
     <script>
+        async function delegateAccess() {
+            const delegationAudienceInput = document.getElementById('delegationAudienceInput');
+            const delegationScopeInput = document.getElementById('delegationScopeInput');
+            const delegationOutputDiv = document.getElementById('delegationOutput');
+            const delegateBtn = document.getElementById('delegateBtn');
+
+            const audience = delegationAudienceInput.value.trim();
+            const scope = delegationScopeInput.value.trim();
+
+            if (!audience) {
+                delegationOutputDiv.className = 'output-box error';
+                delegationOutputDiv.innerHTML = '<span class="status-badge error">ERROR</span><br>Please enter a target A2A agent server.';
+                return;
+            }
+
+            if (!scope) {
+                delegationOutputDiv.className = 'output-box error';
+                delegationOutputDiv.innerHTML = '<span class="status-badge error">ERROR</span><br>Please enter a scope.';
+                return;
+            }
+
+            delegateBtn.disabled = true;
+            delegationOutputDiv.className = 'output-box loading';
+            delegationOutputDiv.innerHTML = '<span class="status-badge loading">LOADING</span><br><span class="loading-spinner"></span>Requesting delegation access token...';
+
+            try {
+                const response = await fetch('/api/delegate-access', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        audience: audience,
+                        scope: scope
+                    })
+                });
+
+                const data = await response.json();
+                const timestamp = new Date().toLocaleString();
+
+                if (data.success) {
+                    delegationOutputDiv.className = 'output-box success';
+                    delegationOutputDiv.innerHTML = `<span class="status-badge success">SUCCESS</span><br>
+${escapeHtml(data.access_token)}
+<div class="timestamp">Received at: ${timestamp}</div>`;
+                } else {
+                    delegationOutputDiv.className = 'output-box error';
+                    delegationOutputDiv.innerHTML = `<span class="status-badge error">ERROR</span><br>${escapeHtml(data.error || 'Failed to exchange token.')}`;
+                }
+            } catch (error) {
+                delegationOutputDiv.className = 'output-box error';
+                delegationOutputDiv.innerHTML = `<span class="status-badge error">ERROR</span><br>${escapeHtml(error.message || 'An unexpected error occurred.')}`;
+            } finally {
+                delegateBtn.disabled = false;
+            }
+        }
+
         async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const oidcScopesInput = document.getElementById('oidcScopesInput');
@@ -377,6 +490,9 @@ ${escapeHtml(data.error || 'Unknown error occurred')}
                     if (data.scopes) {
                         oidcScopesInput.value = data.scopes;
                     }
+
+                    const delegateBtn = document.getElementById('delegateBtn');
+                    delegateBtn.disabled = !data.authenticated;
                 } else {
                     authStatusInput.value = 'Please log in your agent with correct scopes.';
                     authStatusInput.style.backgroundColor = '#f0f0f0';

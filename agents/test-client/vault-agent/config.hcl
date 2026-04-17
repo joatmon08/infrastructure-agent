@@ -16,6 +16,16 @@ auto_auth {
       token_file_path = "./.vault-token"
     }
   }
+
+  sinks {
+    sink {
+      type = "file"
+
+      config = {
+        path = "./token"
+      }
+    }
+  }
 }
 
 cache {}

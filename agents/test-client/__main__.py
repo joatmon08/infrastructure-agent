@@ -1,6 +1,5 @@
 import asyncio
 import json
-import jwt
 import logging
 import os
 import secrets
@@ -28,8 +27,15 @@ logger = logging.getLogger(__name__)
 # Configuration from environment variables
 AGENT_SERVER_URL = os.getenv("AGENT_URL", "http://localhost:9999")
 APP_PORT = int(os.getenv("APP_PORT", 9000))
+
+VAULT_ADDR = os.getenv("VAULT_ADDR", "http://localhost:8200")
+VAULT_NAMESPACE = os.getenv("VAULT_NAMESPACE", None)
+VAULT_TOKEN_PATH = os.getenv("VAULT_TOKEN_PATH", "./token")
+VAULT_OAUTH_DELEGATION_ROLE = os.getenv("VAULT_OAUTH_DELEGATION_ROLE", "test-client")
+
 OIDC_PROVIDER_CONFIG_PATH = os.getenv("OIDC_PROVIDER_CONFIG_PATH", "./oidc_provider.json")
 CLIENT_SECRETS_PATH = os.getenv("CLIENT_SECRETS_PATH", "./client_secrets.json")
+ACTOR_TOKEN_PATH = os.getenv("ACTOR_TOKEN_PATH", "./actor_token")
 
 # TLS verification
 VERIFY_TLS = os.getenv("VERIFY_TLS", "false").lower() == "true"
@@ -43,6 +49,66 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", secrets.token_hex(32))
 CORS(app, origins=["*"])
 
+
+class OAuth2Delegation():
+    def __init__(self, subject_token, actor_token, audience, scope):
+        self.subject_token = subject_token
+        self.actor_token = actor_token
+        self.audience = audience
+        self.scope = scope
+
+    def getExchangeToken(self):
+        try:
+            with open(VAULT_TOKEN_PATH, "r") as f:
+                vault_token = f.read().strip()
+        except Exception as e:
+            raise ValueError(f"Cannot load Vault token from {VAULT_TOKEN_PATH}: {str(e)}")
+
+        if not vault_token:
+            raise ValueError(f"Vault token file {VAULT_TOKEN_PATH} is empty")
+
+        request_params = {
+            "subject_token": self.subject_token,
+            "actor_token": self.actor_token,
+            "audience": self.audience,
+            "scope": self.scope,
+        }
+
+        logger.info(vault_token)
+
+        headers = {
+            "X-Vault-Token": vault_token,
+        }
+
+        if VAULT_NAMESPACE:
+            headers["X-Vault-Namespace"] = VAULT_NAMESPACE
+
+        endpoint = f"{VAULT_ADDR.rstrip('/')}/v1/sts/token/{VAULT_OAUTH_DELEGATION_ROLE}"
+
+        logger.info(f"Calling Vault STS token exchange endpoint for delegation: {endpoint}")
+
+        try:
+            response = httpx.get(
+                endpoint,
+                params=request_params,
+                headers=headers,
+                verify=VERIFY_TLS,
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise ValueError(
+                f"Vault STS token exchange failed with status {e.response.status_code}: {e.response.text}"
+            ) from e
+        except Exception as e:
+            raise ValueError(f"Vault STS token exchange failed: {str(e)}") from e
+
+        token_response = response.json()
+        access_token = token_response.get("access_token")
+
+        if not access_token:
+            raise ValueError("Vault STS token exchange response did not include access_token")
+
+        return access_token
 
 class OIDCAuthenticationConfig:
     def __init__(self, client_secrets_path, oidc_provider_config_path, oidc_scopes=""):
@@ -78,6 +144,20 @@ class OIDCAuthenticationConfig:
     def validate_redirect_uri(self, redirect_uri):
         if redirect_uri not in self.redirect_uris:
             raise ValueError(f"Redirect URI {redirect_uri} not in allowed list")
+
+
+def get_actor_token(actor_token_path):
+    try:
+        with open(actor_token_path, 'r') as f:
+            actor_token = f.read().strip()
+        
+    except Exception as e:
+        raise ValueError(f"Cannot load actor token from {actor_token_path}: {str(e)}")
+
+    if not actor_token:
+        raise ValueError(f"Actor token file {ACTOR_TOKEN_PATH} is empty")
+
+    return actor_token
 
 
 def get_oauth_auth_url(client_secrets_path, oidc_provider_config_path, oidc_scopes: str = ""):
@@ -145,6 +225,11 @@ async def exchange_code_for_token(client_id: str, client_secret: str, token_endp
         token_response = response.json()
         return token_response
 
+async def get_delegation_access_token(subject_token, audience, scope):
+    """Get delegation access token for agent."""
+    actor_token = get_actor_token(ACTOR_TOKEN_PATH)
+    delegation = OAuth2Delegation(subject_token, actor_token, audience, scope)
+    return delegation.getExchangeToken()
 
 async def send_agent_request(user_message: str, access_token: Optional[str] = None) -> dict:
     """Send a request to the agent and return the response."""
@@ -292,7 +377,10 @@ def oauth_callback():
         )
 
         # Store id token in session
-        session["id_token"] = response['id_token']
+        session['id_token'] = response['id_token']
+        session['access_token'] = response['access_token']
+
+        logger.info(session['id_token'])
         
         # Clean up OAuth state
         cleanup_keys = ["oauth_state", "client_id", "client_secret", "token_endpoint", "redirect_uri"]
@@ -305,20 +393,54 @@ def oauth_callback():
         logger.error(f"Error in OAuth callback: {str(e)}", exc_info=True)
         return jsonify({"error": f"OAuth callback failed. {str(e)}"}), 500
 
+
+@app.route("/api/delegate-access", methods=["POST"])
+async def delegate_access():
+    """Exchange the current subject token for a delegation access token."""
+    data = request.get_json() or {}
+    audience = (data.get("audience") or "").strip()
+    scope = (data.get("scope") or "").strip()
+    subject_token = session.get("id_token")
+
+    if not subject_token:
+        return jsonify({"success": False, "error": "No subject token found in session. Please log in first."}), 401
+
+    if not audience:
+        return jsonify({"success": False, "error": "A2A agent server is required."}), 400
+
+    if not scope:
+        return jsonify({"success": False, "error": "Scope is required."}), 400
+
+    try:
+        access_token = await get_delegation_access_token(subject_token, audience, scope)
+    except Exception as e:
+        logger.error(f"Delegation token exchange failed: {str(e)}", exc_info=True)
+        return jsonify({"success": False, "error": f"Delegation token exchange failed: {str(e)}"}), 500
+
+    if not access_token:
+        return jsonify({"success": False, "error": "Token exchange for delegation failed, no exchange token"}), 401
+
+    session["access_token"] = access_token
+
+    return jsonify({"success": True, "access_token": access_token})
+
+
 @app.route("/api/send-message", methods=["POST", "GET"])
 async def send_message():
     """API endpoint to send a message to the agent."""
     if request.method == "GET":
         user_message = request.args.get("message", "Give me a hello world")
+        audience = (request.args.get("audience") or AGENT_SERVER_URL).strip()
+        scope = (request.args.get("scope") or "").strip()
     else:
-        data = request.get_json()
+        data = request.get_json() or {}
         user_message = data.get("message", "Give me a hello world")
     
     # Get access token from session
     access_token = session.get("access_token")
     
     if not access_token:
-        return jsonify({"success": False, "error": "Log in first to get access token"}), 401
+        return jsonify({"success": False, "error": "Token exchange for delegation failed, no access token"}), 401
 
     return await send_agent_request(user_message, access_token)
 
