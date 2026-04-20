@@ -50,8 +50,8 @@ resource "vault_generic_endpoint" "sts_role" {
   data_json = <<EOT
 {
   "key": "${local.sts_key_name}",
-  "issuer": "${data.vault_identity_oidc_openid_config.provider.issuer}",
-  "actor_token_jwks_uri": "https://vault-ui.vault/v1/identity/oidc/.well-known/keys",
+  "issuer": "${var.vault_private_endpoint}",
+  "actor_token_jwks_uri": "${var.vault_private_endpoint}/v1/identity/oidc/.well-known/keys",
   "actor_token_jwks_skip_verify": true
 }
 EOT

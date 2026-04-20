@@ -23,3 +23,13 @@ output "client_agent_vault_tokens" {
   description = "Vault tokens generated for AppRole client agents"
   sensitive   = true
 }
+
+output "helloworld_agent_server_url" {
+  description = "URL to access helloworld-agent-server (passed through from kubernetes workspace)"
+  value       = data.terraform_remote_state.kubernetes.outputs.helloworld_agent_server_url
+}
+
+output "test_client_url" {
+  description = "URL to access test-client (passed through from kubernetes workspace)"
+  value       = data.terraform_remote_state.kubernetes.outputs.test_client_url
+}

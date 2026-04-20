@@ -36,7 +36,7 @@ resource "kubernetes_config_map_v1" "test_client" {
   }
 
   data = {
-    BASE_URL = data.terraform_remote_state.kubernetes.outputs.test_client_url
+    BASE_URL = data.terraform_remote_state.vault.outputs.test_client_url
   }
 }
 

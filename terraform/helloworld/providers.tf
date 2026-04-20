@@ -21,18 +21,6 @@ data "terraform_remote_state" "base" {
   }
 }
 
-data "terraform_remote_state" "kubernetes" {
-  backend = "remote"
-
-  config = {
-    organization = var.tfc_organization
-    workspaces = {
-      name = var.tfc_kubernetes_workspace
-    }
-  }
-}
-
-
 data "terraform_remote_state" "vault" {
   backend = "remote"
 
