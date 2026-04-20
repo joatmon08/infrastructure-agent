@@ -4,31 +4,6 @@ data "aws_ecr_image" "test_client_latest" {
   most_recent     = true
 }
 
-# ServiceAccount for test-client
-resource "kubernetes_service_account_v1" "test_client" {
-  metadata {
-    name = local.test_client_name
-    labels = {
-      app = local.test_client_name
-    }
-  }
-}
-
-# Secret for test-client service account token
-resource "kubernetes_secret_v1" "test_client_token" {
-  metadata {
-    name = "${local.test_client_name}-token"
-    labels = {
-      app = local.test_client_name
-    }
-    annotations = {
-      "kubernetes.io/service-account.name" = local.test_client_name
-    }
-  }
-
-  type = "kubernetes.io/service-account-token"
-}
-
 # ConfigMap for test-client
 resource "kubernetes_config_map_v1" "test_client" {
   metadata {
