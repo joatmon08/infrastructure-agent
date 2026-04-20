@@ -33,7 +33,8 @@ resource "vault_kubernetes_auth_backend_config" "kubernetes" {
 resource "kubernetes_service_account_v1" "client_agents" {
   for_each = var.client_agents
   metadata {
-    name = each.key
+    name      = each.key
+    namespace = each.value.k8s_namespace
     labels = {
       app = each.key
     }
@@ -43,7 +44,9 @@ resource "kubernetes_service_account_v1" "client_agents" {
 resource "kubernetes_secret_v1" "client_agents_tokens" {
   for_each = var.client_agents
   metadata {
-    name = "${each.key}-token"
+    name      = "${each.key}-token"
+    namespace = each.value.k8s_namespace
+
     labels = {
       app = each.key
     }
