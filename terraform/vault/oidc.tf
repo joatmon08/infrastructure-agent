@@ -62,7 +62,7 @@ resource "vault_identity_oidc_client" "agent" {
 resource "vault_identity_oidc_provider" "agent" {
   name          = "agent"
   https_enabled = true
-  issuer_host   = "https://vault-ui.vault"
+  issuer_host   = split("//", var.vault_private_endpoint)[1]
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]
