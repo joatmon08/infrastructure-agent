@@ -103,7 +103,10 @@ class OAuth2Delegation():
             raise ValueError(f"Vault STS token exchange failed: {str(e)}") from e
 
         token_response = response.json()
-        access_token = token_response.get("access_token")
+        if token_response.get("data") is None:
+            raise ValueError("Vault STS token exchange response did not include data")
+        
+        access_token = token_response.get("data").get("access_token")
 
         if not access_token:
             raise ValueError("Vault STS token exchange response did not include access_token")
@@ -379,8 +382,6 @@ def oauth_callback():
         # Store id token in session
         session['id_token'] = response['id_token']
         session['access_token'] = response['access_token']
-
-        logger.info(session['id_token'])
         
         # Clean up OAuth state
         cleanup_keys = ["oauth_state", "client_id", "client_secret", "token_endpoint", "redirect_uri"]
