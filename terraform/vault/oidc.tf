@@ -67,6 +67,6 @@ resource "vault_identity_oidc_provider" "agent" {
     vault_identity_oidc_client.agent.client_id
   ]
   scopes_supported = [
-    #local.may_act_scope_name,
+    local.may_act_scope_name,
   ]
 }
