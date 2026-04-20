@@ -1,5 +1,5 @@
 resource "vault_identity_oidc_scope" "may_act" {
-  name        = "may-act"
+  name        = local.may_act_scope_name
   template    = <<EOT
 {
   "client_id": "${vault_identity_oidc_client.agent.client_id}",
@@ -67,6 +67,6 @@ resource "vault_identity_oidc_provider" "agent" {
     vault_identity_oidc_client.agent.client_id
   ]
   scopes_supported = [
-    vault_identity_oidc_scope.may_act.name,
+    local.may_act_scope_name,
   ]
 }
