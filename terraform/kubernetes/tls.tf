@@ -48,7 +48,7 @@ resource "kubernetes_certificate_signing_request_v1" "vault" {
 resource "kubernetes_secret_v1" "vault_tls_server" {
   metadata {
     name      = "tls-server"
-    namespace = var.kubernetes_namespace_vault
+    namespace = kubernetes_namespace_v1.vault.metadata[0].name
   }
   type = "kubernetes.io/tls"
   data = {

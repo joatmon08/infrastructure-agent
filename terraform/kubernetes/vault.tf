@@ -1,7 +1,7 @@
 resource "helm_release" "vault" {
   name             = "vault"
-  namespace        = var.kubernetes_namespace_vault
-  create_namespace = true
+  namespace        = kubernetes_namespace_v1.vault.metadata[0].name
+  create_namespace = false
 
   repository = "https://helm.releases.hashicorp.com"
   chart      = "vault"

@@ -81,7 +81,7 @@ resource "kubernetes_storage_class_v1" "efs" {
 resource "kubernetes_persistent_volume_claim_v1" "vault_plugins" {
   metadata {
     name      = "vault-plugins-pvc"
-    namespace = var.kubernetes_namespace_vault
+    namespace = kubernetes_namespace_v1.vault.metadata[0].name
     labels = {
       app  = "vault"
       type = "plugins"
@@ -107,7 +107,7 @@ resource "kubernetes_persistent_volume_claim_v1" "vault_plugins" {
 resource "kubernetes_config_map_v1" "vault_plugin_loader_script" {
   metadata {
     name      = "vault-plugin-loader-script"
-    namespace = var.kubernetes_namespace_vault
+    namespace = kubernetes_namespace_v1.vault.metadata[0].name
     labels = {
       app       = "vault"
       component = "plugin-loader"
@@ -130,7 +130,7 @@ resource "kubernetes_job_v1" "vault_plugin_loader" {
 
   metadata {
     name      = "vault-plugin-loader-${formatdate("YYYYMMDDhhmmss", timestamp())}"
-    namespace = var.kubernetes_namespace_vault
+    namespace = kubernetes_namespace_v1.vault.metadata[0].name
     labels = {
       app       = "vault"
       component = "plugin-loader"

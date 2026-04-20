@@ -35,7 +35,7 @@ output "test_client_url" {
 
 output "helloworld_agent_server_url" {
   description = "URL to access helloworld-agent-server"
-  value       = "http://${kubernetes_ingress_v1.helloworld_agent_server.status.0.load_balancer.0.ingress.0.hostname}"
+  value       = length(kubernetes_ingress_v1.helloworld_agent_server.status) > 0 && length(kubernetes_ingress_v1.helloworld_agent_server.status[0].load_balancer) > 0 && length(kubernetes_ingress_v1.helloworld_agent_server.status[0].load_balancer[0].ingress) > 0 ? "http://${kubernetes_ingress_v1.helloworld_agent_server.status[0].load_balancer[0].ingress[0].hostname}" : "pending"
 }
 
 output "vault_kms_key_id" {
