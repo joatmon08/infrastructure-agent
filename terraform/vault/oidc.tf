@@ -37,7 +37,7 @@ resource "vault_identity_oidc_assignment" "end_user" {
 }
 
 resource "vault_identity_oidc" "server" {
-  issuer = var.vault_private_endpoint
+  issuer = local.vault_endpoint
 }
 
 resource "vault_identity_oidc_key" "agent" {
@@ -62,7 +62,7 @@ resource "vault_identity_oidc_client" "agent" {
 resource "vault_identity_oidc_provider" "agent" {
   name          = "agent"
   https_enabled = true
-  issuer_host   = split("//", var.vault_private_endpoint)[1]
+  issuer_host   = split("//", local.vault_endpoint)[1]
   allowed_client_ids = [
     vault_identity_oidc_client.agent.client_id
   ]
