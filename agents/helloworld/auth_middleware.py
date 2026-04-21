@@ -1,4 +1,5 @@
 import logging
+import ssl
 from typing import Optional
 
 import httpx
@@ -151,10 +152,20 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.public_paths = set(public_paths or [])
         
         # Fetch OIDC configuration dynamically
+        self.verify_tls = verify_tls
         self.oidc_config = OpenIDConfig(openid_connect_url, verify_tls=verify_tls)
         self.jwks_uri = self.oidc_config.jwks_uri
         self.issuer = self.oidc_config.issuer
-        self.jwks_client = PyJWKClient(self.jwks_uri)
+        
+        # Create SSL context based on verify_tls setting
+        ssl_context = None
+        if not verify_tls:
+            logger.warning("TLS verification is disabled for JWKS client")
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+        
+        self.jwks_client = PyJWKClient(self.jwks_uri, ssl_context=ssl_context)
         
         # The audience should match the agent name
         self.audience = agent_card.name
