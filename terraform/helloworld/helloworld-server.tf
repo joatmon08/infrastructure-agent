@@ -17,7 +17,7 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   }
 
   data = {
-    AGENT_URL          = data.kubernetes_ingress_v1.helloworld_server.status.0.load_balancer.0.ingress.0.hostname
+    AGENT_URL          = "http://${data.kubernetes_ingress_v1.helloworld_server.status.0.load_balancer.0.ingress.0.hostname}"
     OPENID_CONNECT_URL = data.terraform_remote_state.vault.outputs.token_exchange_openid_configuration_endpoint
   }
 }
