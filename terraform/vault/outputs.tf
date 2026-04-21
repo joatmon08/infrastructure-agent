@@ -33,3 +33,8 @@ output "test_client_url" {
   description = "URL to access test-client (passed through from kubernetes workspace)"
   value       = data.terraform_remote_state.kubernetes.outputs.test_client_url
 }
+
+output "vault_private_endpoint" {
+  description = "Private endpoint for Vault"
+  value       = var.vault_private_endpoint
+}
