@@ -48,9 +48,17 @@ resource "vault_identity_oidc_key" "agent" {
   rotation_period    = 3600
 }
 
+data "kubernetes_service_v1" "test_client" {
+  metadata {
+    name = local.client_username
+  }
+}
+
 resource "vault_identity_oidc_client" "agent" {
-  name          = "agent"
-  redirect_uris = local.test_client_redirect_uris
+  name = "agent"
+  redirect_uris = [
+    "http://${data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}/callback"
+  ]
   assignments = [
     vault_identity_oidc_assignment.end_user.name,
   ]
