@@ -52,10 +52,10 @@ variable "app_port" {
   default     = 9999
 }
 
-variable "vault_skip_verify" {
-  description = "Skip TLS verification for Vault"
+variable "verify_openid_config_tls" {
+  description = "Verify TLS for OpenID Configuration endpoint"
   type        = string
-  default     = "true"
+  default     = "false"
 }
 
 variable "memory_request" {

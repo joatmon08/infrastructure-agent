@@ -124,7 +124,7 @@ resource "kubernetes_deployment_v1" "test_client" {
 
           env {
             name  = "VAULT_ADDR"
-            value = "https://vault-ui.vault"
+            value = data.terraform_remote_state.vault.outputs.vault_private_endpoint
           }
 
           env {
