@@ -28,9 +28,9 @@ resource "vault_approle_auth_backend_login" "client_agents" {
   depends_on = [vault_approle_auth_backend_role.client_agents]
 }
 
-# resource "vault_identity_entity_alias" "client_agents_approle" {
-#   for_each       = var.client_agents
-#   name           = each.key
-#   mount_accessor = vault_auth_backend.approle.accessor
-#   canonical_id   = vault_identity_entity.client_agents[each.key].id
-# }
+resource "vault_identity_entity_alias" "client_agents_approle" {
+  for_each       = var.client_agents
+  name           = each.key
+  mount_accessor = vault_auth_backend.approle.accessor
+  canonical_id   = vault_identity_entity.client_agents[each.key].id
+}
