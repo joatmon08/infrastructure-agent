@@ -17,7 +17,7 @@ resource "kubernetes_config_map_v1" "test_client" {
   }
 
   data = {
-    BASE_URL = data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname
+    BASE_URL = "http://${data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}"
   }
 }
 
