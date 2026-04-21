@@ -448,12 +448,14 @@ async def send_message():
 
 @app.route("/api/auth-status", methods=["GET"])
 def auth_status():
-    """Return whether the session has a valid access token and the scopes."""
-    has_token = bool(session.get("access_token"))
+    """Return whether the session has a valid subject token (id_token) and the scopes."""
+    id_token = session.get("id_token")
+    has_token = bool(id_token)
     scopes = session.get("oidc_scopes", "")
     return jsonify({
         "authenticated": has_token,
-        "scopes": scopes
+        "scopes": scopes,
+        "subject_token": id_token if has_token else None
     })
 
 

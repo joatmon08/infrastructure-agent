@@ -272,9 +272,9 @@
         </div>
 
         <div class="output-section">
-            <label for="authStatusInput">Authentication Status:</label>
-            <textarea id="authStatusInput" readonly
-                style="min-height: 60px; background-color: #f0f0f0; cursor: default;">Please log in your agent with correct scopes.</textarea>
+            <label for="subjectTokenInput">Subject Access Token:</label>
+            <textarea id="subjectTokenInput" readonly
+                style="min-height: 120px; background-color: #f0f0f0; cursor: default; font-family: 'Courier New', monospace; font-size: 12px;">Please log in to obtain your subject access token.</textarea>
         </div>
 
         <h2>Step 2: Delegate to Client On Behalf Of User</h2>
@@ -475,16 +475,22 @@ ${escapeHtml(data.error || 'Unknown error occurred')}
                 const response = await fetch('/api/auth-status');
                 const data = await response.json();
                 const sendBtn = document.getElementById('sendBtn');
-                const authStatusInput = document.getElementById('authStatusInput');
+                const subjectTokenInput = document.getElementById('subjectTokenInput');
                 const oidcScopesInput = document.getElementById('oidcScopesInput');
                 
                 sendBtn.disabled = !data.authenticated;
                 
                 if (data.authenticated) {
-                    const scopesText = data.scopes ? `scopes: ${data.scopes}` : 'scopes: openid';
-                    authStatusInput.value = `✓ Logged in with ${scopesText}`;
-                    authStatusInput.style.backgroundColor = '#e8f5e9';
-                    authStatusInput.style.color = '#2e7d32';
+                    // Display the subject token (id_token)
+                    if (data.subject_token) {
+                        subjectTokenInput.value = data.subject_token;
+                        subjectTokenInput.style.backgroundColor = '#e8f5e9';
+                        subjectTokenInput.style.color = '#2e7d32';
+                    } else {
+                        subjectTokenInput.value = '✓ Logged in (token not available)';
+                        subjectTokenInput.style.backgroundColor = '#e8f5e9';
+                        subjectTokenInput.style.color = '#2e7d32';
+                    }
                     
                     // Populate the OIDC Scopes textarea with the logged-in scopes
                     if (data.scopes) {
@@ -494,14 +500,14 @@ ${escapeHtml(data.error || 'Unknown error occurred')}
                     const delegateBtn = document.getElementById('delegateBtn');
                     delegateBtn.disabled = !data.authenticated;
                 } else {
-                    authStatusInput.value = 'Please log in your agent with correct scopes.';
-                    authStatusInput.style.backgroundColor = '#f0f0f0';
-                    authStatusInput.style.color = '#666';
+                    subjectTokenInput.value = 'Please log in to obtain your subject access token.';
+                    subjectTokenInput.style.backgroundColor = '#f0f0f0';
+                    subjectTokenInput.style.color = '#666';
                 }
             } catch (e) {
                 // If the check fails, leave the button disabled and show default message
-                const authStatusInput = document.getElementById('authStatusInput');
-                authStatusInput.value = 'Please log in your agent with correct scopes.';
+                const subjectTokenInput = document.getElementById('subjectTokenInput');
+                subjectTokenInput.value = 'Please log in to obtain your subject access token.';
             }
         }
 
