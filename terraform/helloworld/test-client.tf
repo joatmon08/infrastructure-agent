@@ -4,6 +4,12 @@ data "aws_ecr_image" "test_client_latest" {
   most_recent     = true
 }
 
+data "kubernetes_service_v1" "test_client" {
+  metadata {
+    name = local.test_client_name
+  }
+}
+
 # ConfigMap for test-client
 resource "kubernetes_config_map_v1" "test_client" {
   metadata {
@@ -11,7 +17,7 @@ resource "kubernetes_config_map_v1" "test_client" {
   }
 
   data = {
-    BASE_URL = data.terraform_remote_state.vault.outputs.test_client_url
+    BASE_URL = data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname
   }
 }
 
@@ -175,5 +181,12 @@ resource "kubernetes_deployment_v1" "test_client" {
         }
       }
     }
+  }
+
+  lifecycle {
+    replace_triggered_by = [
+      kubernetes_config_map_v1.helloworld_agent_server,
+      kubernetes_config_map_v1.test_client
+    ]
   }
 }

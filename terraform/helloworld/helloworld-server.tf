@@ -4,6 +4,12 @@ data "aws_ecr_image" "helloworld_agent_latest" {
   most_recent     = true
 }
 
+data "kubernetes_ingress_v1" "helloworld_server" {
+  metadata {
+    name = local.helloworld_agent_name
+  }
+}
+
 # ConfigMap for the helloworld agent
 resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   metadata {
@@ -11,7 +17,7 @@ resource "kubernetes_config_map_v1" "helloworld_agent_server" {
   }
 
   data = {
-    AGENT_URL          = data.terraform_remote_state.vault.outputs.helloworld_agent_server_url
+    AGENT_URL          = data.kubernetes_ingress_v1.helloworld_server.status.0.load_balancer.0.ingress.0.hostname
     OPENID_CONNECT_URL = data.terraform_remote_state.vault.outputs.token_exchange_openid_configuration_endpoint
   }
 }
@@ -145,6 +151,10 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
         }
       }
     }
+  }
+
+  lifecycle {
+    replace_triggered_by = [kubernetes_config_map_v1.helloworld_agent_server]
   }
 }
 
