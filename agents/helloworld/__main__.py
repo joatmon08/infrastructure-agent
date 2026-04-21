@@ -1,7 +1,7 @@
-import hvac
 import logging
-import uvicorn
 import os
+
+import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
@@ -24,12 +24,10 @@ logger = logging.getLogger(__name__)
 
 AGENT_URL = os.getenv("AGENT_URL", 'http://localhost:9999')
 
-## Define these values for Vault as OIDC provider
+## Define the OIDC discovery URL for JWT validation
 OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
-
-VAULT_ADDR=os.getenv("VAULT_ADDR")
-VAULT_TOKEN=os.getenv("VAULT_TOKEN")
-VAULT_SKIP_VERIFY = os.getenv("VAULT_SKIP_VERIFY", "false").lower() == "true"
+## Optional: Disable TLS verification
+VERIFY_TLS = os.getenv("VERIFY_TLS", "false").lower() == "true"
 
 if __name__ == "__main__":
     security_schemes = {
@@ -38,11 +36,11 @@ if __name__ == "__main__":
                 type="http",
                 scheme="bearer",
                 bearer_format="JWT",
-                description="OAuth 2.0 JWT token with 'hello_world:read' scope",
+                description="OAuth 2.0 access token with 'helloworld:read' scope",
             )
         )
     }
-    security = [{"bearer": ["hello_world:read"]}]
+    security = [{"bearer": ["helloworld:read"]}]
 
     if OPENID_CONNECT_URL:
         security_schemes["oauth"] = SecurityScheme(
@@ -52,7 +50,7 @@ if __name__ == "__main__":
                 open_id_connect_url=OPENID_CONNECT_URL,
             )
         )
-        security.append({"oauth": ["hello_world:read"]})
+        security.append({"oauth": ["helloworld:read"]})
 
     # --8<-- [start:AgentSkill]
     skill = AgentSkill(
@@ -75,7 +73,7 @@ if __name__ == "__main__":
     # --8<-- [start:AgentCard]
     # This will be the public-facing agent card
     public_agent_card = AgentCard(
-        name="Hello World Agent",
+        name="helloworld-server",
         description="Just a hello world agent",
         url=AGENT_URL,
         version="1.0.0",
@@ -118,23 +116,15 @@ if __name__ == "__main__":
 
     app = server.build()
     
-    vault_client = None
-
-
-    if VAULT_ADDR and VAULT_TOKEN:
-        vault_client = hvac.Client(
-            url=VAULT_ADDR,
-            token=VAULT_TOKEN,
-            verify=VAULT_SKIP_VERIFY
-        )
+    if not OPENID_CONNECT_URL:
+        raise ValueError("OPENID_CONNECT_URL environment variable must be set")
 
     app.add_middleware(
         AuthMiddleware,
         agent_card=public_agent_card,
         public_paths=["/.well-known/agent-card.json"],
-        vault_client=vault_client,
         openid_connect_url=OPENID_CONNECT_URL,
-        verify_ssl=not VAULT_SKIP_VERIFY
+        verify_tls=VERIFY_TLS,
     )
 
     uvicorn.run(app, host="0.0.0.0", port=9999)
