@@ -38,3 +38,8 @@ output "vault_private_endpoint" {
   description = "Private endpoint for Vault"
   value       = var.vault_private_endpoint
 }
+
+output "token_exchange_openid_configuration_endpoint" {
+  description = "OpenID configuration endpoint for token exchange"
+  value       = "${var.vault_private_endpoint}/v1/${var.oauth_token_exchange_secrets_path}/.well-known/openid-configuration"
+}
