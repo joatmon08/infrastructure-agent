@@ -24,16 +24,6 @@ output "client_agent_vault_tokens" {
   sensitive   = true
 }
 
-output "helloworld_agent_server_url" {
-  description = "URL to access helloworld-agent-server (passed through from kubernetes workspace)"
-  value       = data.terraform_remote_state.kubernetes.outputs.helloworld_agent_server_url
-}
-
-output "test_client_url" {
-  description = "URL to access test-client (passed through from kubernetes workspace)"
-  value       = data.terraform_remote_state.kubernetes.outputs.test_client_url
-}
-
 output "vault_private_endpoint" {
   description = "Private endpoint for Vault"
   value       = var.vault_private_endpoint

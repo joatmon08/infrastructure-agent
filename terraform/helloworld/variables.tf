@@ -27,6 +27,12 @@ variable "tfc_base_workspace" {
   default     = "base"
 }
 
+variable "tfc_kubernetes_workspace" {
+  type        = string
+  description = "TFC kubernetes workspace name"
+  default     = "kubernetes"
+}
+
 variable "tfc_vault_workspace" {
   type        = string
   description = "TFC Vault workspace name"

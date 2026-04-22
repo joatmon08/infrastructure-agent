@@ -3,6 +3,12 @@ variable "tfc_organization" {
   description = "TFC organization name"
 }
 
+variable "tfc_base_workspace" {
+  type        = string
+  description = "TFC base workspace name"
+  default     = "base"
+}
+
 variable "tfc_kubernetes_workspace" {
   type        = string
   description = "TFC kubernetes workspace name"
