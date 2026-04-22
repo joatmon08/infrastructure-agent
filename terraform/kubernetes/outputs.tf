@@ -57,19 +57,3 @@ output "vault_iam_role_name" {
   description = "IAM role name for the Vault service account"
   value       = aws_iam_role.vault.name
 }
-
-output "cluster_endpoint" {
-  description = "Kubernetes cluster endpoint"
-  value       = data.terraform_remote_state.base.outputs.cluster_endpoint
-}
-
-output "cluster_name" {
-  description = "Kubernetes cluster name"
-  value       = data.terraform_remote_state.base.outputs.cluster_name
-}
-
-output "cluster_certificate_authority_data" {
-  description = "Kubernetes cluster certificate authority data"
-  value       = data.terraform_remote_state.base.outputs.cluster_certificate_authority_data
-  sensitive   = true
-}
