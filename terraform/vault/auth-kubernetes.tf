@@ -24,7 +24,7 @@ resource "vault_auth_backend" "kubernetes" {
 
 resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   backend                = vault_auth_backend.kubernetes.path
-  kubernetes_host        = data.terraform_remote_state.kubernetes.outputs.cluster_endpoint
+  kubernetes_host        = data.terraform_remote_state.base.outputs.cluster_endpoint
   kubernetes_ca_cert     = kubernetes_secret_v1.vault_auth.data["ca.crt"]
   token_reviewer_jwt     = kubernetes_secret_v1.vault_auth.data.token
   disable_iss_validation = "true"
