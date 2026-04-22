@@ -10,10 +10,6 @@ terraform {
       source  = "hashicorp/awscc"
       version = "~> 1.68"
     }
-    opensearch = {
-      source  = "opensearch-project/opensearch"
-      version = "~> 2.2"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 3.0"
