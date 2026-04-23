@@ -13,11 +13,55 @@ This example repository includes demo code for:
 
 ### Set up HCP Terraform
 
-Log into the HCP Terraform.
+Log into HCP Terraform.
+
+#### Overview of Required Workspaces
+
+This project requires **four workspaces** to be created in HCP Terraform under the `infrastructure-agent` project:
+
+1. **`base`** - Deploys base AWS infrastructure (EKS cluster, ECR repositories, VPC, KMS)
+   - Working Directory: `terraform/base`
+   - Shares state with: `kubernetes`, `vault`, `helloworld`
+
+2. **`kubernetes`** - Deploys Kubernetes resources and Vault OIDC configuration
+   - Working Directory: `terraform/kubernetes`
+   - Shares state with: `vault`, `helloworld`
+   - Depends on: `base`
+
+3. **`vault`** - Configures Vault authentication and authorization
+   - Working Directory: `terraform/vault`
+   - Shares state with: `helloworld`
+   - Depends on: `base`, `kubernetes`
+
+4. **`helloworld`** - Deploys the agent applications
+   - Working Directory: `terraform/helloworld`
+   - Depends on: `base`, `kubernetes`, `vault`
+
+#### Create Project
 
 - Create a new project called `infrastructure-agent`. It groups the workspaces related to this repository.
 
-Configure the workspace for base infrastructure.
+#### Configure Organization Variables
+
+- Go to "Settings".
+
+- Go to "Variable Sets".
+
+- Create an organization variable set.
+
+- Apply to the `infrastructure-agent` project (or all workspaces).
+
+- Add the following variables:
+    - `aws_region`
+    - `environment`
+    - `inbound_cidrs_for_lbs`
+    - `project_name`
+    - AWS credentials (preferred using environment variables)
+
+### Deploy base infrastructure
+
+To deploy the VPC, Kubernetes cluster, AWS KMS, and add-ons,
+create the following in HCP Terraform.
 
 - Create a workspace called `base`.
 
@@ -46,56 +90,12 @@ Configure the workspace for base infrastructure.
 
 - Add the pattern `terraform/base/**/*`.
 
-Go back to the list of workspaces.
+Run a plan and apply.
 
-- Go to "Settings".
+### Deploy components onto Kubernetes
 
-- Go to "Variable Sets".
-
-- Create an organization variable set.
-
-- Apply to the `base` workspace (or the project that will contain the rest of the workspaces).
-
-- Add the following variables:
-    - `aws_region`
-    - `environment`
-    - `inbound_cidrs_for_lbs`
-    - `project_name`
-    - AWS credentials (preferred using environment variables)
-
-### Deploy base infrastructure
-
-- Go to the `base` workspace.
-
-- Select "New run".
-
-This will show a run that creates a EKS cluster in
-[auto-mode](https://docs.aws.amazon.com/eks/latest/userguide/automode.html),
-ECR repositories for various images, a Vault cluster on the Kubernetes cluster with
-[auto-unseal using AWS KMS](https://developer.hashicorp.com/vault/tutorials/auto-unseal/autounseal-aws-kms).
-It also deploys the `StorageClass` for EBS volumes to be managed by auto-mode.
-
-- After the infrastructure finishes running, log into the Kubernetes cluster.
-    ```bash
-    aws eks update-kubeconfig --region us-east-1 --name infra-agent
-    ```
-
-- Initialize Vault. Save the output of the command to a file, as you will need the Vault root token
-to further configure Vault.
-    ```bash
-    kubectl exec -it vault-0 -n vault -- vault operator init > secrets.txt
-    ```
-
-## Agent2Agent with Vault as OIDC provider
-
-This demo deploys two example agents, `helloworld-agent` and `test-client`.
-Each of them use [Agent2Agent protocol](https://a2a-protocol.org/latest/) for agent
-discovery and communication. The extended agent skills in `helloworld-agent` require proper authentication
-and authorization by Vault in order for other agents to access.
-
-### Set up HCP Terraform
-
-Log into HCP Terraform.
+To deploy the Vault cluster, ingress endpoints, and
+load balancers to the Kubernetes cluster, create the following in HCP Terraform.
 
 - Create a workspace called `kubernetes`.
 
@@ -123,19 +123,28 @@ Log into HCP Terraform.
 
 - Add the pattern `terraform/kubernetes/**/*`.
 
-Now set up the variables.
-
-- Go to the `kubernetes` workspace.
-
 - Go to "Variables".
 
 - Add the following workspace variables:
     - `vault_token` (sensitive) - The Vault root token from the initialization step
     - `inbound_cidrs_for_lbs` (HCL) - List of CIDR blocks allowed to access load balancers (can override with `["0.0.0.0/0"]`)
 
-The workspace will also use the organization variable set created for the `base` workspace.
+Run a plan and apply.
 
-Configure the workspace for Vault.
+### Initialize Vault
+
+Vault needs to be initialized before you configure it.
+
+- Configure `kubectl` to use the EKS cluster with `aws eks update-kubeconfig --region us-east-1 --name infra-agent`.
+
+- Run `bash scripts/vault-init.sh`
+
+This should store the Vault root token and unseal keys in `secrets/vault-init.json`
+
+### Configure Vault
+
+To configure the Vault cluster as an OIDC provider, identity secrets engine,
+and register the custom secrets engine, create the following in HCP Terraform.
 
 - Create a workspace called `vault`.
 
@@ -162,37 +171,21 @@ Configure the workspace for Vault.
 
 - Add the pattern `terraform/vault/**/*`.
 
-Now set up the variables.
-
-- Go to the `vault` workspace.
-
 - Go to "Variables".
 
 - Add the following workspace variables:
     - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
-    - `vault_token` (sensitive) - The Vault root token from the initialization step
+    - `vault_token` (sensitive) - Copy the Vault root token from `secrets/vault-init.json`.
     - `client_agents` (HCL) - Map of client agents with their Kubernetes namespace and claims
 
-The workspace will also use the organization variable set created for the `base` workspace.
+Run a plan and apply.
 
-### Configure Vault and Kubernetes
+## Agent2Agent with Vault as OIDC provider
 
-- Go to the `kubernetes` workspace.
-
-- Select "New run".
-
-This will deploy the Kubernetes resources for the agents, including Vault OIDC configuration,
-Kubernetes service accounts, and the necessary Vault policies.
-
-After the run completes, you can retrieve the end-user credentials from the workspace outputs:
-
-```bash
-terraform output end_user_username
-terraform output end_user_password
-```
-
-These credentials are used to authenticate with Vault's OIDC provider when accessing the agent services.
-The configuration creates:
+This demo deploys two example agents, `helloworld-agent` and `test-client`.
+Each of them use [Agent2Agent protocol](https://a2a-protocol.org/latest/) for agent
+discovery and communication. The extended agent skills in `helloworld-agent` require proper authentication
+and authorization by Vault in order for other agents to access.
 
 - **end-user** - A Vault userpass authentication user that is allowed to access the Vault OIDC endpoints
 - **test-client** - Vault authentication role that allows access to OIDC endpoints for the test-client Kubernetes service account
@@ -202,9 +195,9 @@ The configuration also creates services on Kubernetes for `test-client` and `hel
 - **helloworld-agent-server** - Uses a Kubernetes ingress with AWS ALB for access
 - **test-client** - Uses a Kubernetes service with AWS NLB for access
 
-### Deploy agents
+### Build the agent images
 
-You need to build and push images to the ECR repositories created in your AWS account.
+Build the images for the helloworld agents. They deploy images to AWS ECR.
 
 - Run `build-helloworld.sh` to automatically build and push to the account ECR repositories.
 
@@ -212,13 +205,11 @@ You need to build and push images to the ECR repositories created in your AWS ac
     bash build-helloworld.sh
     ```
 
-Next, set up HCP Terraform to deploy the agents. Log into the HCP Terraform.
+### Deploy the agents to Kubernetes
 
 - Create a workspace called `helloworld`.
 
 - Set the project to `infrastructure-agent`.
-
-- Go to "Settings".
 
 - Go to "Version Control".
 
@@ -232,35 +223,17 @@ Next, set up HCP Terraform to deploy the agents. Log into the HCP Terraform.
 
 - Add the pattern `terraform/helloworld/**/*`.
 
-Set up the variables.
-
-- Go to the `helloworld` workspace.
-
 - Go to "Variables".
 
 - Add the following workspace variable:
     - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
 
-The workspace will also use the organization variable set created for the `base` workspace.
-
 Note: Most variables have defaults in `terraform.auto.tfvars` and can be overridden if needed.
 
-### Deploy agent infrastructure
-
-- Go to the `helloworld` workspace.
-
-- Select "New run".
+Run a plan and apply.
 
 This will deploy the Kubernetes deployment and service for the helloworld-agent-server.
 The agent will be accessible via the ingress created in the `kubernetes` workspace.
-
-After the run completes, you can access the test-client at the URL from the `kubernetes` workspace outputs:
-
-```bash
-terraform output test_client_url
-```
-
-Use the end-user credentials retrieved earlier to authenticate with the agent.
 
 ### Try the agents
 
@@ -270,12 +243,17 @@ After deploying the components for this demo, you can access the test-client age
 open $(cd terraform/kubernetes && terraform output -raw test_client_url)
 ```
 
-This opens an A2A client with a UI.
+This opens an A2A client with a UI. This UI demonstrates the authorization flow
+step-by-step. The workflow should be implemented as part of the client agent
+or user interface.
 
 ![Test Client Home](assets/test-client-home.png)
 
-Define the scopes you want the agent to use to
-connect to `helloworld-agent-server`.
+Define the scopes you want to assign to the `end-user`'s subject token.
+In this example, we want the `may-act` claim with a list of entities
+and clients that can act on behalf of `end-user`.
+
+![Test Client Subject Token](assets/test-client-subject-token.png)
 
 Use the "Login" button, which redirects you
 to Vault as an OIDC provider.
@@ -283,20 +261,83 @@ to Vault as an OIDC provider.
 Log into Vault using the `end-user` username and password.
 
 ```shell
-cd terraform/kubernetes && terraform output -raw end_user_username
-cd terraform/kubernetes && terraform output -raw end_user_password
+source secrets.env
+vault kv get credentials/end-user
 ```
 
-If your client agent does not define the proper scopes and sends
-a request to the `helloworld-agent-server`, your agent gets a 403 FORBIDDEN for accessing helloworld skills.
+You will get a subject token that includes a `may-act` claim. The `test-client` already has an actor token it
+requested from Vault's identity secrets engine.
 
-![Test Client 403 Forbidden](assets/test-client-403.png)
+```json
+{
+  "at_hash": "xkMP4be4tGAA7V-7j2lXNw",
+  "aud": "KlMko1OZDPdafzZ5GxXBIUPnjbHvi1FQ",
+  "c_hash": "KaDRemYwQ4RmpsF1ES_hZw",
+  "client_id": "KlMko1OZDPdafzZ5GxXBIUPnjbHvi1FQ",
+  "exp": 1776966028,
+  "iat": 1776962428,
+  "iss": "$VAULT_ADDR/v1/identity/oidc/provider/agent",
+  "may_act": [
+    {
+      "client_id": "test-client",
+      "sub": "9d18ec82-5846-0981-9dfb-40f865193b21"
+    }
+  ],
+  "namespace": "root",
+  "sub": "7c0730fb-465b-2227-0537-572a68f790e5"
+}
+```
 
-If your client agent defines the correct scope (`helloworld-read`)
-and sends a request to `helloworld-agent-server`, your agent gets a 200 SUCCESS
+Next, get the delegated access token for `test-client` to use. Enter in the agent server's name
+(must match the name of agent server in its agent card) and
+the scopes you want to request from the agent server (`helloworld:read`).
+
+![Test Client Subject Token](assets/test-client-access-token.png)
+
+You will get an access token that includes an `act` claim indicating delegated access.
+
+```json
+{
+  "act": {
+    "client_id": "test-client",
+    "scope": "helloworld:read",
+    "sub": "9d18ec82-5846-0981-9dfb-40f865193b21"
+  },
+  "aud": "helloworld-server",
+  "client_id": "test-client",
+  "exp": 1776966682,
+  "iat": 1776963082,
+  "iss": "https://vault-ui.vault/v1/sts",
+  "scope": "helloworld:read",
+  "sub": "7c0730fb-465b-2227-0537-572a68f790e5"
+}
+```
+
+If the access token defines the correct scope (`helloworld:read`)
+and sends a request to `helloworld-server`, your agent gets a 200 SUCCESS
 with a "Hello World" message.
 
 ![Test Client 200 Success](assets/test-client-200.png)
+
+If your client agent does not have a `client_id` or `sub` (Vault entity ID)
+that matches the one requested by the subject token, your client agent cannot get a
+delegated access token.
+
+![Test Client 403 Forbidden](assets/test-client-may-act-failed.png)
+
+
+If your client agent does not define the proper scopes and sends
+a request to the `helloworld-server`, your agent gets a 403 FORBIDDEN for accessing helloworld skills.
+
+![Test Client 403 Forbidden](assets/test-client-403.png)
+
+If your client agent uses an access token that was intended for a
+different agent server (e.g, `a-different-server`) and you use it to
+request a message from `helloworld-server`, your agent gets a 401 UNAUTHORIZED
+for accessing the wrong agent server.
+
+![Test Client 403 Forbidden](assets/test-client-401.png)
+
 
 ## LangFlow
 
