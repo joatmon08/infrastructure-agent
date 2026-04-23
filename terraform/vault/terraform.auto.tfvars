@@ -8,4 +8,11 @@ client_agents = {
     }
 
   }
+  "second-client" = {
+    "k8s_namespace" = "default",
+    "claims" = {
+      "scope" : "helloworld:write"
+    }
+
+  }
 }

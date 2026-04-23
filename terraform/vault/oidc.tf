@@ -9,6 +9,18 @@ EOT
   description = "May act claim that includes what agents can act on behalf of user"
 }
 
+resource "vault_identity_oidc_scope" "may_act_second_client_only" {
+  name        = "may-act-second-client"
+  template    = <<EOT
+{
+  "client_id": "${vault_identity_oidc_client.agent.client_id}",
+  "may_act": ${jsonencode([for agent, info in var.client_agents : { client_id = agent, sub = vault_identity_entity.client_agents[agent].id } if agent == "second-client"])}
+}
+EOT
+  description = "May act claim that includes what agents can act on behalf of user"
+}
+
+
 resource "vault_policy" "agent_oidc_authorize" {
   name = "agent-oidc-authorize"
 
@@ -76,5 +88,6 @@ resource "vault_identity_oidc_provider" "agent" {
   ]
   scopes_supported = [
     local.may_act_scope_name,
+    vault_identity_oidc_scope.may_act_second_client_only.name
   ]
 }
