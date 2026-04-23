@@ -18,6 +18,12 @@ data "aws_iam_policy_document" "efs_csi_driver_assume_role" {
 
     condition {
       test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values   = ["system:serviceaccount:vault:vault"]
+    }
+
+    condition {
+      test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:aud"
       values   = ["sts.amazonaws.com"]
     }
