@@ -262,7 +262,7 @@ Log into Vault using the `end-user` username and password.
 
 ```shell
 source secrets.env
-vault kv get credentials/end-user
+vault kv get -field=password credentials/end-user
 ```
 
 You will get a subject token that includes a `may-act` claim. The `test-client` already has an actor token it
@@ -323,8 +323,7 @@ If your client agent does not have a `client_id` or `sub` (Vault entity ID)
 that matches the one requested by the subject token, your client agent cannot get a
 delegated access token.
 
-![Test Client 403 Forbidden](assets/test-client-may-act-failed.png)
-
+![Test Client Agent Not Authorized to Act On Behalf Of](assets/test-client-may-act-failed.png)
 
 If your client agent does not define the proper scopes and sends
 a request to the `helloworld-server`, your agent gets a 403 FORBIDDEN for accessing helloworld skills.
@@ -338,6 +337,9 @@ for accessing the wrong agent server.
 
 ![Test Client 403 Forbidden](assets/test-client-401.png)
 
+Note that if you want to have nested delegation (e.g., `second-client` calls on behalf of `test-client`),
+you can use the delegated access token from `test-client` as the subject token for `second-client`'s request.
+This generates a new delegated access token for `second-client` on behalf of `test-client`.
 
 ## LangFlow
 
