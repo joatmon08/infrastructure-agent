@@ -1,11 +1,15 @@
 #!/bin/bash
 
-kubectl exec -n vault vault-0 -- vault operator init > secrets/vault-init.txt
+kubectl exec -n vault vault-0 -- vault operator init -format=json > secrets/vault-init.json
 kubectl exec -n vault vault-0 -- vault status
 
-read "Copy the root token from secrets/vault-init.txt and put it in secrets.env as `export VAULT_TOKEN=<token>`"   
+export VAULT_ADDR=$(cd terraform/kubernetes && terraform output -raw vault_endpoint)
+export VAULT_TOKEN=$(cat secrets/vault-init.json | jq -r .root_token)
+export VAULT_SKIP_VERIFY=true
 
-source secrets.env
+echo 'export VAULT_ADDR=$(cd terraform/kubernetes && terraform output -raw vault_endpoint)
+export VAULT_TOKEN=$(cat secrets/vault-init.json | jq -r .root_token)
+export VAULT_SKIP_VERIFY=true' > secrets.env
 
 vault audit enable file file_path=stdout
 
