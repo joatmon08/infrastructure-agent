@@ -320,8 +320,9 @@ with a "Hello World" message.
 ![Test Client 200 Success](assets/test-client-200.png)
 
 If your client agent does not have a `client_id` or `sub` (Vault entity ID)
-that matches the one requested by the subject token, your client agent cannot get a
-delegated access token.
+that matches the one requested by the subject token, your client agent gets
+notice that the token exchange failed since it does not have permission to act
+on behalf of the subject token.
 
 ![Test Client Agent Not Authorized to Act On Behalf Of](assets/test-client-may-act-failed.png)
 
