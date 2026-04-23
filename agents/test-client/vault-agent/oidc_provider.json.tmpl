@@ -1,5 +1,5 @@
 {
-{{- with secret "identity/oidc/provider/agent/.well-known/openid-configuration" }}
+{{- with secret "identity/oidc/provider/test/.well-known/openid-configuration" }}
     "authorization_endpoint": "{{ .Data.authorization_endpoint }}",
     "issuer": "{{ .Data.issuer }}",
     "token_endpoint": "{{ .Data.token_endpoint }}",
