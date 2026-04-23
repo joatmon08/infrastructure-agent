@@ -83,7 +83,7 @@ resource "aws_iam_policy" "ecr_pull_policy" {
 # We need to attach the policy to the node role created by Auto Mode
 resource "aws_iam_role_policy_attachment" "eks_node_ecr_policy" {
   policy_arn = aws_iam_policy.ecr_pull_policy.arn
-  role       = module.eks.cluster_iam_role_name
+  role       = module.kubernetes.cluster_iam_role_name
 }
 
 # Additional attachment for worker nodes if using managed node groups
@@ -94,5 +94,5 @@ data "aws_iam_policy" "ecr_read_only" {
 
 resource "aws_iam_role_policy_attachment" "eks_node_ecr_readonly" {
   policy_arn = data.aws_iam_policy.ecr_read_only.arn
-  role       = module.eks.cluster_iam_role_name
+  role       = module.kubernetes.cluster_iam_role_name
 }
