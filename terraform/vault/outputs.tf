@@ -18,12 +18,6 @@ output "vault_userpass_auth_backend_path" {
   value       = vault_auth_backend.userpass.path
 }
 
-output "client_agent_vault_tokens" {
-  value       = { for agent, attributes in vault_approle_auth_backend_login.client_agents : agent => attributes.client_token }
-  description = "Vault tokens generated for AppRole client agents"
-  sensitive   = true
-}
-
 output "vault_private_endpoint" {
   description = "Private endpoint for Vault"
   value       = var.vault_private_endpoint

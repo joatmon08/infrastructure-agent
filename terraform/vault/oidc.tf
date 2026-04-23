@@ -14,10 +14,10 @@ resource "vault_identity_oidc_scope" "may_act_second_client_only" {
   template    = <<EOT
 {
   "client_id": "${vault_identity_oidc_client.agent.client_id}",
-  "may_act": ${jsonencode([for agent, info in var.client_agents : { client_id = agent, sub = vault_identity_entity.client_agents[agent].id } if agent == "second-client"])}
+  "may_act": ${jsonencode({ client_id = "second-client", sub = vault_identity_entity.client_agents["second-client"].id })}
 }
 EOT
-  description = "May act claim that includes what agents can act on behalf of user"
+  description = "May act claim that includes the second-client"
 }
 
 
