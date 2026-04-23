@@ -27,7 +27,12 @@ Configure the workspace for base infrastructure.
 
 - Scroll down to "Remote state sharing".
 
-- Select "Share with all workspaces in this project".
+- Select "Share with specific workspaces".
+
+- Add the following workspaces:
+    - `kubernetes`
+    - `vault`
+    - `helloworld`
 
 - Go to "Version Control".
 
@@ -100,7 +105,11 @@ Log into HCP Terraform.
 
 - Scroll down to "Remote state sharing".
 
-- Select "Share with all workspaces in this project".
+- Select "Share with specific workspaces".
+
+- Add the following workspaces:
+    - `vault`
+    - `helloworld`
 
 - Go to "Version Control".
 
@@ -123,6 +132,46 @@ Now set up the variables.
 - Add the following workspace variables:
     - `vault_token` (sensitive) - The Vault root token from the initialization step
     - `inbound_cidrs_for_lbs` (HCL) - List of CIDR blocks allowed to access load balancers (can override with `["0.0.0.0/0"]`)
+
+The workspace will also use the organization variable set created for the `base` workspace.
+
+Configure the workspace for Vault.
+
+- Create a workspace called `vault`.
+
+- Set the project to `infrastructure-agent`.
+
+- Go to "Settings".
+
+- Scroll down to "Remote state sharing".
+
+- Select "Share with specific workspaces".
+
+- Add the following workspace:
+    - `helloworld`
+
+- Go to "Version Control".
+
+- Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
+
+- Update "Terraform Working Directory" to `terraform/vault`.
+
+- Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
+
+- Update the "Syntax" to "Patterns".
+
+- Add the pattern `terraform/vault/**/*`.
+
+Now set up the variables.
+
+- Go to the `vault` workspace.
+
+- Go to "Variables".
+
+- Add the following workspace variables:
+    - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
+    - `vault_token` (sensitive) - The Vault root token from the initialization step
+    - `client_agents` (HCL) - Map of client agents with their Kubernetes namespace and claims
 
 The workspace will also use the organization variable set created for the `base` workspace.
 
