@@ -1,7 +1,7 @@
 services:
 
   terraform-mcp-server:
-    image: hashicorp/terraform-mcp-server:0.3.3
+    image: hashicorp/terraform-mcp-server:0.5.2
     container_name: terraform-mcp-server
     ports:
       - "8080:8080"
