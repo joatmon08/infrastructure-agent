@@ -87,3 +87,24 @@ output "configure_kubectl" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.kubernetes.cluster_name}"
 }
+
+# GPU Node Group Outputs
+output "gpu_node_group_id" {
+  description = "ID of the GPU node group"
+  value       = aws_eks_node_group.gpu.id
+}
+
+output "gpu_node_group_arn" {
+  description = "ARN of the GPU node group"
+  value       = aws_eks_node_group.gpu.arn
+}
+
+output "gpu_node_group_status" {
+  description = "Status of the GPU node group"
+  value       = aws_eks_node_group.gpu.status
+}
+
+output "gpu_node_role_arn" {
+  description = "ARN of the IAM role used by GPU nodes"
+  value       = aws_iam_role.gpu_node_group.arn
+}
