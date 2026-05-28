@@ -121,13 +121,6 @@ server:
 
 ui:
   enabled: true
-  serviceType: "LoadBalancer"
+  serviceType: "ClusterIP"
   serviceNodePort: null
-  externalPort: 443
-  loadBalancerSourceRanges:
-%{ for range in LOAD_BALANCER_SOURCE_RANGES ~}
-   - ${range}
-%{ endfor ~}
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
+  externalPort: 8200
