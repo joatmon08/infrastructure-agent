@@ -33,7 +33,7 @@ server:
   dataStorage:
     # Name of the storage class to use.  If null it will use the
     # configured default Storage Class.
-    storageClass: auto-ebs-sc
+    storageClass: gp3
 
   # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
   # used to include variables required for auto-unseal.
@@ -68,7 +68,7 @@ server:
   # See https://www.vaultproject.io/docs/audit/index.html to know more
   auditStorage:
     enabled: true
-    storageClass: auto-ebs-sc
+    storageClass: gp3
 
   standalone:
     enabled: false

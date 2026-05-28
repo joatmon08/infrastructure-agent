@@ -36,7 +36,6 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
       }
     }
   }
-  depends_on = [kubernetes_ingress_class_v1.alb, kubernetes_manifest.ingressclassparams_alb]
 }
 
 resource "kubernetes_service_v1" "test_client" {
