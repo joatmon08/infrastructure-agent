@@ -126,5 +126,5 @@ variable "gpu_min_size" {
 variable "gpu_enable_taints" {
   description = "Enable taints on GPU nodes to prevent non-GPU workloads"
   type        = bool
-  default     = true
+  default     = false
 }
