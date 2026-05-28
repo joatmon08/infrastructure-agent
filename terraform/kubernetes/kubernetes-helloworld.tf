@@ -12,6 +12,8 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
   }
 
   spec {
+    ingress_class_name = "alb"
+
     default_backend {
       service {
         name = local.server_username
@@ -41,30 +43,6 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
   }
 }
 
-resource "kubernetes_service_v1" "test_client" {
-  metadata {
-    name = local.client_username
-    labels = {
-      app = local.client_username
-    }
-  }
-
-  spec {
-    type = "ClusterIP"
-
-    port {
-      port        = 80
-      target_port = 9000
-      protocol    = "TCP"
-      name        = "http"
-    }
-
-    selector = {
-      app = local.client_username
-    }
-  }
-}
-
 resource "kubernetes_ingress_v1" "test_client" {
   metadata {
     name = local.client_username
@@ -79,6 +57,8 @@ resource "kubernetes_ingress_v1" "test_client" {
   }
 
   spec {
+    ingress_class_name = "alb"
+
     default_backend {
       service {
         name = local.client_username

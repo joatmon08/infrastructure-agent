@@ -41,6 +41,7 @@ resource "kubernetes_ingress_v1" "vault_ui" {
       "alb.ingress.kubernetes.io/tags"             = "Environment=${var.environment},Project=${var.project_name},ManagedBy=Terraform"
       "alb.ingress.kubernetes.io/backend-protocol" = "HTTPS"
       "alb.ingress.kubernetes.io/listen-ports"     = "[{\"HTTPS\":443}]"
+      "alb.ingress.kubernetes.io/certificate-arn"  = "${aws_acm_certificate.vault.arn}"
     }
   }
 
