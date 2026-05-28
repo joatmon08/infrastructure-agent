@@ -53,7 +53,7 @@ resource "aws_eks_node_group" "gpu" {
   instance_types = var.gpu_instance_types
 
   # AMI type for GPU instances
-  ami_type = "AL2_x86_64_GPU"
+  ami_type = "AL2023_x86_64_NVIDIA"
 
   # Capacity type
   capacity_type = var.gpu_capacity_type
