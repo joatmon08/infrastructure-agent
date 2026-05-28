@@ -4,7 +4,7 @@ data "aws_ecr_image" "test_client_latest" {
   most_recent     = true
 }
 
-data "kubernetes_service_v1" "test_client" {
+data "kubernetes_ingress_v1" "test_client" {
   metadata {
     name = local.test_client_name
   }
@@ -17,9 +17,34 @@ resource "kubernetes_config_map_v1" "test_client" {
   }
 
   data = {
-    BASE_URL = "http://${data.kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}"
+    BASE_URL = "http://${data.kubernetes_ingress_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}"
   }
 }
+
+resource "kubernetes_service_v1" "test_client" {
+  metadata {
+    name = local.test_client_name
+    labels = {
+      app = local.test_client_name
+    }
+  }
+
+  spec {
+    type = "ClusterIP"
+
+    port {
+      port        = 80
+      target_port = 9000
+      protocol    = "TCP"
+      name        = "http"
+    }
+
+    selector = {
+      app = local.test_client_name
+    }
+  }
+}
+
 
 # Deployment for test-client
 resource "kubernetes_deployment_v1" "test_client" {
