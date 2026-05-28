@@ -36,7 +36,7 @@ variable "tfc_base_workspace" {
 variable "vault_version" {
   type        = string
   description = "Version of Vault"
-  default     = "2.0"
+  default     = "1.21"
 }
 
 variable "vault_helm_chart_version" {
