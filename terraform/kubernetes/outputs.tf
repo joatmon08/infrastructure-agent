@@ -30,7 +30,7 @@ output "vault_plugin_loader_job_name" {
 
 output "test_client_url" {
   description = "URL to access test-client"
-  value       = kubernetes_service_v1.test_client.status != null ? "http://${kubernetes_service_v1.test_client.status.0.load_balancer.0.ingress.0.hostname}" : ""
+  value       = length(kubernetes_ingress_v1.test_client.status) > 0 && length(kubernetes_ingress_v1.test_client.status[0].load_balancer) > 0 && length(kubernetes_ingress_v1.test_client.status[0].load_balancer[0].ingress) > 0 ? "http://${kubernetes_ingress_v1.test_client.status[0].load_balancer[0].ingress[0].hostname}" : "pending"
 }
 
 output "helloworld_agent_server_url" {
