@@ -2,9 +2,12 @@ resource "kubernetes_ingress_v1" "helloworld_agent_server" {
   metadata {
     name = local.server_username
     annotations = {
+      "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type"      = "ip"
       "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
       "alb.ingress.kubernetes.io/inbound-cidrs"    = "${join(",", [for s in var.inbound_cidrs_for_lbs : s])}"
       "alb.ingress.kubernetes.io/success-codes"    = "200,201,404"
+      "alb.ingress.kubernetes.io/tags"             = "Environment=prod,Project=infrastructure-agent,ManagedBy=Terraform"
     }
   }
 
@@ -44,15 +47,10 @@ resource "kubernetes_service_v1" "test_client" {
     labels = {
       app = local.client_username
     }
-    annotations = {
-      "service.beta.kubernetes.io/aws-load-balancer-type"      = "nlb"
-      "service.beta.kubernetes.io/load-balancer-source-ranges" = join(",", var.inbound_cidrs_for_lbs)
-      "service.beta.kubernetes.io/aws-load-balancer-scheme"    = "internet-facing"
-    }
   }
 
   spec {
-    type = "LoadBalancer"
+    type = "ClusterIP"
 
     port {
       port        = 80
@@ -61,10 +59,51 @@ resource "kubernetes_service_v1" "test_client" {
       name        = "http"
     }
 
-    load_balancer_class = "eks.amazonaws.com/nlb"
-
     selector = {
       app = local.client_username
+    }
+  }
+}
+
+resource "kubernetes_ingress_v1" "test_client" {
+  metadata {
+    name = local.client_username
+    annotations = {
+      "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type"      = "ip"
+      "alb.ingress.kubernetes.io/healthcheck-path" = "/"
+      "alb.ingress.kubernetes.io/inbound-cidrs"    = "${join(",", [for s in var.inbound_cidrs_for_lbs : s])}"
+      "alb.ingress.kubernetes.io/success-codes"    = "200"
+      "alb.ingress.kubernetes.io/tags"             = "Environment=prod,Project=infrastructure-agent,ManagedBy=Terraform"
+    }
+  }
+
+  spec {
+    default_backend {
+      service {
+        name = local.client_username
+        port {
+          number = 80
+        }
+      }
+    }
+
+    rule {
+      http {
+        path {
+          backend {
+            service {
+              name = local.client_username
+              port {
+                number = 80
+              }
+            }
+          }
+
+          path      = "/"
+          path_type = "Prefix"
+        }
+      }
     }
   }
 }
