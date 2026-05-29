@@ -1,18 +1,4 @@
 # ECR Repositories
-resource "aws_ecr_repository" "ollama" {
-  name                 = "${var.project_name}-ollama"
-  image_tag_mutability = "IMMUTABLE"
-  force_delete         = true
-
-  image_scanning_configuration {
-    scan_on_push = false
-  }
-
-  tags = {
-    Name = "${var.project_name}-ollama"
-  }
-}
-
 resource "aws_ecr_repository" "langflow" {
   name                 = "${var.project_name}-langflow"
   image_tag_mutability = "IMMUTABLE"
