@@ -8,15 +8,17 @@ resource "kubernetes_persistent_volume_claim_v1" "ollama_data" {
 
   spec {
     access_modes = ["ReadWriteOnce"]
-    
+
     resources {
       requests = {
         storage = "30Gi"
       }
     }
-    
+
     storage_class_name = "gp3"
   }
+
+  wait_until_bound = false
 }
 
 resource "kubernetes_service_v1" "ollama" {
@@ -29,14 +31,14 @@ resource "kubernetes_service_v1" "ollama" {
 
   spec {
     type = "ClusterIP"
-    
+
     port {
       port        = 11434
       target_port = 11434
       protocol    = "TCP"
       name        = "http"
     }
-    
+
     selector = {
       app = "ollama"
     }
