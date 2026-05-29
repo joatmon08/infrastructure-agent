@@ -1,8 +1,8 @@
-FROM langflowai/langflow:1.9.3
+FROM langflowai/langflow:1.9.5-amd64
 
 USER root
 
-RUN apt update && apt install -y libgl1 libglib2.0-0 && uv pip install langflow[docling]
+RUN apt update && apt install -y libgl1 libglib2.0-0 && uv pip install langflow[docling] && rm -rf /var/lib/apt/lists/*
 
 USER user
 
