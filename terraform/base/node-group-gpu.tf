@@ -1,3 +1,6 @@
+# Get current AWS account ID
+data "aws_caller_identity" "current" {}
+
 # IAM Role for GPU Node Group
 resource "aws_iam_role" "gpu_node_group" {
   name = "${var.project_name}-gpu-node-group-role"
@@ -38,6 +41,11 @@ resource "aws_iam_role_policy_attachment" "gpu_node_group_ecr_policy" {
 
 resource "aws_iam_role_policy_attachment" "gpu_node_group_ssm_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.gpu_node_group.name
+}
+
+resource "aws_iam_role_policy_attachment" "gpu_node_group_security_compute_access" {
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/SecurityComputeAccess"
   role       = aws_iam_role.gpu_node_group.name
 }
 
@@ -96,6 +104,7 @@ resource "aws_eks_node_group" "gpu" {
     aws_iam_role_policy_attachment.gpu_node_group_cni_policy,
     aws_iam_role_policy_attachment.gpu_node_group_ecr_policy,
     aws_iam_role_policy_attachment.gpu_node_group_ssm_policy,
+    aws_iam_role_policy_attachment.gpu_node_group_security_compute_access,
   ]
 
   lifecycle {
