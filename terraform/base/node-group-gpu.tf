@@ -51,7 +51,7 @@ resource "aws_iam_role_policy_attachment" "gpu_node_group_security_compute_acces
 
 resource "aws_launch_template" "gpu_node_group" {
   name_prefix = "${var.project_name}-gpu-node-group-"
-  
+
   vpc_security_group_ids = [module.kubernetes.node_security_group_id]
 
   tag_specifications {
