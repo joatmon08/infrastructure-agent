@@ -1,0 +1,32 @@
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = {
+      Environment = var.environment
+      Project     = var.project_name
+      ManagedBy   = "Terraform"
+    }
+  }
+}
+
+data "terraform_remote_state" "base" {
+  backend = "remote"
+
+  config = {
+    organization = var.tfc_organization
+    workspaces = {
+      name = var.tfc_base_workspace
+    }
+  }
+}
+
+provider "kubernetes" {
+  host                   = data.terraform_remote_state.base.outputs.cluster_endpoint
+  cluster_ca_certificate = base64decode(data.terraform_remote_state.base.outputs.cluster_certificate_authority_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", data.terraform_remote_state.base.outputs.cluster_name]
+    command     = "aws"
+  }
+}
