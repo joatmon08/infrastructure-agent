@@ -33,9 +33,7 @@ resource "helm_release" "langflow" {
             volume = {
               size = "20Gi"
               storageClass = {
-                provisioner                = "ebs.csi.aws.com"
-                volumeBindingMode          = "Immediate"
-                allowVolumeExpansion       = true
+                provisioner = "ebs.csi.aws.com"
               }
             }
           }
