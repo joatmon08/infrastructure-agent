@@ -38,5 +38,5 @@ variable "oauth_token_exchange_secrets_path" {
 variable "vault_private_endpoint" {
   type        = string
   description = "Private endpoint for Vault. Used for issuer for OIDC provider and verifying JWTs"
-  default     = "https://vault-ui.vault"
+  default     = "https://vault-ui.vault:8200"
 }
