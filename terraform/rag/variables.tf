@@ -26,3 +26,9 @@ variable "tfc_base_workspace" {
   description = "TFC base workspace name"
   default     = "base"
 }
+
+variable "inbound_cidrs_for_lbs" {
+  description = "CIDR blocks allowed to access Langflow ingress"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
