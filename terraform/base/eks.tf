@@ -4,9 +4,10 @@ module "kubernetes" {
   source  = "app.terraform.io/rosemary-production/kubernetes/aws"
   version = "2.0.2"
 
-  region                  = var.aws_region
-  cluster_name            = var.project_name
-  node_group_desired_size = 5
+  region                    = var.aws_region
+  cluster_name              = var.project_name
+  node_group_desired_size   = 3
+  node_group_instance_types = ["t3.xlarge"]
 }
 
 import {
