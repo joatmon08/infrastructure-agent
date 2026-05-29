@@ -63,6 +63,8 @@ This project requires **four workspaces** to be created in HCP Terraform under t
 To deploy the VPC, Kubernetes cluster, AWS KMS, and add-ons,
 create the following in HCP Terraform.
 
+The base workspace also provisions a GPU EKS managed node group. The GPU node group uses an EC2 launch template so the EKS worker node security group from the Kubernetes module is attached to GPU instances, allowing outbound connectivity through the expected node networking path.
+
 - Create a workspace called `base`.
 
 - Set the project to `infrastructure-agent`.
