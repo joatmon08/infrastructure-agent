@@ -49,6 +49,21 @@ resource "aws_iam_role_policy_attachment" "gpu_node_group_security_compute_acces
   role       = aws_iam_role.gpu_node_group.name
 }
 
+resource "aws_launch_template" "gpu_node_group" {
+  name_prefix = "${var.project_name}-gpu-node-group-"
+  
+  vpc_security_group_ids = [module.kubernetes.node_security_group_id]
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "${var.project_name}-gpu-node-group"
+      Type = "gpu"
+    }
+  }
+}
+
 # GPU Node Group
 resource "aws_eks_node_group" "gpu" {
   cluster_name    = module.kubernetes.cluster_name
@@ -56,6 +71,11 @@ resource "aws_eks_node_group" "gpu" {
   node_role_arn   = aws_iam_role.gpu_node_group.arn
   subnet_ids      = module.kubernetes.private_subnets
   version         = var.cluster_version
+
+  launch_template {
+    id      = aws_launch_template.gpu_node_group.id
+    version = aws_launch_template.gpu_node_group.latest_version
+  }
 
   # GPU instance types - g5 family for NVIDIA A10G GPUs
   instance_types = var.gpu_instance_types
