@@ -16,6 +16,7 @@ resource "helm_release" "langflow" {
   name       = "langflow"
   repository = "https://langflow-ai.github.io/langflow-helm-charts"
   chart      = "langflow-ide"
+  namespace  = "default"
 
   values = [
     yamlencode({
@@ -79,4 +80,9 @@ resource "helm_release" "langflow" {
   depends_on = [
     data.terraform_remote_state.base
   ]
+}
+
+import {
+  id = "default/langflow"
+  to = helm_release.langflow
 }

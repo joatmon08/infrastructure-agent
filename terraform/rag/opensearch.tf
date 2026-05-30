@@ -22,6 +22,7 @@ resource "helm_release" "opensearch" {
   name       = "opensearch"
   repository = "https://opensearch-project.github.io/helm-charts/"
   chart      = "opensearch"
+  namespace  = "default"
 
   values = [
     yamlencode({
