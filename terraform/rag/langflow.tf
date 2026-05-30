@@ -39,7 +39,7 @@ resource "helm_release" "langflow" {
           }
           autoLogin         = false
           superuser         = "administrator"
-          superuserPassword = random_password.langflow_superuser.result
+          superuserPassword = sensitive(random_password.langflow_superuser.result)
           secretKey         = sensitive(var.langflow_secret_key)
           newUserIsActive   = true
           resources = {
@@ -52,7 +52,15 @@ resource "helm_release" "langflow" {
             {
               name  = "LANGFLOW_WORKER_TIMEOUT"
               value = "3000"
-            }
+            },
+            {
+              name  = "LANGFLOW_LOG_LEVEL"
+              value = "debug"
+            },
+            {
+              name  = "LANGFLOW_STORE_ENVIRONMENT_VARIABLES"
+              value = "false"
+            },
           ]
         }
 
