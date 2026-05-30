@@ -8,8 +8,8 @@ data "aws_ecr_image" "langflow_latest" {
 }
 
 resource "random_password" "langflow_superuser" {
-  length  = 32
-  special = true
+  length  = 16
+  special = false
 }
 
 resource "helm_release" "langflow" {
