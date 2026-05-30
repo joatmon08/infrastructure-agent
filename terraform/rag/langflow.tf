@@ -52,6 +52,10 @@ resource "helm_release" "langflow" {
             {
               name  = "LANGFLOW_WORKER_TIMEOUT"
               value = "3000"
+            },
+            {
+              name  = "LANGFLOW_SECRET_KEY"
+              value = var.langflow_secret_key
             }
           ]
         }
