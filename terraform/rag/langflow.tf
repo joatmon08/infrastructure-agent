@@ -12,20 +12,6 @@ resource "random_password" "langflow_superuser" {
   special = false
 }
 
-resource "kubernetes_secret_v1" "langflow_credentials" {
-  metadata {
-    name      = "langflow-credentials"
-    namespace = "default"
-  }
-
-  data = {
-    superuser-password = random_password.langflow_superuser.result
-    secret-key         = var.langflow_secret_key
-  }
-
-  type = "Opaque"
-}
-
 resource "helm_release" "langflow" {
   name       = "langflow"
   repository = "https://langflow-ai.github.io/langflow-helm-charts"
@@ -51,9 +37,11 @@ resource "helm_release" "langflow" {
               }
             }
           }
-          autoLogin       = false
-          superuser       = "administrator"
-          newUserIsActive = true
+          autoLogin         = true
+          superuser         = "administrator"
+          superuserPassword = random_password.langflow_superuser.result
+          secretKey         = sensitive(var.langflow_secret_key)
+          newUserIsActive   = true
           resources = {
             requests = {
               cpu    = "2"
@@ -64,24 +52,6 @@ resource "helm_release" "langflow" {
             {
               name  = "LANGFLOW_WORKER_TIMEOUT"
               value = "3000"
-            },
-            {
-              name = "LANGFLOW_SUPERUSER_PASSWORD"
-              valueFrom = {
-                secretKeyRef = {
-                  name = kubernetes_secret_v1.langflow_credentials.metadata[0].name
-                  key  = "superuser-password"
-                }
-              }
-            },
-            {
-              name = "LANGFLOW_SECRET_KEY"
-              valueFrom = {
-                secretKeyRef = {
-                  name = kubernetes_secret_v1.langflow_credentials.metadata[0].name
-                  key  = "secret-key"
-                }
-              }
             }
           ]
         }
@@ -99,7 +69,6 @@ resource "helm_release" "langflow" {
   ]
 
   depends_on = [
-    data.terraform_remote_state.base,
-    kubernetes_secret_v1.langflow_credentials
+    data.terraform_remote_state.base
   ]
 }
