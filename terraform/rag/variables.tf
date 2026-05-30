@@ -44,3 +44,9 @@ variable "langflow_auto_login" {
   type        = bool
   default     = false
 }
+
+variable "tfe_token" {
+  description = "HCP Terraform API token for terraform-mcp-server"
+  type        = string
+  sensitive   = true
+}
