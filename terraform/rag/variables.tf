@@ -38,3 +38,9 @@ variable "langflow_secret_key" {
   type        = string
   sensitive   = true
 }
+
+variable "langflow_auto_login" {
+  description = "Enable auto-login for Langflow. Override when needed"
+  type        = bool
+  default     = false
+}
