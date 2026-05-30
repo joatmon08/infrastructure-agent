@@ -32,3 +32,9 @@ variable "inbound_cidrs_for_lbs" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+variable "langflow_secret_key" {
+  description = "Langflow secret key"
+  type        = string
+  sensitive   = true
+}

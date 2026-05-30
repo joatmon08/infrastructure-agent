@@ -38,8 +38,9 @@ resource "helm_release" "langflow" {
             }
           }
           autoLogin         = false
-          superuser         = "admin"
+          superuser         = "administrator"
           superuserPassword = random_password.langflow_superuser.result
+          secretKey         = var.langflow_secret_key
           newUserIsActive   = true
           resources = {
             requests = {
