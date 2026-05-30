@@ -1,1 +1,2 @@
-tfc_organization = "rosemary-production"
+tfc_organization    = "rosemary-production"
+langflow_auto_login = true
