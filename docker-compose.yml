@@ -11,9 +11,7 @@ services:
       - 'TFE_TOKEN=${TFE_TOKEN}'
 
   ollama:
-    build:
-      context: Dockerfiles
-      dockerfile: Dockerfile.ollama
+    image: ghcr.io/joatmon08/infra-agent-ollama:latest
     container_name: ollama
     ports:
       - "11434:11434"
@@ -24,9 +22,7 @@ services:
       - 'OLLAMA_CONTEXT_LENGTH=131072'
 
   langflow:
-    build:
-      context: Dockerfiles
-      dockerfile: Dockerfile.langflow
+    image: langflowai/langflow:1.9.2-amd64
     container_name: langflow
     ports:
       - "7860:7860"
@@ -41,9 +37,7 @@ services:
     restart: unless-stopped
 
   opensearch:
-    build:
-      context: Dockerfiles
-      dockerfile: Dockerfile.opensearch
+    image: ghcr.io/joatmon08/infra-agent-opensearch:latest
     container_name: opensearch
     environment:
       - cluster.name=opensearch-cluster
