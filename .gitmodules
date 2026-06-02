@@ -1,0 +1,3 @@
+[submodule "charts/mcp-context-forge"]
+	path = charts/mcp-context-forge
+	url = https://github.com/IBM/mcp-context-forge.git
