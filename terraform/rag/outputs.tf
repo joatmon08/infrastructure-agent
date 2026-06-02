@@ -50,8 +50,8 @@ output "mcp_context_forge_admin_email" {
   value       = var.mcp_admin_email
 }
 
-output "mcp_context_forge_admin_password" {
-  description = "MCP Context Forge admin password (sensitive)"
-  value       = random_password.mcp_admin_password.result
-  sensitive   = true
-}
+# output "mcp_context_forge_admin_password" {
+#   description = "MCP Context Forge admin password (sensitive)"
+#   value       = random_password.mcp_admin_password.result
+#   sensitive   = true
+# }
