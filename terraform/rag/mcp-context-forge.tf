@@ -52,6 +52,12 @@ resource "helm_release" "mcp_context_forge" {
             enabled = false
           }
         }
+        metrics = {
+          enabled = false
+          serviceMonitor = {
+            enabled = false
+          }
+        }
       }
       monitoring = {
         enabled = false
