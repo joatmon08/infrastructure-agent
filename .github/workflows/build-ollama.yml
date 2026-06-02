@@ -35,7 +35,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/infra-agent-ollama
           tags: |
             type=ref,event=tag
-            type=sha,prefix={{branch}}-
+            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
           
       - name: Build and push Ollama image

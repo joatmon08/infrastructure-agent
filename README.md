@@ -3,7 +3,7 @@
 This example repository includes demo code for:
 
 - Agents using [Agent2Agent protocol](https://a2a-protocol.org/latest/) and [HashiCorp Vault](https://developer.hashicorp.com/vault/docs/secrets/identity/oidc-provider) as an OIDC provider on Kubernetes
-- [LangFlow](https://www.langflow.org/), OpenSearch, Ollama (with Granite 4) deployed on AWS EKS
+- [LangFlow](https://www.langflow.org/), OpenSearch, Ollama (with Granite 4), and [MCP Context Forge](https://github.com/IBM/mcp-context-forge) deployed on AWS EKS
 
 ## Prerequisites
 
@@ -369,4 +369,27 @@ bash langflow.sh
 bash opensearch.sh
 ```
 
-This creates a set of pods for LangFlow, Ollama, OpenSearch, and the Terraform MCP Server.
+This creates a set of pods for LangFlow, Ollama, OpenSearch, MCP Context Forge, and the Terraform MCP Server.
+
+### MCP Context Forge
+
+The `rag` workspace now includes [MCP Context Forge](https://github.com/IBM/mcp-context-forge), an IBM open-source Model Context Protocol (MCP) Gateway and Registry. It is deployed using the official Helm chart from the repository (added as a git submodule).
+
+**Features:**
+- MCP Gateway for managing MCP servers and tools
+- PostgreSQL database for persistent storage
+- Redis cache for session management
+- ALB ingress for external access
+
+**Configuration:**
+- Admin email: Set via `mcp_admin_email` variable (default: `admin@example.com`)
+- Admin password: Auto-generated (retrieve from Terraform outputs)
+- JWT secret: Auto-generated for secure authentication
+
+**Access:**
+After deployment, the MCP Context Forge URL will be available through the ALB ingress. Check the Terraform outputs for the admin credentials:
+
+```sh
+terraform output mcp_context_forge_admin_email
+terraform output -raw mcp_context_forge_admin_password
+```

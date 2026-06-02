@@ -50,3 +50,9 @@ variable "tfe_token" {
   type        = string
   sensitive   = true
 }
+
+variable "mcp_admin_email" {
+  description = "Admin email for MCP Context Forge platform administrator"
+  type        = string
+  default     = "admin@example.com"
+}
