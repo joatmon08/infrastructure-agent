@@ -53,6 +53,9 @@ resource "helm_release" "mcp_context_forge" {
           }
         }
       }
+      monitoring = {
+        enabled = false
+      }
     })
   ]
 
