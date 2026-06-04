@@ -11,9 +11,7 @@ global:
       cpu: 250m
 
 injector:
-  agentImage:
-    repository: "hashicorp/vault"
-    tag: "${VAULT_VERSION}"
+  enabled: false
 
 server:
   image:

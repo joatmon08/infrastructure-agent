@@ -45,6 +45,12 @@ variable "vault_helm_chart_version" {
   default     = "0.32.0"
 }
 
+variable "vault_secrets_operator_version" {
+  description = "Version of the Vault Secrets Operator Helm chart to use"
+  type        = string
+  default     = "1.4.0"
+}
+
 variable "kubernetes_namespace_vault" {
   type        = string
   description = "Kubernetes namespace for Vault"
