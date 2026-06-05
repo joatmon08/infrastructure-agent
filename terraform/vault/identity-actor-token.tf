@@ -13,6 +13,17 @@ path "${var.oauth_token_exchange_secrets_path}/token/${each.key}" {
 EOT
 }
 
+resource "vault_policy" "vault_token_create" {
+  name = "vault-token-create"
+
+  policy = <<EOT
+# Allow creating tokens for VSO to use
+path "auth/token/create" {
+  capabilities = ["create", "update"]
+}
+EOT
+}
+
 resource "vault_identity_entity" "client_agents" {
   for_each = var.client_agents
   name     = each.key
