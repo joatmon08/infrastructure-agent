@@ -69,44 +69,38 @@ resource "kubernetes_deployment_v1" "test_client" {
         labels = {
           app = local.test_client_name
         }
-        annotations = {
-          "vault.hashicorp.com/agent-inject"                              = "true"
-          "vault.hashicorp.com/role"                                      = "test-client"
-          "vault.hashicorp.com/agent-inject-token"                        = "true"
-          "vault.hashicorp.com/agent-run-as-same-user"                    = "true"
-          "vault.hashicorp.com/tls-skip-verify"                           = "true"
-          "vault.hashicorp.com/agent-inject-secret-client_secrets.json"   = "identity/oidc/client/agent"
-          "vault.hashicorp.com/agent-inject-template-client_secrets.json" = <<-EOT
-            {
-            {{- with secret "identity/oidc/client/agent" }}
-                "client_id": "{{ .Data.client_id }}",
-                "client_secret": "{{ .Data.client_secret }}",
-                "redirect_uris": {{ .Data.redirect_uris | toJSON }}
-            {{- end }}
-            }
-          EOT
-          "vault.hashicorp.com/agent-inject-secret-oidc_provider.json"    = "identity/oidc/provider/agent/.well-known/openid-configuration"
-          "vault.hashicorp.com/agent-inject-template-oidc_provider.json"  = <<-EOT
-            {
-            {{- with secret "identity/oidc/provider/agent/.well-known/openid-configuration" }}
-                "authorization_endpoint": "{{ .Data.authorization_endpoint }}",
-                "issuer": "{{ .Data.issuer }}",
-                "token_endpoint": "{{ .Data.token_endpoint }}",
-                "userinfo_endpoint": "{{ .Data.userinfo_endpoint }}"
-            {{- end }}
-            }
-          EOT
-          "vault.hashicorp.com/agent-inject-secret-actor_token"           = "identity/oidc/token/test-client"
-          "vault.hashicorp.com/agent-inject-template-actor_token"         = <<-EOT
-            {{- with secret "identity/oidc/token/test-client" -}}
-            {{ .Data.token }}
-            {{- end }}
-          EOT
-        }
       }
 
       spec {
         service_account_name = local.test_client_name
+
+        volume {
+          name = "client-secrets"
+          secret {
+            secret_name = "test-client-secrets"
+          }
+        }
+
+        volume {
+          name = "oidc-provider"
+          secret {
+            secret_name = "test-client-oidc-provider"
+          }
+        }
+
+        volume {
+          name = "actor-token"
+          secret {
+            secret_name = "test-client-actor-token"
+          }
+        }
+
+        volume {
+          name = "vault-token"
+          secret {
+            secret_name = "test-client-vault-token"
+          }
+        }
 
         container {
           name  = local.test_client_name
@@ -116,6 +110,30 @@ resource "kubernetes_deployment_v1" "test_client" {
             container_port = local.test_client_port
             name           = "http"
             protocol       = "TCP"
+          }
+
+          volume_mount {
+            name       = "client-secrets"
+            mount_path = "/vault/secrets/client"
+            read_only  = true
+          }
+
+          volume_mount {
+            name       = "oidc-provider"
+            mount_path = "/vault/secrets/oidc"
+            read_only  = true
+          }
+
+          volume_mount {
+            name       = "actor-token"
+            mount_path = "/vault/secrets/actor"
+            read_only  = true
+          }
+
+          volume_mount {
+            name       = "vault-token"
+            mount_path = "/vault/secrets/vault"
+            read_only  = true
           }
 
           env {
@@ -140,17 +158,17 @@ resource "kubernetes_deployment_v1" "test_client" {
 
           env {
             name  = "OIDC_PROVIDER_CONFIG_PATH"
-            value = "/vault/secrets/oidc_provider.json"
+            value = "/vault/secrets/oidc/oidc_provider.json"
           }
 
           env {
             name  = "CLIENT_SECRETS_PATH"
-            value = "/vault/secrets/client_secrets.json"
+            value = "/vault/secrets/client/client_secrets.json"
           }
 
           env {
             name  = "ACTOR_TOKEN_PATH"
-            value = "/vault/secrets/actor_token"
+            value = "/vault/secrets/actor/actor_token"
           }
 
           env {
@@ -160,7 +178,7 @@ resource "kubernetes_deployment_v1" "test_client" {
 
           env {
             name  = "VAULT_TOKEN_PATH"
-            value = "/vault/secrets/token"
+            value = "/vault/secrets/vault/token"
           }
 
           resources {
