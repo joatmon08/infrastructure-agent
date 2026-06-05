@@ -189,7 +189,7 @@ resource "kubernetes_manifest" "vault_token" {
       # Only grant the oauth-exchange-token policy (least privilege)
       # This prevents token proliferation and limits scope to STS token exchange
       params = {
-        policies = ["agent-oauth-exchange-token"]
+        policies = "agent-oauth-exchange-token"
       }
 
       destination = {
