@@ -17,11 +17,22 @@ resource "vault_policy" "vault_token_create" {
   name = "vault-token-create"
 
   policy = <<EOT
-# Allow creating tokens for VSO to use
-path "auth/token/create" {
+# Allow creating tokens via token role for test-client
+path "auth/token/create/test-client-sts" {
   capabilities = ["create", "update"]
 }
 EOT
+}
+
+# Token role for test-client with oauth-exchange-token policy
+# This allows VSO to create tokens with the correct policy for STS token exchange
+resource "vault_token_auth_backend_role" "test_client_sts" {
+  role_name              = "test-client-sts"
+  allowed_policies       = ["test-client-oauth-exchange-token"]
+  orphan                 = true
+  token_period           = 86400 # 24 hours in seconds
+  renewable              = true
+  token_explicit_max_ttl = 0
 }
 
 resource "vault_identity_entity" "client_agents" {

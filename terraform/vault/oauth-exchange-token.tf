@@ -61,7 +61,7 @@ EOT
 
 resource "vault_policy" "oauth_exchange_token" {
   for_each = var.client_agents
-  name     = "agent-oauth-exchange-token"
+  name     = "${each.key}-oauth-exchange-token"
 
   policy = <<EOT
 path "${var.oauth_token_exchange_secrets_path}/token/${each.key}" {

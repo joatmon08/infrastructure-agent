@@ -65,6 +65,17 @@ resource "vault_identity_entity_alias" "client_agents" {
   canonical_id   = vault_identity_entity.client_agents[each.key].id
 }
 
+# Vault Secrets Operator auth role
+# VSO needs access to create tokens via the token role for test-client
+resource "vault_kubernetes_auth_backend_role" "vault_secrets_operator" {
+  backend                          = vault_auth_backend.kubernetes.path
+  role_name                        = "vault-secrets-operator"
+  bound_service_account_names      = ["vault-secrets-operator"]
+  bound_service_account_namespaces = ["vault"]
+  token_ttl                        = 3600
+  token_policies                   = [vault_policy.vault_token_create.name]
+}
+
 resource "vault_kubernetes_auth_backend_role" "client_agents" {
   for_each                         = var.client_agents
   backend                          = vault_auth_backend.kubernetes.path
