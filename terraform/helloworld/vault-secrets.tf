@@ -184,13 +184,7 @@ resource "kubernetes_manifest" "vault_token" {
     }
     spec = {
       mount = "auth/token"
-      path  = "create"
-
-      # Only grant the oauth-exchange-token policy (least privilege)
-      # This prevents token proliferation and limits scope to STS token exchange
-      params = {
-        policies = "agent-oauth-exchange-token"
-      }
+      path  = "create/test-client-sts"
 
       destination = {
         name   = "test-client-vault-token"
