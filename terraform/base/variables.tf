@@ -128,3 +128,9 @@ variable "gpu_enable_taints" {
   type        = bool
   default     = true
 }
+
+variable "inbound_cidrs_for_lbs" {
+  description = "CIDR blocks allowed to access load balancers"
+  type        = list(string)
+  default     = []
+}
