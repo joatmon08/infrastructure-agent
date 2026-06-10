@@ -150,7 +150,7 @@ resource "helm_release" "nvidia_device_plugin" {
   depends_on = [aws_eks_node_group.gpu]
 }
 
-import {
-  id = "nvidia/nvdp"
-  to = helm_release.nvidia_device_plugin
-}
+# import {
+#   id = "nvidia/nvdp"
+#   to = helm_release.nvidia_device_plugin
+# }

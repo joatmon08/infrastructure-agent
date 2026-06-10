@@ -10,7 +10,7 @@ module "kubernetes" {
   node_group_instance_types = ["t3.xlarge"]
 }
 
-import {
-  id = "kube-system/aws-load-balancer-controller"
-  to = module.kubernetes.helm_release.aws_load_balancer_controller
-}
+# import {
+#   id = "kube-system/aws-load-balancer-controller"
+#   to = module.kubernetes.helm_release.aws_load_balancer_controller
+# }
