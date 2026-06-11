@@ -2,19 +2,14 @@
 # This module creates both VPC and EKS cluster resources
 module "kubernetes" {
   source  = "app.terraform.io/rosemary-production/kubernetes/aws"
-  version = "3.0.0"
+  version = "3.0.1"
 
-  region                          = var.aws_region
-  cluster_name                    = var.project_name
-  node_group_desired_size         = 3
-  node_group_instance_types       = ["t3.xlarge"]
-  enable_guardduty_eks_protection = false
-}
-
-# Import existing CloudWatch log group created by EKS
-import {
-  id = "/aws/eks/infra-agent/cluster"
-  to = module.kubernetes.aws_cloudwatch_log_group.eks_cluster
+  region                               = var.aws_region
+  cluster_name                         = var.project_name
+  node_group_desired_size              = 3
+  node_group_instance_types            = ["t3.xlarge"]
+  enable_guardduty_eks_protection      = false
+  cluster_endpoint_public_access_cidrs = var.inbound_cidrs_for_lbs
 }
 
 # Note: GuardDuty EKS protection is disabled (enable_guardduty_eks_protection = false)
