@@ -184,18 +184,18 @@ resource "kubernetes_manifest" "vault_token" {
     }
     spec = {
       mount             = "auth/token"
-      path              = "create/test-client-sts"
+      path              = "create"
       requestHTTPMethod = "POST"
 
       params = {
+        role_name         = "test-client-sts"
         policies          = "test-client-oauth-exchange-token"
         no_default_policy = "true"
       }
 
       destination = {
-        name      = "test-client-vault-token"
-        create    = true
-        overwrite = true
+        name   = "test-client-vault-token"
+        create = true
       }
 
       rolloutRestartTargets = [
