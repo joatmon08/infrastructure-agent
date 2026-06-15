@@ -200,7 +200,9 @@ resource "kubernetes_manifest" "vault_token" {
           templates = {
             "token" = {
               text = <<-EOT
-                {{- get .Secrets "token" -}}
+                {{- with .Secrets.token -}}
+                {{ . }}
+                {{- end }}
               EOT
             }
           }
