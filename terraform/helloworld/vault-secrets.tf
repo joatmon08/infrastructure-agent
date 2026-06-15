@@ -187,8 +187,6 @@ resource "kubernetes_manifest" "vault_token" {
       requestHTTPMethod = "POST"
 
       params = {
-        ttl               = "1h"
-        no_parent         = "true"
         policies          = "test-client-oauth-exchange-token"
         no_default_policy = "true"
       }
@@ -201,7 +199,7 @@ resource "kubernetes_manifest" "vault_token" {
           templates = {
             "token" = {
               text = <<-EOT
-                {{- with .Secrets.token -}}
+                {{- with .Secrets.token "policies=test-client-oauth-exchange-token" "no_default_policy=true"-}}
                 {{ . }}
                 {{- end }}
               EOT

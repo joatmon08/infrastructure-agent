@@ -47,189 +47,189 @@ resource "kubernetes_service_v1" "test_client" {
 
 
 # Deployment for test-client
-resource "kubernetes_deployment_v1" "test_client" {
-  metadata {
-    name = local.test_client_name
-    labels = {
-      app = local.test_client_name
-    }
-  }
+# resource "kubernetes_deployment_v1" "test_client" {
+#   metadata {
+#     name = local.test_client_name
+#     labels = {
+#       app = local.test_client_name
+#     }
+#   }
 
-  spec {
-    replicas = 1
+#   spec {
+#     replicas = 1
 
-    selector {
-      match_labels = {
-        app = local.test_client_name
-      }
-    }
+#     selector {
+#       match_labels = {
+#         app = local.test_client_name
+#       }
+#     }
 
-    template {
-      metadata {
-        labels = {
-          app = local.test_client_name
-        }
-      }
+#     template {
+#       metadata {
+#         labels = {
+#           app = local.test_client_name
+#         }
+#       }
 
-      spec {
-        service_account_name = local.test_client_name
+#       spec {
+#         service_account_name = local.test_client_name
 
-        volume {
-          name = "client-secrets"
-          secret {
-            secret_name = "test-client-secrets"
-          }
-        }
+#         volume {
+#           name = "client-secrets"
+#           secret {
+#             secret_name = "test-client-secrets"
+#           }
+#         }
 
-        volume {
-          name = "oidc-provider"
-          secret {
-            secret_name = "test-client-oidc-provider"
-          }
-        }
+#         volume {
+#           name = "oidc-provider"
+#           secret {
+#             secret_name = "test-client-oidc-provider"
+#           }
+#         }
 
-        volume {
-          name = "actor-token"
-          secret {
-            secret_name = "test-client-actor-token"
-          }
-        }
+#         volume {
+#           name = "actor-token"
+#           secret {
+#             secret_name = "test-client-actor-token"
+#           }
+#         }
 
-        volume {
-          name = "vault-token"
-          secret {
-            secret_name = "test-client-vault-token"
-          }
-        }
+#         volume {
+#           name = "vault-token"
+#           secret {
+#             secret_name = "test-client-vault-token"
+#           }
+#         }
 
-        container {
-          name  = local.test_client_name
-          image = local.test_client_image
+#         container {
+#           name  = local.test_client_name
+#           image = local.test_client_image
 
-          port {
-            container_port = local.test_client_port
-            name           = "http"
-            protocol       = "TCP"
-          }
+#           port {
+#             container_port = local.test_client_port
+#             name           = "http"
+#             protocol       = "TCP"
+#           }
 
-          volume_mount {
-            name       = "client-secrets"
-            mount_path = "/vault/secrets/client"
-            read_only  = true
-          }
+#           volume_mount {
+#             name       = "client-secrets"
+#             mount_path = "/vault/secrets/client"
+#             read_only  = true
+#           }
 
-          volume_mount {
-            name       = "oidc-provider"
-            mount_path = "/vault/secrets/oidc"
-            read_only  = true
-          }
+#           volume_mount {
+#             name       = "oidc-provider"
+#             mount_path = "/vault/secrets/oidc"
+#             read_only  = true
+#           }
 
-          volume_mount {
-            name       = "actor-token"
-            mount_path = "/vault/secrets/actor"
-            read_only  = true
-          }
+#           volume_mount {
+#             name       = "actor-token"
+#             mount_path = "/vault/secrets/actor"
+#             read_only  = true
+#           }
 
-          volume_mount {
-            name       = "vault-token"
-            mount_path = "/vault/secrets/vault"
-            read_only  = true
-          }
+#           volume_mount {
+#             name       = "vault-token"
+#             mount_path = "/vault/secrets/vault"
+#             read_only  = true
+#           }
 
-          env {
-            name = "AGENT_URL"
-            value_from {
-              config_map_key_ref {
-                name = kubernetes_config_map_v1.helloworld_agent_server.metadata[0].name
-                key  = "AGENT_URL"
-              }
-            }
-          }
+#           env {
+#             name = "AGENT_URL"
+#             value_from {
+#               config_map_key_ref {
+#                 name = kubernetes_config_map_v1.helloworld_agent_server.metadata[0].name
+#                 key  = "AGENT_URL"
+#               }
+#             }
+#           }
 
-          env {
-            name = "BASE_URL"
-            value_from {
-              config_map_key_ref {
-                name = kubernetes_config_map_v1.test_client.metadata[0].name
-                key  = "BASE_URL"
-              }
-            }
-          }
+#           env {
+#             name = "BASE_URL"
+#             value_from {
+#               config_map_key_ref {
+#                 name = kubernetes_config_map_v1.test_client.metadata[0].name
+#                 key  = "BASE_URL"
+#               }
+#             }
+#           }
 
-          env {
-            name  = "OIDC_PROVIDER_CONFIG_PATH"
-            value = "/vault/secrets/oidc/oidc_provider.json"
-          }
+#           env {
+#             name  = "OIDC_PROVIDER_CONFIG_PATH"
+#             value = "/vault/secrets/oidc/oidc_provider.json"
+#           }
 
-          env {
-            name  = "CLIENT_SECRETS_PATH"
-            value = "/vault/secrets/client/client_secrets.json"
-          }
+#           env {
+#             name  = "CLIENT_SECRETS_PATH"
+#             value = "/vault/secrets/client/client_secrets.json"
+#           }
 
-          env {
-            name  = "ACTOR_TOKEN_PATH"
-            value = "/vault/secrets/actor/actor_token"
-          }
+#           env {
+#             name  = "ACTOR_TOKEN_PATH"
+#             value = "/vault/secrets/actor/actor_token"
+#           }
 
-          env {
-            name  = "VAULT_ADDR"
-            value = data.terraform_remote_state.vault.outputs.vault_private_endpoint
-          }
+#           env {
+#             name  = "VAULT_ADDR"
+#             value = data.terraform_remote_state.vault.outputs.vault_private_endpoint
+#           }
 
-          env {
-            name  = "VAULT_TOKEN_PATH"
-            value = "/vault/secrets/vault/token"
-          }
+#           env {
+#             name  = "VAULT_TOKEN_PATH"
+#             value = "/vault/secrets/vault/token"
+#           }
 
-          resources {
-            requests = {
-              memory = "128Mi"
-              cpu    = "100m"
-            }
-            limits = {
-              memory = "512Mi"
-              cpu    = "500m"
-            }
-          }
+#           resources {
+#             requests = {
+#               memory = "128Mi"
+#               cpu    = "100m"
+#             }
+#             limits = {
+#               memory = "512Mi"
+#               cpu    = "500m"
+#             }
+#           }
 
-          liveness_probe {
-            http_get {
-              path = "/"
-              port = local.test_client_port
-            }
-            initial_delay_seconds = 30
-            period_seconds        = 10
-          }
+#           liveness_probe {
+#             http_get {
+#               path = "/"
+#               port = local.test_client_port
+#             }
+#             initial_delay_seconds = 30
+#             period_seconds        = 10
+#           }
 
-          readiness_probe {
-            http_get {
-              path = "/"
-              port = local.test_client_port
-            }
-            initial_delay_seconds = 5
-            period_seconds        = 5
-          }
+#           readiness_probe {
+#             http_get {
+#               path = "/"
+#               port = local.test_client_port
+#             }
+#             initial_delay_seconds = 5
+#             period_seconds        = 5
+#           }
 
-          security_context {
-            run_as_non_root            = true
-            run_as_user                = 1001
-            run_as_group               = 1001
-            allow_privilege_escalation = false
-            read_only_root_filesystem  = false
+#           security_context {
+#             run_as_non_root            = true
+#             run_as_user                = 1001
+#             run_as_group               = 1001
+#             allow_privilege_escalation = false
+#             read_only_root_filesystem  = false
 
-            capabilities {
-              drop = ["ALL"]
-            }
-          }
-        }
-      }
-    }
-  }
+#             capabilities {
+#               drop = ["ALL"]
+#             }
+#           }
+#         }
+#       }
+#     }
+#   }
 
-  lifecycle {
-    replace_triggered_by = [
-      kubernetes_config_map_v1.helloworld_agent_server,
-      kubernetes_config_map_v1.test_client
-    ]
-  }
-}
+#   lifecycle {
+#     replace_triggered_by = [
+#       kubernetes_config_map_v1.helloworld_agent_server,
+#       kubernetes_config_map_v1.test_client
+#     ]
+#   }
+# }
