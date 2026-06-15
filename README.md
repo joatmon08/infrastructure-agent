@@ -346,52 +346,49 @@ Note that if you want to have nested delegation (e.g., `second-client` calls on 
 you can use the delegated access token from `test-client` as the subject token for `second-client`'s request.
 This generates a new delegated access token for `second-client` on behalf of `test-client`.
 
-## LangFlow
+## RAG + SLM
 
-Update `langflow-build.sh` to the correct ECR repository.
+This demo also includes an example of using RAG with a small language model (SLM).
 
-Build the images and push them to ECR.
+- Ollama + Granite
+- OpenSearch
+- LangFlow
 
-```sh
-bash build.sh
-```
+### Build the agent images
 
-Go to `/kubernetes` and deploy the following:
+Build the images for langflow and Ollama. Deploy images to AWS ECR.
 
-```sh
-kubectl apply -f ollama.yaml
-kubectl apply -f langflow-ingress.yaml
-kubectl apply -f terraform-mcp-server.yaml
-```
+- Run `build-langflow.sh` to automatically build and push to the account ECR repositories.
 
-Go to `/helm` and deploy the following:
+    ```bash
+    bash build-langflow.sh
+    ```
 
-```sh
-bash langflow.sh
-bash opensearch.sh
-```
+### Deploy the components to Kubernetes
 
-This creates a set of pods for LangFlow, Ollama, OpenSearch, MCP Context Forge, and the Terraform MCP Server.
+- Create a workspace called `rag`.
 
-### MCP Context Forge
+- Set the project to `infrastructure-agent`.
 
-The `rag` workspace now includes [MCP Context Forge](https://github.com/IBM/mcp-context-forge), an IBM open-source Model Context Protocol (MCP) Gateway and Registry. It is deployed using the official Helm chart from the repository (added as a git submodule).
+- Go to "Version Control".
 
-**Features:**
-- MCP Gateway for managing MCP servers and tools
-- PostgreSQL database for persistent storage
-- Redis cache for session management
-- ALB ingress for external access
+- Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
 
-**Configuration:**
-- Admin email: Set via `mcp_admin_email` variable (default: `admin@example.com`)
-- Admin password: Auto-generated (retrieve from Terraform outputs)
-- JWT secret: Auto-generated for secure authentication
+- Update "Terraform Working Directory" to `terraform/rag`.
 
-**Access:**
-After deployment, the MCP Context Forge URL will be available through the ALB ingress. Check the Terraform outputs for the admin credentials:
+- Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
 
-```sh
-terraform output mcp_context_forge_admin_email
-terraform output -raw mcp_context_forge_admin_password
-```
+- Update the "Syntax" to "Patterns".
+
+- Add the pattern `terraform/rag/**/*`.
+
+- Go to "Variables".
+
+- Add the following workspace variable:
+    - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
+
+Note: Most variables have defaults in `terraform.auto.tfvars` and can be overridden if needed.
+
+Run a plan and apply.
+
+This will deploy Ollama, Langflow, and OpenSearch, with Ollama on a GPU-backed instance.
