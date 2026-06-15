@@ -29,7 +29,7 @@ EOT
 # This allows VSO to create tokens with the correct policy for STS token exchange
 resource "vault_token_auth_backend_role" "sts" {
   for_each               = var.client_agents
-  role_name              = "${each.key}-test-client-sts"
+  role_name              = "${each.key}-sts"
   allowed_policies       = ["${each.key}-oauth-exchange-token"]
   orphan                 = true
   token_period           = 86400 # 24 hours in seconds
