@@ -196,15 +196,6 @@ resource "kubernetes_manifest" "vault_token" {
         name      = "test-client-vault-token"
         create    = true
         overwrite = true
-        transformation = {
-          templates = {
-            "token" = {
-              text = <<-EOT
-                {{- get .Secrets.auth "client_token" -}}
-              EOT
-            }
-          }
-        }
       }
 
       rolloutRestartTargets = [
