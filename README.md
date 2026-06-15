@@ -94,6 +94,8 @@ The base workspace also provisions a GPU EKS managed node group. The GPU node gr
 
 Run a plan and apply.
 
+If you need to adopt pre-existing AWS resources into the `base` workspace state, add temporary `import` blocks in [`terraform/base/imports.tf`](terraform/base/imports.tf) and run a plan/apply once to complete the import. Remove those `import` blocks immediately after the import succeeds. Leaving them in place can cause later runs to attempt resource creation before the imported state is available, which is especially problematic for pre-existing CloudWatch log groups such as `/aws/vpc/infra-agent` and `/aws/eks/infra-agent/cluster`.
+
 ### Deploy components onto Kubernetes
 
 To deploy the Vault cluster, ingress endpoints, and
