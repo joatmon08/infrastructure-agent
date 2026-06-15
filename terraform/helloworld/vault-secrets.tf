@@ -183,12 +183,19 @@ resource "kubernetes_manifest" "vault_token" {
       namespace = "default"
     }
     spec = {
-      mount = "auth/token"
-      path  = "create/test-client-sts"
+      path              = "auth/token/create/test-client-sts"
+      requestHTTPMethod = "POST"
+
+      params = {
+        ttl       = "1h"
+        no_parent = "true"
+        policies  = ["test-client-oauth-exchange-token"]
+      }
 
       destination = {
-        name   = "test-client-vault-token"
-        create = true
+        name      = "test-client-vault-token"
+        create    = true
+        overwrite = true
         transformation = {
           templates = {
             "token" = {
