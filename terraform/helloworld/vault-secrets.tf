@@ -183,7 +183,8 @@ resource "kubernetes_manifest" "vault_token" {
       namespace = "default"
     }
     spec = {
-      path              = "auth/token/create/test-client-sts"
+      mount             = "auth/token"
+      path              = "create/test-client-sts"
       requestHTTPMethod = "POST"
 
       params = {
