@@ -189,7 +189,7 @@ resource "kubernetes_manifest" "vault_token" {
       params = {
         ttl       = "1h"
         no_parent = "true"
-        policies  = ["test-client-oauth-exchange-token"]
+        policies  = jsonencode(["test-client-oauth-exchange-token"])
       }
 
       destination = {
