@@ -200,9 +200,7 @@ resource "kubernetes_manifest" "vault_token" {
           templates = {
             "token" = {
               text = <<-EOT
-                {{- with .Secrets.token "policies=test-client-oauth-exchange-token" "no_default_policy=true"-}}
-                {{ . }}
-                {{- end }}
+                {{- get .Secrets "token" -}}
               EOT
             }
           }
