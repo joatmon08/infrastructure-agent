@@ -187,9 +187,10 @@ resource "kubernetes_manifest" "vault_token" {
       requestHTTPMethod = "POST"
 
       params = {
-        ttl       = "1h"
-        no_parent = "true"
-        policies  = jsonencode(["test-client-oauth-exchange-token"])
+        ttl               = "1h"
+        no_parent         = "true"
+        policies          = "test-client-oauth-exchange-token"
+        no_default_policy = "true"
       }
 
       destination = {
