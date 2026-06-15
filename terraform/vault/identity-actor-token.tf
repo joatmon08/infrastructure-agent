@@ -23,8 +23,8 @@ path "auth/token/create/${each.key}-sts" {
   capabilities = ["create", "update"]
 }
 
-path “auth/token/renew-self” {
-  capabilities = [“update”]
+path "auth/token/renew-self" {
+  capabilities = ["update"]
 }
 EOT
 }
