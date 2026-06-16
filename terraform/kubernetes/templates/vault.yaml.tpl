@@ -11,7 +11,14 @@ global:
       cpu: 250m
 
 injector:
-  enabled: false
+  enabled: true
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 250m
 
 server:
   image:
