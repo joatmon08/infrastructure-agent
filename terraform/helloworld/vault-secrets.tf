@@ -172,3 +172,41 @@ resource "kubernetes_manifest" "vault_secret_actor_token" {
   ]
 }
 
+resource "kubernetes_manifest" "vault_secret_token" {
+  manifest = {
+    apiVersion = "secrets.hashicorp.com/v1beta1"
+    kind       = "VaultDynamicSecret"
+    metadata = {
+      name      = "test-client-vault-token"
+      namespace = "default"
+    }
+    spec = {
+      mount = "auth"
+      path  = "token/create"
+
+      requestHTTPMethod = "POST"
+
+      params = {
+        policies = "test-client-oauth-exchange-token"
+      }
+
+      destination = {
+        name   = "test-client-vault-token"
+        create = true
+      }
+
+      rolloutRestartTargets = [
+        {
+          kind = "Deployment"
+          name = local.test_client_name
+        }
+      ]
+
+      vaultAuthRef = kubernetes_manifest.vault_auth_test_client.manifest.metadata.name
+    }
+  }
+
+  depends_on = [
+    kubernetes_manifest.vault_auth_test_client
+  ]
+}
