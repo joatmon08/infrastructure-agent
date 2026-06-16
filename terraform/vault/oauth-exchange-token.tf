@@ -69,3 +69,50 @@ path "${var.oauth_token_exchange_secrets_path}/token/${each.key}" {
 }
 EOT
 }
+
+resource "vault_policy" "vault_token_creator" {
+  for_each = var.client_agents
+  name     = "${each.key}-vault-token-creator"
+
+  policy = <<EOT
+# Allow tokens to be created under the token auth method
+path "auth/token/create" {
+  capabilities = ["create", "update"]
+}
+
+# Allow creating child tokens by specifying explicit roles
+path "auth/token/create/${each.key}" {
+  capabilities = ["create", "update"]
+}
+
+# Allow checking token capabilities and lookups
+path "auth/token/lookup" {
+  capabilities = ["update"]
+}
+
+path "auth/token/lookup-self" {
+  capabilities = ["read"]
+}
+
+# Allow token renewals
+path "auth/token/renew" {
+  capabilities = ["update"]
+}
+
+path "auth/token/renew-self" {
+  capabilities = ["update"]
+}
+EOT
+}
+
+resource "vault_token_auth_backend_role" "client_agents" {
+  for_each                = var.client_agents
+  role_name               = each.key
+  allowed_policies        = ["${each.key}-oauth-exchange-token"]
+  disallowed_policies     = ["default"]
+  orphan                  = true
+  token_period            = "86400"
+  renewable               = true
+  token_explicit_max_ttl  = "115200"
+  token_no_default_policy = true
+}
