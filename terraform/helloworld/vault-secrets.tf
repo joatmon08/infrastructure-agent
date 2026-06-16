@@ -182,13 +182,12 @@ resource "kubernetes_manifest" "vault_secret_token" {
     }
     spec = {
       mount = "auth"
-      path  = "token/create"
+      path  = "token/create/test-client"
 
       requestHTTPMethod = "POST"
 
       params = {
-        policies  = "test-client-oauth-exchange-token"
-        role_name = "test-client"
+        policies = "test-client-oauth-exchange-token"
       }
 
       destination = {
