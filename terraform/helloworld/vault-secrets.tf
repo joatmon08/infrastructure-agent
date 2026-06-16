@@ -186,10 +186,6 @@ resource "kubernetes_manifest" "vault_secret_token" {
 
       requestHTTPMethod = "POST"
 
-      params = {
-        policies = "test-client-oauth-exchange-token"
-      }
-
       destination = {
         name   = "test-client-vault-token"
         create = true
