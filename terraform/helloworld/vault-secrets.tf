@@ -193,6 +193,17 @@ resource "kubernetes_manifest" "vault_secret_token" {
       destination = {
         name   = "test-client-vault-token"
         create = true
+        transformation = {
+          templates = {
+            "token" = {
+              text = <<-EOT
+                {{- with .auth.client_token -}}
+                {{ . }}
+                {{- end }}
+              EOT
+            }
+          }
+        }
       }
 
       rolloutRestartTargets = [
