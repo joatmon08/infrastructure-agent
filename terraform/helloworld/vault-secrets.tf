@@ -186,6 +186,10 @@ resource "kubernetes_manifest" "vault_secret_token" {
 
       requestHTTPMethod = "POST"
 
+      params = {
+        role_name = "test-client"
+      }
+
       destination = {
         name   = "test-client-vault-token"
         create = true
