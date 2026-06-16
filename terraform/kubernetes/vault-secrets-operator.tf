@@ -35,6 +35,26 @@ resource "helm_release" "vault_secrets_operator" {
           serviceAccount = kubernetes_service_account_v1.vault_secrets_operator.metadata[0].name
         }
       }
+      controller = {
+        manager = {
+          clientCache = {
+            persistenceModel = "direct-encrypted"
+            storageEncryption = {
+              enabled            = true
+              vaultConnectionRef = "default"
+              keyName            = "vso-client-cache"
+              transitMount       = "transit"
+              method             = "kubernetes"
+              mount              = "kubernetes"
+              kubernetes = {
+                role           = "test-client"
+                serviceAccount = "test-client"
+                tokenAudiences = ["vault"]
+              }
+            }
+          }
+        }
+      }
     })
   ]
 
