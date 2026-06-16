@@ -172,52 +172,6 @@ resource "kubernetes_manifest" "vault_secret_actor_token" {
   ]
 }
 
-resource "kubernetes_manifest" "vault_secret_token" {
-  manifest = {
-    apiVersion = "secrets.hashicorp.com/v1beta1"
-    kind       = "VaultDynamicSecret"
-    metadata = {
-      name      = "test-client-vault-token"
-      namespace = "default"
-    }
-    spec = {
-      mount = "auth"
-      path  = "token/create/test-client"
-
-      requestHTTPMethod = "POST"
-
-      params = {
-        role_name = "test-client"
-      }
-
-      destination = {
-        name   = "test-client-vault-token"
-        create = true
-        transformation = {
-          templates = {
-            "token" = {
-              text = <<-EOT
-                {{- with .auth.client_token -}}
-                {{ . }}
-                {{- end }}
-              EOT
-            }
-          }
-        }
-      }
-
-      rolloutRestartTargets = [
-        {
-          kind = "Deployment"
-          name = local.test_client_name
-        }
-      ]
-
-      vaultAuthRef = kubernetes_manifest.vault_auth_test_client.manifest.metadata.name
-    }
-  }
-
-  depends_on = [
-    kubernetes_manifest.vault_auth_test_client
-  ]
-}
+# Note: VaultDynamicSecret cannot access the 'auth' field from Vault responses,
+# only the 'data' field. Since token creation returns the token in the 'auth' field,
+# we use Vault Agent Injector annotations on the deployment instead.
