@@ -128,15 +128,29 @@ resource "vault_token_auth_backend_role" "client_agents" {
   token_no_default_policy = true
 }
 
-# Periodic token scoped only to the oauth STS endpoint for each client agent
+# Fetch the token auth backend accessor so entity aliases can be registered on it.
+data "vault_auth_backend" "token" {
+  path = "token"
+}
+
+# Register an entity alias on the token auth backend for each client agent,
+# tying any token created via the agent's role to its identity entity.
+resource "vault_identity_entity_alias" "client_agents_token" {
+  for_each       = var.client_agents
+  name           = vault_token_auth_backend_role.client_agents[each.key].role_name
+  mount_accessor = data.vault_auth_backend.token.accessor
+  canonical_id   = vault_identity_entity.client_agents[each.key].id
+}
+
+# Periodic token created via the token auth backend role. Vault resolves the
+# entity alias above to bind the token to the test-client identity entity.
 resource "vault_token" "client_agents_sts" {
   for_each  = var.client_agents
-  policies  = ["${each.key}-oauth-exchange-token"]
+  role_name = vault_token_auth_backend_role.client_agents[each.key].role_name
   renewable = true
-  period    = "86400s"
   no_parent = true
 
-  depends_on = [vault_policy.oauth_exchange_token]
+  depends_on = [vault_identity_entity_alias.client_agents_token]
 }
 
 # Store each periodic token in KV so VSO can sync it as a static secret
