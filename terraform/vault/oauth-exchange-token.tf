@@ -82,15 +82,20 @@ EOT
 }
 
 # Log into Vault via the Kubernetes auth backend using the service account JWT.
-# This produces a client_token bound to the test-client identity entity.
-resource "vault_generic_endpoint" "client_agents_k8s_login" {
-  for_each             = var.client_agents
-  path                 = "auth/${vault_auth_backend.kubernetes.path}/login"
-  ignore_absent_fields = true
-  disable_read         = true
-  disable_delete       = true
+# The http data source captures the full response body, including auth.client_token,
+# which vault_generic_endpoint does not expose (it only surfaces the data field).
+data "http" "client_agents_k8s_login" {
+  for_each = var.client_agents
+  url      = "${local.vault_endpoint}/v1/auth/${vault_auth_backend.kubernetes.path}/login"
+  insecure = true
+  method   = "POST"
 
-  data_json = jsonencode({
+  request_headers = {
+    Content-Type  = "application/json"
+    X-Vault-Token = var.vault_token
+  }
+
+  request_body = jsonencode({
     role = vault_kubernetes_auth_backend_role.client_agents[each.key].role_name
     jwt  = kubernetes_secret_v1.client_agents_tokens[each.key].data.token
   })
@@ -105,6 +110,6 @@ resource "vault_kv_secret_v2" "client_agents_vault_token" {
   mount    = vault_mount.credentials.path
   name     = "${each.key}-vault-token"
   data_json_wo = jsonencode({
-    token = jsondecode(vault_generic_endpoint.client_agents_k8s_login[each.key].write_data_json).auth.client_token
+    token = jsondecode(data.http.client_agents_k8s_login[each.key].response_body).auth.client_token
   })
 }
