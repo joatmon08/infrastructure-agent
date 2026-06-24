@@ -70,6 +70,17 @@ path "${var.oauth_token_exchange_secrets_path}/token/${each.key}" {
 EOT
 }
 
+resource "vault_policy" "kv_vault_token_read" {
+  for_each = var.client_agents
+  name     = "${each.key}-kv-vault-token-read"
+
+  policy = <<EOT
+path "${vault_mount.credentials.path}/data/${each.key}-vault-token" {
+  capabilities = ["read"]
+}
+EOT
+}
+
 resource "vault_policy" "vault_token_creator" {
   for_each = var.client_agents
   name     = "${each.key}-vault-token-creator"
@@ -115,4 +126,25 @@ resource "vault_token_auth_backend_role" "client_agents" {
   renewable               = true
   token_explicit_max_ttl  = "115200"
   token_no_default_policy = true
+}
+
+# Periodic token scoped only to the oauth STS endpoint for each client agent
+resource "vault_token" "client_agents_sts" {
+  for_each  = var.client_agents
+  policies  = ["${each.key}-oauth-exchange-token"]
+  renewable = true
+  period    = "86400s"
+  no_parent = true
+
+  depends_on = [vault_policy.oauth_exchange_token]
+}
+
+# Store each periodic token in KV so VSO can sync it as a static secret
+resource "vault_kv_secret_v2" "client_agents_vault_token" {
+  for_each = var.client_agents
+  mount    = vault_mount.credentials.path
+  name     = "${each.key}-vault-token"
+  data_json_wo = jsonencode({
+    token = vault_token.client_agents_sts[each.key].client_token
+  })
 }
