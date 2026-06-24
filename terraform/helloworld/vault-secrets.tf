@@ -172,6 +172,48 @@ resource "kubernetes_manifest" "vault_secret_actor_token" {
   ]
 }
 
-# Note: VaultDynamicSecret cannot access the 'auth' field from Vault responses,
-# only the 'data' field. Since token creation returns the token in the 'auth' field,
-# we use Vault Agent Injector annotations on the deployment instead.
+# VaultStaticSecret for the pre-created periodic Vault token stored in KV.
+# The refresh interval matches the token's period (86400s = 24h) so VSO renews
+# the secret before the token expires.
+resource "kubernetes_manifest" "vault_static_secret_vault_token" {
+  manifest = {
+    apiVersion = "secrets.hashicorp.com/v1beta1"
+    kind       = "VaultStaticSecret"
+    metadata = {
+      name      = "test-client-vault-token"
+      namespace = "default"
+    }
+    spec = {
+      type  = "kv-v2"
+      mount = "credentials"
+      path  = "${local.test_client_name}-vault-token"
+
+      destination = {
+        name   = "test-client-vault-token"
+        create = true
+        transformation = {
+          templates = {
+            "vault-token" = {
+              text = "{{- .Secrets.token -}}"
+            }
+          }
+        }
+      }
+
+      refreshAfter = "86400s"
+
+      rolloutRestartTargets = [
+        {
+          kind = "Deployment"
+          name = local.test_client_name
+        }
+      ]
+
+      vaultAuthRef = kubernetes_manifest.vault_auth_test_client.manifest.metadata.name
+    }
+  }
+
+  depends_on = [
+    kubernetes_manifest.vault_auth_test_client
+  ]
+}

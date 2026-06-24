@@ -69,16 +69,6 @@ resource "kubernetes_deployment_v1" "test_client" {
         labels = {
           app = local.test_client_name
         }
-        annotations = {
-          "vault.hashicorp.com/agent-inject"                      = "true"
-          "vault.hashicorp.com/role"                              = "test-client"
-          "vault.hashicorp.com/agent-inject-secret-vault-token"   = "auth/token/create/test-client"
-          "vault.hashicorp.com/agent-inject-template-vault-token" = <<-EOT
-            {{- with secret "auth/token/create/test-client" "role_name=test-client" -}}
-            {{ .auth.client_token }}
-            {{- end }}
-          EOT
-        }
       }
 
       spec {
@@ -102,6 +92,13 @@ resource "kubernetes_deployment_v1" "test_client" {
           name = "actor-token"
           secret {
             secret_name = "test-client-actor-token"
+          }
+        }
+
+        volume {
+          name = "vault-token"
+          secret {
+            secret_name = "test-client-vault-token"
           }
         }
 
@@ -130,6 +127,12 @@ resource "kubernetes_deployment_v1" "test_client" {
           volume_mount {
             name       = "actor-token"
             mount_path = "/vault/secrets/actor"
+            read_only  = true
+          }
+
+          volume_mount {
+            name       = "vault-token"
+            mount_path = "/vault/secrets"
             read_only  = true
           }
 
