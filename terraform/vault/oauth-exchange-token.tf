@@ -81,76 +81,30 @@ path "${vault_mount.credentials.path}/data/${each.key}-vault-token" {
 EOT
 }
 
-resource "vault_policy" "vault_token_lookup" {
-  for_each = var.client_agents
-  name     = "${each.key}-vault-token-lookup"
+# Log into Vault via the Kubernetes auth backend using the service account JWT.
+# This produces a client_token bound to the test-client identity entity.
+resource "vault_generic_endpoint" "client_agents_k8s_login" {
+  for_each             = var.client_agents
+  path                 = "auth/${vault_auth_backend.kubernetes.path}/login"
+  ignore_absent_fields = true
+  disable_read         = true
+  disable_delete       = true
 
-  policy = <<EOT
-path "auth/token/lookup-self" {
-  capabilities = ["read"]
+  data_json = jsonencode({
+    role = vault_kubernetes_auth_backend_role.client_agents[each.key].role_name
+    jwt  = kubernetes_secret_v1.client_agents_tokens[each.key].data.token
+  })
+
+  depends_on = [vault_kubernetes_auth_backend_role.client_agents]
 }
 
-# Allow token renewals
-path "auth/token/renew" {
-  capabilities = ["update"]
-}
-
-path "auth/token/renew-self" {
-  capabilities = ["update"]
-}
-EOT
-}
-
-resource "vault_token_auth_backend_role" "client_agents" {
-  for_each  = var.client_agents
-  role_name = each.key
-  allowed_policies = [
-    "${each.key}-oauth-exchange-token",
-    "${each.key}-vault-token-lookup"
-  ]
-  disallowed_policies     = ["default"]
-  orphan                  = true
-  token_period            = "86400"
-  renewable               = true
-  token_explicit_max_ttl  = "115200"
-  token_no_default_policy = true
-}
-
-# Fetch the token auth backend accessor so entity aliases can be registered on it.
-data "vault_auth_backend" "token" {
-  path = "token"
-}
-
-# Register an entity alias on the token auth backend for each client agent,
-# tying any token created via the agent's role to its identity entity.
-resource "vault_identity_entity_alias" "client_agents_token" {
-  for_each       = var.client_agents
-  name           = vault_token_auth_backend_role.client_agents[each.key].role_name
-  mount_accessor = data.vault_auth_backend.token.accessor
-  canonical_id   = vault_identity_entity.client_agents[each.key].id
-}
-
-# Periodic token created via the token auth backend role. Vault resolves the
-# entity alias above to bind the token to the test-client identity entity.
-resource "vault_token" "client_agents_sts" {
-  for_each  = var.client_agents
-  role_name = vault_token_auth_backend_role.client_agents[each.key].role_name
-  renewable = true
-  no_parent = true
-  policies = [
-    "${each.key}-oauth-exchange-token",
-    "${each.key}-vault-token-lookup"
-  ]
-
-  depends_on = [vault_identity_entity_alias.client_agents_token]
-}
-
-# Store each periodic token in KV so VSO can sync it as a static secret
+# Store the client_token from the Kubernetes login in KV so VSO can sync it
+# as a VaultStaticSecret. The token is already bound to the test-client entity.
 resource "vault_kv_secret_v2" "client_agents_vault_token" {
   for_each = var.client_agents
   mount    = vault_mount.credentials.path
   name     = "${each.key}-vault-token"
   data_json_wo = jsonencode({
-    token = vault_token.client_agents_sts[each.key].client_token
+    token = jsondecode(vault_generic_endpoint.client_agents_k8s_login[each.key].write_data_json).auth.client_token
   })
 }
