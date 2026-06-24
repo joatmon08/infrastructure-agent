@@ -65,6 +65,20 @@ resource "vault_identity_entity_alias" "client_agents" {
   canonical_id   = vault_identity_entity.client_agents[each.key].id
 }
 
+resource "vault_policy" "token_lookup_renew" {
+  name = "token-lookup-renew"
+
+  policy = <<EOT
+path "auth/token/lookup-self" {
+  capabilities = ["read"]
+}
+
+path "auth/token/renew-self" {
+  capabilities = ["update"]
+}
+EOT
+}
+
 resource "vault_kubernetes_auth_backend_role" "client_agents" {
   for_each                         = var.client_agents
   backend                          = vault_auth_backend.kubernetes.path
@@ -75,6 +89,7 @@ resource "vault_kubernetes_auth_backend_role" "client_agents" {
   token_policies = [
     vault_policy.actor_token[each.key].name,
     vault_policy.agent_oidc_client.name,
-    vault_policy.kv_vault_token_read[each.key].name
+    vault_policy.kv_vault_token_read[each.key].name,
+    vault_policy.token_lookup_renew.name
   ]
 }
