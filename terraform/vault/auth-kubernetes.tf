@@ -89,7 +89,7 @@ resource "vault_kubernetes_auth_backend_role" "client_agents" {
   token_policies = [
     vault_policy.actor_token[each.key].name,
     vault_policy.agent_oidc_client.name,
-    vault_policy.kv_vault_token_read[each.key].name,
+    vault_policy.oauth_exchange_token[each.key].name,
     vault_policy.token_lookup_renew.name
   ]
 }
