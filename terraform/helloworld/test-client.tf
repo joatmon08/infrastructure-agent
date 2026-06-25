@@ -95,13 +95,6 @@ resource "kubernetes_deployment_v1" "test_client" {
           }
         }
 
-        volume {
-          name = "vault-token"
-          secret {
-            secret_name = "test-client-vault-token"
-          }
-        }
-
         container {
           name  = local.test_client_name
           image = local.test_client_image
@@ -127,12 +120,6 @@ resource "kubernetes_deployment_v1" "test_client" {
           volume_mount {
             name       = "actor-token"
             mount_path = "/vault/secrets/actor"
-            read_only  = true
-          }
-
-          volume_mount {
-            name       = "vault-token"
-            mount_path = "/vault/secrets"
             read_only  = true
           }
 
@@ -177,8 +164,13 @@ resource "kubernetes_deployment_v1" "test_client" {
           }
 
           env {
-            name  = "VAULT_TOKEN_PATH"
-            value = "/vault/secrets/vault-token"
+            name  = "VAULT_AUTH_METHOD_K8S"
+            value = "true"
+          }
+
+          env {
+            name  = "VAULT_K8S_ROLE"
+            value = "test-client"
           }
 
           resources {
