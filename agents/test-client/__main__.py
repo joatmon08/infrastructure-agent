@@ -33,6 +33,12 @@ VAULT_NAMESPACE = os.getenv("VAULT_NAMESPACE", None)
 VAULT_TOKEN_PATH = os.getenv("VAULT_TOKEN_PATH", "./token")
 VAULT_OAUTH_DELEGATION_ROLE = os.getenv("VAULT_OAUTH_DELEGATION_ROLE", "test-client")
 
+# Kubernetes auth method (override; default is Vault token file)
+VAULT_AUTH_METHOD_K8S = os.getenv("VAULT_AUTH_METHOD_K8S", "false").lower() == "true"
+VAULT_K8S_ROLE = os.getenv("VAULT_K8S_ROLE", "test-client")
+VAULT_K8S_JWT_PATH = os.getenv("VAULT_K8S_JWT_PATH", "/var/run/secrets/kubernetes.io/serviceaccount/token")
+VAULT_K8S_AUTH_PATH = os.getenv("VAULT_K8S_AUTH_PATH", "auth/kubernetes")
+
 OIDC_PROVIDER_CONFIG_PATH = os.getenv("OIDC_PROVIDER_CONFIG_PATH", "./oidc_provider.json")
 CLIENT_SECRETS_PATH = os.getenv("CLIENT_SECRETS_PATH", "./client_secrets.json")
 ACTOR_TOKEN_PATH = os.getenv("ACTOR_TOKEN_PATH", "./actor_token")
@@ -50,6 +56,62 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", secrets.token_hex(32))
 CORS(app, origins=["*"])
 
 
+def _get_vault_token() -> str:
+    """Return a Vault token.
+
+    Default: read a pre-issued token from VAULT_TOKEN_PATH.
+    Override (VAULT_AUTH_METHOD_K8S=true): authenticate via the Kubernetes
+    auth method using the pod's service-account JWT and return the resulting
+    client_token.
+    """
+    if VAULT_AUTH_METHOD_K8S:
+        try:
+            with open(VAULT_K8S_JWT_PATH, "r") as f:
+                jwt = f.read().strip()
+        except Exception as e:
+            raise ValueError(f"Cannot load Kubernetes service account JWT from {VAULT_K8S_JWT_PATH}: {str(e)}")
+
+        if not jwt:
+            raise ValueError(f"Kubernetes service account JWT file {VAULT_K8S_JWT_PATH} is empty")
+
+        login_url = f"{VAULT_ADDR.rstrip('/')}/v1/{VAULT_K8S_AUTH_PATH.strip('/')}/login"
+        payload = {"role": VAULT_K8S_ROLE, "jwt": jwt}
+        headers: dict = {}
+        if VAULT_NAMESPACE:
+            headers["X-Vault-Namespace"] = VAULT_NAMESPACE
+
+        logger.info(f"Authenticating to Vault via Kubernetes auth method: {login_url} (role={VAULT_K8S_ROLE})")
+        try:
+            response = httpx.post(login_url, json=payload, headers=headers, verify=VERIFY_TLS)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise ValueError(
+                f"Vault Kubernetes auth login failed with status {e.response.status_code}: {e.response.text}"
+            ) from e
+        except Exception as e:
+            raise ValueError(f"Vault Kubernetes auth login failed: {str(e)}") from e
+
+        data = response.json()
+        token = data.get("auth", {}).get("client_token")
+        if not token:
+            raise ValueError("Vault Kubernetes auth login response did not include auth.client_token")
+
+        logger.info("Vault Kubernetes auth login succeeded")
+        return token
+
+    # Default: read pre-issued token from file
+    try:
+        with open(VAULT_TOKEN_PATH, "r") as f:
+            vault_token = f.read().strip()
+    except Exception as e:
+        raise ValueError(f"Cannot load Vault token from {VAULT_TOKEN_PATH}: {str(e)}")
+
+    if not vault_token:
+        raise ValueError(f"Vault token file {VAULT_TOKEN_PATH} is empty")
+
+    return vault_token
+
+
 class OAuth2Delegation():
     def __init__(self, subject_token, actor_token, audience, scope):
         self.subject_token = subject_token
@@ -58,14 +120,7 @@ class OAuth2Delegation():
         self.scope = scope
 
     def getExchangeToken(self):
-        try:
-            with open(VAULT_TOKEN_PATH, "r") as f:
-                vault_token = f.read().strip()
-        except Exception as e:
-            raise ValueError(f"Cannot load Vault token from {VAULT_TOKEN_PATH}: {str(e)}")
-
-        if not vault_token:
-            raise ValueError(f"Vault token file {VAULT_TOKEN_PATH} is empty")
+        vault_token = _get_vault_token()
 
         request_params = {
             "subject_token": self.subject_token,
@@ -73,8 +128,6 @@ class OAuth2Delegation():
             "audience": self.audience,
             "scope": self.scope,
         }
-
-        logger.info(vault_token)
 
         headers = {
             "X-Vault-Token": vault_token,

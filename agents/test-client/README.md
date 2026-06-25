@@ -35,12 +35,24 @@ The UI uses the same environment variables as the original test-client.py:
   - **Security Note**: This prevents Host header injection attacks by using a trusted URL for OAuth callbacks
   - Example: `https://test-client.example.com` or `http://test-client` (for Kubernetes internal services)
 
-### Optional Variables (for authentication):
-- `VAULT_ADDR` - Vault server address
+### Optional Variables (for Vault authentication):
+- `VAULT_ADDR` - Vault server address (default: `http://localhost:8200`)
 - `VAULT_NAMESPACE` - Vault namespace
-- `VAULT_TOKEN` - Vault authentication token
-- `VAULT_ROLE` - Vault role for identity tokens (default: `default`)
-- `VAULT_SKIP_VERIFY` - Skip TLS verification for Vault (default: `false`)
+- `VAULT_TOKEN_PATH` - Path to the pre-issued Vault token file (default: `./token`)
+- `VAULT_OAUTH_DELEGATION_ROLE` - Vault STS token exchange role (default: `test-client`)
+- `VERIFY_TLS` - Verify TLS certificates when calling Vault (default: `false`)
+
+#### Kubernetes Auth Method (optional override)
+
+By default the application reads a pre-issued Vault token from `VAULT_TOKEN_PATH`.
+Set `VAULT_AUTH_METHOD_K8S=true` to authenticate directly via Vault's Kubernetes auth
+method instead — the pod's service-account JWT is exchanged for a short-lived
+`client_token` on every STS call.
+
+- `VAULT_AUTH_METHOD_K8S` - Enable Kubernetes auth method (default: `false`)
+- `VAULT_K8S_ROLE` - Vault Kubernetes auth role to request (default: `test-client`)
+- `VAULT_K8S_JWT_PATH` - Path to the Kubernetes service-account JWT (default: `/var/run/secrets/kubernetes.io/serviceaccount/token`)
+- `VAULT_K8S_AUTH_PATH` - Vault mount path for the Kubernetes auth method (default: `auth/kubernetes`)
 
 ### Optional Variables (for OIDC):
 - `OPENID_CONNECT_PROVIDER_NAME` - OIDC provider name in Vault

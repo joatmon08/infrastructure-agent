@@ -145,6 +145,11 @@ bash scripts/check-run-status.sh <run-id> 30 20
 - ConfigMaps for agent configuration
 - Ingresses for external access
 
+**test-client Vault Authentication Modes:**
+The test-client supports two Vault authentication modes, controlled by `VAULT_AUTH_METHOD_K8S`:
+- **Default (token file)**: VSO syncs a pre-issued periodic Vault token into a Kubernetes secret; the pod reads it from `VAULT_TOKEN_PATH`.
+- **Kubernetes auth override** (`VAULT_AUTH_METHOD_K8S=true`): The pod authenticates directly to Vault using its service-account JWT via Vault's Kubernetes auth method. Set `VAULT_K8S_ROLE`, `VAULT_K8S_AUTH_PATH`, and optionally `VAULT_K8S_JWT_PATH`. No VSO static secret is needed in this mode.
+
 **Common Issues:**
 
 1. **Terraform state corruption**
