@@ -81,35 +81,35 @@ path "${vault_mount.credentials.path}/data/${each.key}-vault-token" {
 EOT
 }
 
-# Log into Vault via the Kubernetes auth backend using the service account JWT.
-# The http data source captures the full response body, including auth.client_token,
-# which vault_generic_endpoint does not expose (it only surfaces the data field).
-data "http" "client_agents_k8s_login" {
-  for_each = var.client_agents
-  url      = "${local.vault_endpoint}/v1/auth/${vault_auth_backend.kubernetes.path}/login"
-  insecure = true
-  method   = "POST"
+# # Log into Vault via the Kubernetes auth backend using the service account JWT.
+# # The http data source captures the full response body, including auth.client_token,
+# # which vault_generic_endpoint does not expose (it only surfaces the data field).
+# data "http" "client_agents_k8s_login" {
+#   for_each = var.client_agents
+#   url      = "${local.vault_endpoint}/v1/auth/${vault_auth_backend.kubernetes.path}/login"
+#   insecure = true
+#   method   = "POST"
 
-  request_headers = {
-    Content-Type  = "application/json"
-    X-Vault-Token = var.vault_token
-  }
+#   request_headers = {
+#     Content-Type  = "application/json"
+#     X-Vault-Token = var.vault_token
+#   }
 
-  request_body = jsonencode({
-    role = vault_kubernetes_auth_backend_role.client_agents[each.key].role_name
-    jwt  = kubernetes_secret_v1.client_agents_tokens[each.key].data.token
-  })
+#   request_body = jsonencode({
+#     role = vault_kubernetes_auth_backend_role.client_agents[each.key].role_name
+#     jwt  = kubernetes_secret_v1.client_agents_tokens[each.key].data.token
+#   })
 
-  depends_on = [vault_kubernetes_auth_backend_role.client_agents]
-}
+#   depends_on = [vault_kubernetes_auth_backend_role.client_agents]
+# }
 
-# Store the client_token from the Kubernetes login in KV so VSO can sync it
-# as a VaultStaticSecret. The token is already bound to the test-client entity.
-resource "vault_kv_secret_v2" "client_agents_vault_token" {
-  for_each = var.client_agents
-  mount    = vault_mount.credentials.path
-  name     = "${each.key}-vault-token"
-  data_json_wo = jsonencode({
-    token = jsondecode(data.http.client_agents_k8s_login[each.key].response_body).auth.client_token
-  })
-}
+# # Store the client_token from the Kubernetes login in KV so VSO can sync it
+# # as a VaultStaticSecret. The token is already bound to the test-client entity.
+# resource "vault_kv_secret_v2" "client_agents_vault_token" {
+#   for_each = var.client_agents
+#   mount    = vault_mount.credentials.path
+#   name     = "${each.key}-vault-token"
+#   data_json_wo = jsonencode({
+#     token = jsondecode(data.http.client_agents_k8s_login[each.key].response_body).auth.client_token
+#   })
+# }

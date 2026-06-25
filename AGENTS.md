@@ -106,6 +106,8 @@ bash scripts/check-run-status.sh <run-id> 30 20
 - Token roles for client agents
 - Userpass authentication for end-user
 - OIDC roles and scopes for Agent2Agent protocol
+- Periodic Vault tokens (24h period) scoped to `sts/token/<agent>`, stored in KV at `credentials/<agent>-vault-token`
+- `<agent>-kv-vault-token-read` policy added to the `test-client` Kubernetes auth role so VSO can read the token from KV
 
 **Common Issues:**
 
@@ -115,9 +117,9 @@ bash scripts/check-run-status.sh <run-id> 30 20
    - **Resolution**: Destroy vault workspace state and redeploy fresh
 
 2. **Token role naming mismatch**
-   - **Symptom**: VSO dynamic secret fails with `permission denied` on `auth/token/create/test-client-sts`
-   - **Cause**: Token role name doesn't match policy path
-   - **Resolution**: Ensure `vault_token_auth_backend_role.sts` role_name matches policy path in `vault_policy.vault_token_create`
+   - **Symptom**: VSO static secret sync fails with `permission denied` on `credentials/data/test-client-vault-token`
+   - **Cause**: `kv_vault_token_read` policy not attached to the `test-client` Kubernetes auth role
+   - **Resolution**: Verify `vault_kubernetes_auth_backend_role.client_agents` includes `vault_policy.kv_vault_token_read`
 
 ### 5. Deploy Helloworld Workspace
 
@@ -138,7 +140,8 @@ bash scripts/check-run-status.sh <run-id> 30 20
 **What gets deployed:**
 - helloworld-agent-server deployment and service
 - test-client deployment and service
-- Vault Secrets Operator resources for dynamic secrets
+- Vault Secrets Operator resources for dynamic and static secrets
+- `VaultStaticSecret` CR (`test-client-vault-token`) syncing the pre-created periodic token from `credentials/test-client-vault-token` KV path; `refreshAfter: 86400s` matches the token's 24h period
 - ConfigMaps for agent configuration
 - Ingresses for external access
 
@@ -149,10 +152,10 @@ bash scripts/check-run-status.sh <run-id> 30 20
    - **Cause**: State has null identity values while actual resource has proper values
    - **Resolution**: Remove corrupted resource from state and retry
 
-2. **VSO dynamic secret sync failure**
-   - **Symptom**: Deployment stuck waiting for vault token secret
-   - **Cause**: Token role permissions not configured correctly
-   - **Resolution**: Verify vault workspace token role configuration matches VSO resource
+2. **VSO static secret sync failure**
+   - **Symptom**: Deployment stuck waiting for `test-client-vault-token` secret
+   - **Cause**: `kv_vault_token_read` policy not on the `test-client` Kubernetes auth role, or periodic token not created in vault workspace
+   - **Resolution**: Redeploy vault workspace first, then helloworld workspace
 
 ## Helper Scripts
 
