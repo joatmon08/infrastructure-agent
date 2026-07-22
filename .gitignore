@@ -81,3 +81,4 @@ infrastructure-agent.code-workspace
 pyrightconfig.json
 
 watsonx.env
+tfctl.env
