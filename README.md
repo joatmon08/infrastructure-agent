@@ -184,6 +184,28 @@ and register the custom secrets engine, create the following in HCP Terraform.
 
 Run a plan and apply.
 
+### Verify the deployment
+
+After the `vault` workspace applies successfully, run the end-to-end tests to verify the cluster and Vault configuration:
+
+```bash
+source secrets.env && uv run pytest
+```
+
+`secrets.env` must export the following variables:
+
+| Variable | Description |
+|---|---|
+| `KUBERNETES_CONTEXT` | `kubectl` context name for the EKS cluster |
+| `VAULT_ADDR` | Vault server URL |
+| `VAULT_TOKEN` | Vault root token |
+| `VAULT_SKIP_VERIFY` | Set to a non-empty value to skip TLS verification |
+
+The test suite has two mark groups:
+
+- **`kubernetes`** — asserts that the GPU node, Vault server (3 replicas), Vault agent injector, and Vault Secrets Operator pods are all `Running`
+- **`vault`** — asserts that Vault is initialized, unsealed, and the `vault-plugin-secrets-oauth-token-exchange` plugin is registered
+
 ## Agent2Agent with Vault as OIDC provider
 
 This demo deploys two example agents, `helloworld-agent` and `test-client`.
