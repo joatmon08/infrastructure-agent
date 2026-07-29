@@ -15,6 +15,7 @@ Workspaces must be deployed in this order due to state dependencies:
 3. **`vault`** (`terraform/vault`) — Vault auth methods, OIDC provider, identity secrets engine, custom plugin; depends on `base`, `kubernetes`
 4. **`helloworld`** (`terraform/helloworld`) — Agent application deployments; depends on `base`, `kubernetes`, `vault`
 5. **`rag`** (`terraform/rag`) — Ollama, LangFlow, OpenSearch on GPU node group; depends on `base`
+6. **`mcp-context-forge`** (`terraform/mcp-context-forge`) — MCP Context Forge gateway, PostgreSQL, Redis in the `ai-system` namespace; depends on `base`
 
 ## Vault Initialization
 

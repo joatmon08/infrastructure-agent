@@ -206,6 +206,19 @@ The test suite has two mark groups:
 - **`kubernetes`** — asserts that the GPU node, Vault server (3 replicas), Vault agent injector, and Vault Secrets Operator pods are all `Running`
 - **`vault`** — asserts that Vault is initialized, unsealed, and the `vault-plugin-secrets-oauth-token-exchange` plugin is registered
 
+## MCP Context Forge
+
+MCP Context Forge is deployed as native Kubernetes resources via Terraform in the
+`mcp-context-forge` workspace (`terraform/mcp-context-forge/`). It runs in the
+`ai-system` namespace and includes PostgreSQL 17, Redis, and the gateway itself
+exposed via an AWS ALB ingress.
+
+Apply the workspace after `base` is deployed:
+
+```bash
+tfctl run start mcp-context-forge --message="Deploy MCP Context Forge - Approved with IBM Bob"
+```
+
 ## Agent2Agent with Vault as OIDC provider
 
 This demo deploys two example agents, `helloworld-agent` and `test-client`.
