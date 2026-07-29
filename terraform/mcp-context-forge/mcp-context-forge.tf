@@ -446,7 +446,7 @@ resource "kubernetes_persistent_volume_claim_v1" "postgres" {
 
   spec {
     access_modes       = ["ReadWriteOnce"]
-    storage_class_name = "ebs.csi.aws.com"
+    storage_class_name = "gp3"
 
     resources {
       requests = {
