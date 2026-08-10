@@ -52,7 +52,7 @@ resource "aws_iam_role_policy_attachment" "gpu_node_group_security_compute_acces
 resource "aws_launch_template" "gpu_node_group" {
   name_prefix = "${var.project_name}-gpu-node-group-"
 
-  vpc_security_group_ids = [module.kubernetes.node_security_group_id]
+  vpc_security_group_ids = [module.eks.node_security_group_id]
 
   tag_specifications {
     resource_type = "instance"
@@ -66,10 +66,10 @@ resource "aws_launch_template" "gpu_node_group" {
 
 # GPU Node Group
 resource "aws_eks_node_group" "gpu" {
-  cluster_name    = module.kubernetes.cluster_name
+  cluster_name    = module.eks.cluster_name
   node_group_name = "${var.project_name}-gpu-node-group"
   node_role_arn   = aws_iam_role.gpu_node_group.arn
-  subnet_ids      = module.kubernetes.private_subnets
+  subnet_ids      = module.vpc.private_subnets
   version         = var.cluster_version
 
   launch_template {
