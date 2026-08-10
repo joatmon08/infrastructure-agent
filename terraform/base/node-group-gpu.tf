@@ -23,6 +23,15 @@ resource "aws_iam_role" "gpu_node_group" {
   }
 }
 
+# Standalone access entry so GPU nodes can join the cluster.
+# Cannot be inside module "eks" access_entries — passing a computed ARN there
+# causes "count depends on resource attributes" during plan.
+resource "aws_eks_access_entry" "gpu_nodes" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = aws_iam_role.gpu_node_group.arn
+  type          = "EC2_LINUX"
+}
+
 # Attach required policies to GPU node group role
 resource "aws_iam_role_policy_attachment" "gpu_node_group_worker_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
