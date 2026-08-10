@@ -1,9 +1,9 @@
-name: Build OpenSearch Image
+name: Build Test-Client Agent Image
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'testclient-v*'
   workflow_dispatch:
 
 permissions:
@@ -32,7 +32,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6.1.0
         with:
-          images: ghcr.io/${{ github.repository_owner }}/infra-agent-opensearch
+          images: ghcr.io/${{ github.repository_owner }}/test-client
           tags: |
             type=ref,event=tag
             type=sha
@@ -41,13 +41,11 @@ jobs:
       - name: Build and push OpenSearch image
         uses: docker/build-push-action@v7.2.0
         with:
-          context: ./Dockerfiles
-          file: ./Dockerfiles/Dockerfile.opensearch
+          context: ./agents/test-client
+          file: ./agents/test-client/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-# Made with Bob
