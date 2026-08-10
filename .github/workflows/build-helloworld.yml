@@ -3,7 +3,7 @@ name: Build Hello-World Server Agent Image
 on:
   push:
     tags:
-      - 'v*.-helloworld'
+      - 'helloworld-v*'
   workflow_dispatch:
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v7.2.0
         with:
           context: ./agents/helloworld
-          file: ./Dockerfile
+          file: ./agents/helloworld/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
