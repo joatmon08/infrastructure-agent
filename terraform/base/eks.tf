@@ -42,6 +42,8 @@ module "eks" {
   endpoint_public_access_cidrs = length(var.inbound_cidrs_for_lbs) > 0 ? var.inbound_cidrs_for_lbs : ["0.0.0.0/0"]
   endpoint_private_access      = true
 
+  enable_cluster_creator_admin_permissions = true
+
   enable_irsa = true
 
   eks_managed_node_groups = {
