@@ -65,21 +65,10 @@ resource "aws_iam_policy" "ecr_pull_policy" {
   }
 }
 
-# Attach ECR pull policy to EKS node role
-# Note: EKS Auto Mode creates node roles automatically
-# We need to attach the policy to the node role created by Auto Mode
-resource "aws_iam_role_policy_attachment" "eks_node_ecr_policy" {
+# Attach the custom ECR pull policy to the GPU node group role.
+# The default managed node group receives ECR access via
+# iam_role_additional_policies inside the eks module block.
+resource "aws_iam_role_policy_attachment" "gpu_node_group_ecr_pull_policy" {
   policy_arn = aws_iam_policy.ecr_pull_policy.arn
-  role       = module.eks.cluster_iam_role_name
-}
-
-# Additional attachment for worker nodes if using managed node groups
-# This ensures nodes can pull from ECR regardless of the compute configuration
-data "aws_iam_policy" "ecr_read_only" {
-  arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
-resource "aws_iam_role_policy_attachment" "eks_node_ecr_readonly" {
-  policy_arn = data.aws_iam_policy.ecr_read_only.arn
-  role       = module.eks.cluster_iam_role_name
+  role       = aws_iam_role.gpu_node_group.name
 }
