@@ -92,15 +92,6 @@ module "vpc" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "eks_cluster" {
-  name              = "/aws/eks/${var.project_name}/cluster"
-  retention_in_days = 90
-
-  tags = {
-    Name = "${var.project_name}-eks-logs"
-  }
-}
-
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.24"
@@ -111,7 +102,6 @@ module "eks" {
   endpoint_public_access       = true
   endpoint_public_access_cidrs = length(var.inbound_cidrs_for_lbs) > 0 ? var.inbound_cidrs_for_lbs : ["0.0.0.0/0"]
 
-  enabled_log_types           = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   create_cloudwatch_log_group = false
 
   addons = {
@@ -141,39 +131,37 @@ module "eks" {
 
   node_security_group_additional_rules = local.node_security_group_rules
 
-  eks_managed_node_groups = {
-    default_amd64 = {
-      name = "amd64"
+  # eks_managed_node_groups = {
+  #   default_amd64 = {
+  #     name = "amd64"
 
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t3.xlarge"]
+  #     ami_type       = "AL2023_x86_64_STANDARD"
+  #     instance_types = ["t3.xlarge"]
 
-      min_size     = 3
-      max_size     = 6
-      desired_size = 3
+  #     min_size     = 3
+  #     max_size     = 6
+  #     desired_size = 3
 
-      iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-        AmazonEKS_CNI_Policy         = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-        ECRReadOnly                  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-        SecurityComputeAccess        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/SecurityComputeAccess"
-      }
+  #     iam_role_additional_policies = {
+  #       AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  #       AmazonEKS_CNI_Policy         = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  #       ECRReadOnly                  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  #       SecurityComputeAccess        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/SecurityComputeAccess"
+  #     }
 
-      subnet_ids = module.vpc.private_subnets
+  #     subnet_ids = module.vpc.private_subnets
 
-      tags = {
-        NodeGroup = "default-amd64"
-      }
-    }
-  }
+  #     tags = {
+  #       NodeGroup = "default-amd64"
+  #     }
+  #   }
+  # }
 
   enable_cluster_creator_admin_permissions = true
 
   tags = {
     Cluster = var.project_name
   }
-
-  depends_on = [aws_cloudwatch_log_group.eks_cluster]
 }
 
 # ── EBS CSI Driver IRSA ────────────────────────────────────────────────────────
