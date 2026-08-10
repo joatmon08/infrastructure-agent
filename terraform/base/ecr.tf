@@ -64,11 +64,3 @@ resource "aws_iam_policy" "ecr_pull_policy" {
     Name = "${var.project_name}-ecr-pull-policy"
   }
 }
-
-# Attach the custom ECR pull policy to the GPU node group role.
-# The default managed node group receives ECR access via
-# iam_role_additional_policies inside the eks module block.
-resource "aws_iam_role_policy_attachment" "gpu_node_group_ecr_pull_policy" {
-  policy_arn = aws_iam_policy.ecr_pull_policy.arn
-  role       = aws_iam_role.gpu_node_group.name
-}

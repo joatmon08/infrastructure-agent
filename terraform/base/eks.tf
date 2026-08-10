@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -166,16 +168,6 @@ module "eks" {
   }
 
   enable_cluster_creator_admin_permissions = true
-
-  # Allow the GPU node group IAM role to join the cluster.
-  # aws_eks_node_group.gpu is a standalone resource outside this module
-  # and is not registered automatically.
-  access_entries = {
-    gpu_nodes = {
-      principal_arn = aws_iam_role.gpu_node_group.arn
-      type          = "EC2_LINUX"
-    }
-  }
 
   tags = {
     Cluster = var.project_name
