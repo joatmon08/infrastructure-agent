@@ -1,5 +1,4 @@
 locals {
-  azs = slice(data.aws_availability_zones.available.names, 0, var.number_of_azs)
 
   # Default security group rules for EKS nodes (cryptominer remediation)
   # These rules restrict egress to only necessary ports and destinations
@@ -64,4 +63,6 @@ locals {
       cidr_blocks = ["0.0.0.0/0"]
     }
   }
+
+  subnets = cidrsubnets(var.vpc_cidr, 8, 8, 8, 8, 8, 8, 8, 8, 8)
 }

@@ -32,12 +32,6 @@ variable "vpc_cidr" {
   }
 }
 
-variable "number_of_azs" {
-  description = "Number of availability zones"
-  type        = number
-  default     = 3
-}
-
 variable "cluster_version" {
   description = "Kubernetes version for EKS cluster (Auto Mode requires 1.33+)"
   type        = string
