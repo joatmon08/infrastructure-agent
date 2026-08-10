@@ -1,0 +1,20 @@
+clusterName: ${cluster_name}
+
+region: ${region}
+
+vpcId: ${vpc_id}
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    eks.amazonaws.com/role-arn: ${role_arn}
+
+defaultLoadBalancerScheme: internet-facing
+
+ingressClassParams:
+  spec:
+    inboundCIDRs:
+      - 0.0.0.0/0
+    subnets:
+      ids: ${subnet_ids}

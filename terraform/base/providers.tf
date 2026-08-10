@@ -6,7 +6,7 @@ provider "aws" {
       Environment = var.environment
       Project     = var.project_name
       ManagedBy   = "Terraform"
-      Purpose     = "demo"
+      Purpose     = "joatmon08/infrastructure-agent"
     }
   }
 }
