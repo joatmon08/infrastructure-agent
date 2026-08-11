@@ -318,7 +318,7 @@ resource "kubernetes_deployment_v1" "postgres" {
       spec {
         container {
           name  = "postgres"
-          image = "registry.redhat.io/rhel9/postgresql-17:latest"
+          image = "postgres:17"
 
           port {
             container_port = 5432
