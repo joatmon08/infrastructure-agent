@@ -139,6 +139,8 @@ load balancers to the Kubernetes cluster, create the following in HCP Terraform.
 
 Run a plan and apply.
 
+> Note: You may need to re-run this workspace if the load balancer for Vault's ingress is not ready yet. You'll need it in the outputs.
+
 ### Initialize Vault
 
 Vault needs to be initialized before you configure it.
