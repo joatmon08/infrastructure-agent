@@ -316,6 +316,11 @@ resource "kubernetes_deployment_v1" "postgres" {
       }
 
       spec {
+        security_context {
+          fs_group    = 999
+          run_as_user = 999
+        }
+
         container {
           name  = "postgres"
           image = "postgres:17"
@@ -334,7 +339,7 @@ resource "kubernetes_deployment_v1" "postgres" {
 
           volume_mount {
             name       = "postgres-data"
-            mount_path = "/var/lib/pgsql/data"
+            mount_path = "/var/lib/postgresql/data"
           }
 
           resources {
@@ -370,8 +375,8 @@ resource "kubernetes_deployment_v1" "postgres" {
 
           security_context {
             run_as_non_root            = true
-            run_as_user                = 26
-            run_as_group               = 26
+            run_as_user                = 999
+            run_as_group               = 999
             allow_privilege_escalation = false
 
             capabilities {
