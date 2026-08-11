@@ -1,9 +1,3 @@
-# Data source to get the latest ECR image
-data "aws_ecr_image" "helloworld_agent_latest" {
-  repository_name = data.terraform_remote_state.base.outputs.helloworld_agent_ecr_repository_name
-  most_recent     = true
-}
-
 data "kubernetes_ingress_v1" "helloworld_server" {
   metadata {
     name = local.helloworld_agent_name
@@ -75,7 +69,7 @@ resource "kubernetes_deployment_v1" "helloworld_agent_server" {
       spec {
         container {
           name  = local.helloworld_agent_name
-          image = local.helloworld_agent_image
+          image = var.helloworld_agent_image
 
           port {
             container_port = local.helloworld_agent_port

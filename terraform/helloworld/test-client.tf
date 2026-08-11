@@ -1,9 +1,3 @@
-# Data source to get the latest test-client ECR image
-data "aws_ecr_image" "test_client_latest" {
-  repository_name = data.terraform_remote_state.base.outputs.test_client_ecr_repository_name
-  most_recent     = true
-}
-
 data "kubernetes_ingress_v1" "test_client" {
   metadata {
     name = local.test_client_name
@@ -97,7 +91,7 @@ resource "kubernetes_deployment_v1" "test_client" {
 
         container {
           name  = local.test_client_name
-          image = local.test_client_image
+          image = var.test_client_image
 
           port {
             container_port = local.test_client_port

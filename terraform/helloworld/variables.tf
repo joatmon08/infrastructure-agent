@@ -8,6 +8,17 @@ variable "environment" {
   description = "Environment name (e.g., dev, staging, prod)"
   type        = string
   default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be dev, staging, or prod."
+  }
+}
+
+variable "inbound_cidrs_for_lbs" {
+  description = "CIDR blocks allowed to access load balancers"
+  type        = list(string)
+  default     = []
 }
 
 variable "project_name" {
@@ -86,4 +97,14 @@ variable "cpu_limit" {
   description = "CPU limit for the container"
   type        = string
   default     = "500m"
+}
+
+variable "helloworld_agent_image" {
+  type    = string
+  default = "ghcr.io/joatmon08/helloworld:latest"
+}
+
+variable "test_client_image" {
+  type    = string
+  default = "ghcr.io/joatmon08/test-client:latest"
 }
