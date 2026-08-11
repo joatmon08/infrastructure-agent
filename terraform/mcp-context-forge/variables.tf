@@ -19,7 +19,6 @@ variable "inbound_cidrs_for_lbs" {
 variable "mcp_admin_email" {
   description = "Admin email for MCP Context Forge platform administrator"
   type        = string
-  default     = "admin@example.com"
 }
 
 variable "project_name" {
@@ -37,4 +36,10 @@ variable "tfc_base_workspace" {
 variable "tfc_organization" {
   description = "TFC organization name"
   type        = string
+}
+
+variable "kubernetes_namespace" {
+  description = "Namespace to deploy MCP Context Forge"
+  type        = string
+  default     = "ai-system"
 }

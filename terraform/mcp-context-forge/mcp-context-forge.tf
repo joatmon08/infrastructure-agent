@@ -4,7 +4,7 @@
 
 resource "kubernetes_namespace_v1" "ai_system" {
   metadata {
-    name = "ai-system"
+    name = var.kubernetes_namespace
   }
 }
 
