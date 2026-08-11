@@ -71,5 +71,5 @@ variable "redis_image" {
 variable "mcp_context_forge_image" {
   description = "Container image for MCP Context Forge"
   type        = string
-  default     = "ghcr.io/ibm/mcp-context-forge:v1.0.6"
+  default     = "ghcr.io/ibm/mcp-context-forge:v1.0.7"
 }

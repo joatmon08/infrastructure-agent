@@ -121,6 +121,7 @@ resource "kubernetes_config_map_v1" "app" {
 
     # ── Feature toggles ───────────────────────────────────────────────
     PROTOCOL_VERSION                     = "2025-06-18"
+    SSO_ENABLED                          = "false"
     MCPGATEWAY_UI_ENABLED                = "true"
     MCPGATEWAY_UI_AIRGAPPED              = "false"
     MCPGATEWAY_ADMIN_API_ENABLED         = "true"
