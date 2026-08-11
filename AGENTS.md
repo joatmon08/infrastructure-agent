@@ -10,11 +10,41 @@ This is a Terraform infrastructure repository that deploys an AWS EKS-based plat
 
 Workspaces must be deployed in this order due to state dependencies:
 
-1. **`txc-base`** (`terraform/base`) — VPC, EKS cluster, ECR repositories, KMS keys, EKS add-ons
-2. **`txc-kubernetes`** (`terraform/kubernetes`) — Vault Helm release, ingresses, EFS, TLS, Vault Secrets Operator; depends on `txc-base`
-3. **`txc-vault`** (`terraform/vault`) — Vault auth methods, OIDC provider, identity secrets engine, custom plugin; depends on `txc-base`, `txc-kubernetes`
-4. **`txc-helloworld`** (`terraform/helloworld`) — Agent application deployments; depends on `txc-base`, `txc-kubernetes`, `txc-vault`
-5. **`txc-mcp-context-forge`** (`terraform/mcp-context-forge`) — MCP Context Forge gateway, PostgreSQL, Redis in the `ai-system` namespace; depends on `txc-base`
+1. **`txc-base`** (`terraform/base`) — VPC, EKS cluster (AMD64 managed node group), ECR repositories, KMS keys, EKS add-ons (CoreDNS, kube-proxy, vpc-cni, EBS CSI driver, EFS CSI driver), AWS Load Balancer Controller
+2. **`txc-kubernetes`** (`terraform/kubernetes`) — Vault Helm release, ALB ingresses for `helloworld-agent-server` and `test-client`, EFS file system and Kubernetes Job for Vault plugin loading, KMS key for Vault auto-unseal, TLS, Vault Secrets Operator; depends on `txc-base`
+3. **`txc-vault`** (`terraform/vault`) — Vault auth methods, OIDC provider, identity secrets engine, custom `vault-plugin-secrets-oauth-token-exchange` plugin; depends on `txc-base`, `txc-kubernetes`
+4. **`txc-helloworld`** (`terraform/helloworld`) — `helloworld-agent-server` and `test-client` Kubernetes deployments/services, Vault Secrets Operator CRDs (`VaultAuth`, `VaultDynamicSecret`) for secret injection; depends on `txc-base`, `txc-kubernetes`, `txc-vault`
+5. **`txc-mcp-context-forge`** (`terraform/mcp-context-forge`) — MCP Context Forge gateway, PostgreSQL 17, Redis in the `ai-system` namespace; depends on `txc-base`
+
+## Required Workspace Variables
+
+### `txc-kubernetes`
+
+| Variable | Type | Required | Description |
+|---|---|---|---|
+| `tfc_organization` | string | yes | HCP Terraform organization name |
+| `inbound_cidrs_for_lbs` | list(string) HCL | no | CIDR blocks for load balancer access |
+
+### `txc-vault`
+
+| Variable | Type | Required | Description |
+|---|---|---|---|
+| `tfc_organization` | string | yes | HCP Terraform organization name |
+| `vault_token` | string (sensitive) | yes | Vault root token from initialization |
+| `client_agents` | map HCL | yes | Map of client agents with `k8s_namespace` and `claims` |
+
+### `txc-helloworld`
+
+| Variable | Type | Required | Description |
+|---|---|---|---|
+| `tfc_organization` | string | yes | HCP Terraform organization name |
+
+### `txc-mcp-context-forge`
+
+| Variable | Type | Required | Description |
+|---|---|---|---|
+| `tfc_organization` | string | yes | HCP Terraform organization name |
+| `mcp_admin_email` | string | no | Admin email (default: `admin@example.com`) |
 
 ## Vault Initialization
 
@@ -26,6 +56,17 @@ bash scripts/vault-init.sh
 ```
 
 This stores unseal keys and the root token in `secrets/vault-init.json` and registers the custom OAuth token-exchange plugin. The `vault_token` workspace variable in `txc-kubernetes` and `txc-vault` must be updated with the root token after initialization.
+
+## GitHub Actions Workflows
+
+Two workflows in `.github/workflows/` build and push container images to GitHub Container Registry (GHCR). They are triggered by Git tags and `workflow_dispatch`.
+
+| Workflow | Trigger tag | Image pushed |
+|---|---|---|
+| `build-helloworld.yml` | `helloworld-v*` | `ghcr.io/<owner>/helloworld` |
+| `build-test-client.yml` | `testclient-v*` | `ghcr.io/<owner>/test-client` |
+
+The `txc-helloworld` workspace defaults to pulling `ghcr.io/joatmon08/helloworld:latest` and `ghcr.io/joatmon08/test-client:latest`. Override `helloworld_agent_image` and `test_client_image` workspace variables to pin a specific tag.
 
 ## Terraform CLI
 
@@ -54,9 +95,18 @@ After the `txc-vault` workspace applies successfully, run the end-to-end tests t
 source secrets.env && uv run pytest
 ```
 
-The tests require `KUBERNETES_CONTEXT`, `VAULT_ADDR`, and `VAULT_TOKEN` to be set in `secrets.env`. They cover:
+`secrets.env` must export:
 
-- **`kubernetes` mark** — GPU node presence, Vault server pods (3 replicas), Vault agent injector, and Vault Secrets Operator are all `Running`
+| Variable | Description |
+|---|---|
+| `KUBERNETES_CONTEXT` | `kubectl` context name for the EKS cluster |
+| `VAULT_ADDR` | Vault server URL |
+| `VAULT_TOKEN` | Vault root token |
+| `VAULT_SKIP_VERIFY` | Set to a non-empty value to skip TLS verification |
+
+The tests cover:
+
+- **`kubernetes` mark** — Vault server pods (3 replicas), Vault agent injector, and Vault Secrets Operator are all `Running`
 - **`vault` mark** — Vault is initialized, unsealed, and the `vault-plugin-secrets-oauth-token-exchange` plugin is registered
 
 ## Import Blocks

@@ -19,25 +19,25 @@ Log into HCP Terraform.
 
 This project requires **five workspaces** to be created in HCP Terraform under the `txc-2026-agent-identity` project:
 
-1. **`txc-base`** - Deploys base AWS infrastructure (EKS cluster, ECR repositories, VPC, KMS)
+1. **`txc-base`** - Deploys base AWS infrastructure (VPC, EKS cluster with AMD64 managed node group, ECR repositories, KMS keys, EKS add-ons, AWS Load Balancer Controller)
    - Working Directory: `terraform/base`
-   - Shares state with: `txc-kubernetes`, `txc-vault`, `txc-helloworld`
+   - Shares state with: `txc-kubernetes`, `txc-vault`, `txc-helloworld`, `txc-mcp-context-forge`
 
-2. **`txc-kubernetes`** - Deploys Kubernetes resources and Vault OIDC configuration
+2. **`txc-kubernetes`** - Deploys Vault Helm release, ALB ingresses, EFS-backed Vault plugin loader, KMS auto-unseal, TLS, and Vault Secrets Operator
    - Working Directory: `terraform/kubernetes`
    - Shares state with: `txc-vault`, `txc-helloworld`
    - Depends on: `txc-base`
 
-3. **`txc-vault`** - Configures Vault authentication and authorization
+3. **`txc-vault`** - Configures Vault authentication, OIDC provider, identity secrets engine, and the custom `vault-plugin-secrets-oauth-token-exchange` plugin
    - Working Directory: `terraform/vault`
    - Shares state with: `txc-helloworld`
    - Depends on: `txc-base`, `txc-kubernetes`
 
-4. **`txc-helloworld`** - Deploys the agent applications
+4. **`txc-helloworld`** - Deploys `helloworld-agent-server` and `test-client` workloads with Vault Secrets Operator CRDs for secret injection
    - Working Directory: `terraform/helloworld`
    - Depends on: `txc-base`, `txc-kubernetes`, `txc-vault`
 
-5. **`txc-mcp-context-forge`** - Deploys MCP Context Forge gateway, PostgreSQL, Redis
+5. **`txc-mcp-context-forge`** - Deploys MCP Context Forge gateway, PostgreSQL 17, and Redis in the `ai-system` namespace
    - Working Directory: `terraform/mcp-context-forge`
    - Depends on: `txc-base`
 
@@ -67,7 +67,7 @@ This project requires **five workspaces** to be created in HCP Terraform under t
 To deploy the VPC, Kubernetes cluster, AWS KMS, and add-ons,
 create the following in HCP Terraform.
 
-The base workspace also provisions a GPU EKS managed node group. The GPU node group uses an EC2 launch template so the EKS worker node security group from the Kubernetes module is attached to GPU instances, allowing outbound connectivity through the expected node networking path.
+The base workspace provisions an AMD64 EKS managed node group (`AL2023_x86_64_STANDARD`) and installs the AWS Load Balancer Controller via Helm, along with the EBS and EFS CSI drivers.
 
 - Create a workspace called `txc-base`.
 
@@ -83,6 +83,7 @@ The base workspace also provisions a GPU EKS managed node group. The GPU node gr
     - `txc-kubernetes`
     - `txc-vault`
     - `txc-helloworld`
+    - `txc-mcp-context-forge`
 
 - Go to "Version Control".
 
@@ -134,6 +135,7 @@ load balancers to the Kubernetes cluster, create the following in HCP Terraform.
 - Go to "Variables".
 
 - Add the following workspace variables:
+    - `tfc_organization` - Your Terraform Cloud organization name
     - `vault_token` (sensitive) - The Vault root token from the initialization step
     - `inbound_cidrs_for_lbs` (HCL) - List of CIDR blocks allowed to access load balancers (can override with `["0.0.0.0/0"]`)
 
@@ -219,10 +221,22 @@ MCP Context Forge is deployed as native Kubernetes resources via Terraform in th
 `ai-system` namespace and includes PostgreSQL 17, Redis, and the gateway itself
 exposed via an AWS ALB ingress.
 
+Create the `txc-mcp-context-forge` workspace and add the following variables:
+
+- `tfc_organization` - Your Terraform Cloud organization name
+- `mcp_admin_email` (optional) - Admin email address (defaults to `admin@example.com`)
+- `inbound_cidrs_for_lbs` (HCL, optional) - CIDR blocks for ALB access (defaults to `["0.0.0.0/0"]`)
+
 Apply the workspace after `txc-base` is deployed:
 
 ```bash
 tfctl run start txc-mcp-context-forge --message="Deploy MCP Context Forge - Approved with IBM Bob"
+```
+
+Once applied, retrieve the gateway URL:
+
+```bash
+tfctl workspace output txc-mcp-context-forge mcp_context_forge_url
 ```
 
 ## Agent2Agent with Vault as OIDC provider
@@ -242,13 +256,23 @@ The configuration also creates services on Kubernetes for `test-client` and `hel
 
 ### Build the agent images
 
-Build the images for the helloworld agents. They deploy images to AWS ECR.
+Agent images are built and pushed to GitHub Container Registry (GHCR) via GitHub Actions workflows in `.github/workflows/`:
 
-- Run `build-helloworld.sh` to automatically build and push to the account ECR repositories.
+| Workflow | Git tag trigger | Image |
+|---|---|---|
+| `build-helloworld.yml` | `helloworld-v*` | `ghcr.io/joatmon08/helloworld` |
+| `build-test-client.yml` | `testclient-v*` | `ghcr.io/joatmon08/test-client` |
 
-    ```bash
-    bash build-helloworld.sh
-    ```
+Push a tag to trigger a build:
+
+```bash
+git tag helloworld-v1.0.0 && git push origin helloworld-v1.0.0
+git tag testclient-v1.0.0  && git push origin testclient-v1.0.0
+```
+
+Both workflows can also be triggered manually via `workflow_dispatch` in the GitHub Actions UI.
+
+The `txc-helloworld` workspace defaults to `ghcr.io/joatmon08/helloworld:latest` and `ghcr.io/joatmon08/test-client:latest`. Override `helloworld_agent_image` or `test_client_image` workspace variables to pin a specific tag.
 
 ### Deploy the agents to Kubernetes
 
