@@ -14,7 +14,7 @@ resource "kubernetes_namespace_v1" "ai_system" {
 
 resource "kubernetes_config_map_v1" "identity" {
   metadata {
-    name      = "mcp-context-forge-identity"
+    name      = "${local.mcp_context_forge_app_name}-identity"
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
   }
 
@@ -30,7 +30,7 @@ resource "kubernetes_config_map_v1" "identity" {
 
 resource "kubernetes_config_map_v1" "app" {
   metadata {
-    name      = "mcp-context-forge"
+    name      = local.mcp_context_forge_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
   }
 
@@ -270,7 +270,7 @@ resource "kubernetes_config_map_v1" "app" {
 
 resource "kubernetes_persistent_volume_claim_v1" "postgres" {
   metadata {
-    name      = "mcp-postgres-data"
+    name      = "${local.postgres_app_name}-data"
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
   }
 
@@ -288,10 +288,10 @@ resource "kubernetes_persistent_volume_claim_v1" "postgres" {
 
 resource "kubernetes_deployment_v1" "postgres" {
   metadata {
-    name      = "mcp-postgres"
+    name      = local.postgres_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
     labels = {
-      app = "mcp-postgres"
+      app = local.postgres_app_name
     }
   }
 
@@ -300,7 +300,7 @@ resource "kubernetes_deployment_v1" "postgres" {
 
     selector {
       match_labels = {
-        app = "mcp-postgres"
+        app = local.postgres_app_name
       }
     }
 
@@ -311,7 +311,7 @@ resource "kubernetes_deployment_v1" "postgres" {
     template {
       metadata {
         labels = {
-          app = "mcp-postgres"
+          app = local.postgres_app_name
         }
       }
 
@@ -323,7 +323,7 @@ resource "kubernetes_deployment_v1" "postgres" {
 
         container {
           name  = "postgres"
-          image = "postgres:17"
+          image = var.postgres_image
 
           port {
             container_port = 5432
@@ -335,6 +335,11 @@ resource "kubernetes_deployment_v1" "postgres" {
             secret_ref {
               name = kubernetes_manifest.vault_secret_mcp_postgres.manifest.spec.destination.name
             }
+          }
+
+          env {
+            name  = "PGDATA"
+            value = "/var/lib/postgresql/data/pgdata"
           }
 
           volume_mount {
@@ -398,10 +403,10 @@ resource "kubernetes_deployment_v1" "postgres" {
 
 resource "kubernetes_service_v1" "postgres" {
   metadata {
-    name      = "mcp-postgres"
+    name      = local.postgres_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
     labels = {
-      app = "mcp-postgres"
+      app = local.postgres_app_name
     }
   }
 
@@ -416,7 +421,7 @@ resource "kubernetes_service_v1" "postgres" {
     }
 
     selector = {
-      app = "mcp-postgres"
+      app = local.postgres_app_name
     }
   }
 }
@@ -427,10 +432,10 @@ resource "kubernetes_service_v1" "postgres" {
 
 resource "kubernetes_deployment_v1" "redis" {
   metadata {
-    name      = "mcp-redis"
+    name      = local.redis_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
     labels = {
-      app = "mcp-redis"
+      app = local.redis_app_name
     }
   }
 
@@ -439,21 +444,21 @@ resource "kubernetes_deployment_v1" "redis" {
 
     selector {
       match_labels = {
-        app = "mcp-redis"
+        app = local.redis_app_name
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "mcp-redis"
+          app = local.redis_app_name
         }
       }
 
       spec {
         container {
           name  = "redis"
-          image = "redis:7-alpine"
+          image = var.redis_image
 
           port {
             container_port = 6379
@@ -510,10 +515,10 @@ resource "kubernetes_deployment_v1" "redis" {
 
 resource "kubernetes_service_v1" "redis" {
   metadata {
-    name      = "mcp-redis"
+    name      = local.redis_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
     labels = {
-      app = "mcp-redis"
+      app = local.redis_app_name
     }
   }
 
@@ -528,7 +533,7 @@ resource "kubernetes_service_v1" "redis" {
     }
 
     selector = {
-      app = "mcp-redis"
+      app = local.redis_app_name
     }
   }
 }
@@ -539,10 +544,10 @@ resource "kubernetes_service_v1" "redis" {
 
 resource "kubernetes_deployment_v1" "mcp_context_forge" {
   metadata {
-    name      = "mcp-context-forge"
+    name      = local.mcp_context_forge_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
     labels = {
-      app = "mcp-context-forge"
+      app = local.mcp_context_forge_app_name
     }
   }
 
@@ -551,14 +556,14 @@ resource "kubernetes_deployment_v1" "mcp_context_forge" {
 
     selector {
       match_labels = {
-        app = "mcp-context-forge"
+        app = local.mcp_context_forge_app_name
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "mcp-context-forge"
+          app = local.mcp_context_forge_app_name
         }
       }
 
@@ -566,8 +571,8 @@ resource "kubernetes_deployment_v1" "mcp_context_forge" {
         service_account_name = kubernetes_service_account_v1.mcp_context_forge.metadata[0].name
 
         container {
-          name  = "mcp-context-forge"
-          image = "ghcr.io/ibm/mcp-context-forge:v1.0.6"
+          name  = local.mcp_context_forge_app_name
+          image = var.mcp_context_forge_image
 
           port {
             container_port = 4444
@@ -668,10 +673,10 @@ resource "kubernetes_deployment_v1" "mcp_context_forge" {
 
 resource "kubernetes_service_v1" "mcp_context_forge" {
   metadata {
-    name      = "mcp-context-forge"
+    name      = local.mcp_context_forge_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
     labels = {
-      app = "mcp-context-forge"
+      app = local.mcp_context_forge_app_name
     }
   }
 
@@ -686,14 +691,14 @@ resource "kubernetes_service_v1" "mcp_context_forge" {
     }
 
     selector = {
-      app = "mcp-context-forge"
+      app = local.mcp_context_forge_app_name
     }
   }
 }
 
 resource "kubernetes_ingress_v1" "mcp_context_forge" {
   metadata {
-    name      = "mcp-context-forge"
+    name      = local.mcp_context_forge_app_name
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
     annotations = {
       "alb.ingress.kubernetes.io/scheme"                       = "internet-facing"
@@ -707,7 +712,7 @@ resource "kubernetes_ingress_v1" "mcp_context_forge" {
       "alb.ingress.kubernetes.io/healthcheck-timeout-seconds"  = "5"
     }
     labels = {
-      app = "mcp-context-forge"
+      app = local.mcp_context_forge_app_name
     }
   }
 

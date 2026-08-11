@@ -55,3 +55,21 @@ variable "vault_token" {
   type        = string
   sensitive   = true
 }
+
+variable "postgres_image" {
+  description = "Container image for PostgreSQL"
+  type        = string
+  default     = "postgres:17"
+}
+
+variable "redis_image" {
+  description = "Container image for Redis"
+  type        = string
+  default     = "redis:7-alpine"
+}
+
+variable "mcp_context_forge_image" {
+  description = "Container image for MCP Context Forge"
+  type        = string
+  default     = "ghcr.io/ibm/mcp-context-forge:v1.0.6"
+}
