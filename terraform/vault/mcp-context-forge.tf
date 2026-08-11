@@ -23,6 +23,16 @@ ephemeral "random_password" "mcp_admin_password" {
   special = true
 }
 
+ephemeral "random_password" "mcp_default_user_password" {
+  length  = 32
+  special = true
+}
+
+ephemeral "random_password" "mcp_basic_auth_password" {
+  length  = 32
+  special = true
+}
+
 ephemeral "random_password" "mcp_jwt_secret_key" {
   length  = 64
   special = false
@@ -51,12 +61,12 @@ resource "vault_kv_secret_v2" "mcp_app" {
 
   data_json_wo = jsonencode({
     PLATFORM_ADMIN_PASSWORD = ephemeral.random_password.mcp_admin_password.result
-    DEFAULT_USER_PASSWORD   = ephemeral.random_password.mcp_admin_password.result
-    BASIC_AUTH_PASSWORD     = ephemeral.random_password.mcp_admin_password.result
+    DEFAULT_USER_PASSWORD   = ephemeral.random_password.mcp_default_user_password.result
+    BASIC_AUTH_PASSWORD     = ephemeral.random_password.mcp_basic_auth_password.result
     JWT_SECRET_KEY          = ephemeral.random_password.mcp_jwt_secret_key.result
     AUTH_ENCRYPTION_SECRET  = ephemeral.random_password.mcp_auth_encryption_secret.result
   })
-  data_json_wo_version = 2
+  data_json_wo_version = 3
 }
 
 resource "vault_kv_secret_v2" "mcp_database_url" {
