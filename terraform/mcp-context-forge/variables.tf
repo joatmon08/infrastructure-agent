@@ -31,7 +31,7 @@ variable "project_name" {
 variable "tfc_base_workspace" {
   description = "TFC base workspace name"
   type        = string
-  default     = "base"
+  default     = "txc-base"
 }
 
 variable "tfc_organization" {

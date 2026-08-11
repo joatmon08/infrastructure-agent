@@ -6,13 +6,13 @@ variable "tfc_organization" {
 variable "tfc_base_workspace" {
   type        = string
   description = "TFC base workspace name"
-  default     = "base"
+  default     = "txc-base"
 }
 
 variable "tfc_kubernetes_workspace" {
   type        = string
   description = "TFC kubernetes workspace name"
-  default     = "kubernetes"
+  default     = "txc-kubernetes"
 }
 
 variable "vault_token" {

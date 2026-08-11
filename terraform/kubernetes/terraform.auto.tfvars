@@ -1,4 +1,3 @@
-tfc_organization = "rosemary-production"
 vault_plugins = [
   {
     name   = "vault-plugin-secrets-oauth-token-exchange"

@@ -55,6 +55,12 @@ variable "inbound_cidrs_for_kubernetes" {
   default     = ["0.0.0.0/0"]
 }
 
+variable "tfc_organization" {
+  type        = string
+  description = "TFC organization name"
+  default     = null
+}
+
 variable "node_group_min_size" {
   description = "Minimum size of node group"
   type        = number

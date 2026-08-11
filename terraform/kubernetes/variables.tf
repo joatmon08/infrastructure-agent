@@ -30,25 +30,25 @@ variable "tfc_organization" {
 variable "tfc_base_workspace" {
   type        = string
   description = "TFC base workspace name"
-  default     = "base"
+  default     = "txc-base"
 }
 
 variable "vault_version" {
   type        = string
   description = "Version of Vault"
-  default     = "1.21"
+  default     = "2.0.3"
 }
 
 variable "vault_helm_chart_version" {
   description = "Version of the HashiCorp Vault Helm chart to use"
   type        = string
-  default     = "0.32.0"
+  default     = "0.34.0"
 }
 
 variable "vault_secrets_operator_version" {
   description = "Version of the Vault Secrets Operator Helm chart to use"
   type        = string
-  default     = "1.4.0"
+  default     = "1.5.0"
 }
 
 variable "kubernetes_namespace_vault" {
