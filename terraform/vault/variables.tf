@@ -15,6 +15,12 @@ variable "tfc_kubernetes_workspace" {
   default     = "txc-kubernetes"
 }
 
+variable "aws_region" {
+  description = "AWS region where resources will be created"
+  type        = string
+  default     = "us-east-1"
+}
+
 variable "environment" {
   description = "Environment name (e.g., dev, staging, prod)"
   type        = string
@@ -24,6 +30,18 @@ variable "environment" {
     condition     = contains(["dev", "staging", "prod"], var.environment)
     error_message = "Environment must be dev, staging, or prod."
   }
+}
+
+variable "inbound_cidrs_for_lbs" {
+  description = "CIDR blocks allowed to access load balancers"
+  type        = list(string)
+  default     = []
+}
+
+variable "project_name" {
+  description = "Project name used for resource naming and tagging"
+  type        = string
+  default     = "infrastructure-agent"
 }
 
 variable "vault_token" {

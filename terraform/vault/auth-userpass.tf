@@ -23,23 +23,20 @@ resource "vault_kv_secret_v2" "end_user_password" {
     username = local.end_user
     password = ephemeral.random_password.end_user.result
   })
+  data_json_wo_version = 1
 }
 
-data "vault_kv_secret_v2" "end_user_password" {
-  mount = vault_kv_secret_v2.end_user_password.mount
-  name  = vault_kv_secret_v2.end_user_password.name
-}
+ephemeral "vault_generic_endpoint" "end_user" {
+  path = "auth/${vault_auth_backend.userpass.path}/users/${local.end_user}"
+  data_json = jsonencode({
+    token_policies = [vault_policy.agent_oidc_authorize.name]
+    token_ttl      = "1h"
+    password       = ephemeral.random_password.end_user.result
+  })
 
-resource "vault_generic_endpoint" "end_user" {
-  path                 = "auth/${vault_auth_backend.userpass.path}/users/${local.end_user}"
-  ignore_absent_fields = true
-  data_json            = <<EOT
-{
-  "token_policies": ["${vault_policy.agent_oidc_authorize.name}"],
-  "token_ttl": "1h",
-  "password": "${data.vault_kv_secret_v2.end_user_password.data.password}"
-}
-EOT
+  depends_on = [
+    vault_kv_secret_v2.end_user_password
+  ]
 }
 
 resource "vault_identity_entity" "end_user" {
