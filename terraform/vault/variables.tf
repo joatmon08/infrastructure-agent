@@ -15,6 +15,17 @@ variable "tfc_kubernetes_workspace" {
   default     = "txc-kubernetes"
 }
 
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod)"
+  type        = string
+  default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be dev, staging, or prod."
+  }
+}
+
 variable "vault_token" {
   type        = string
   description = "Vault token"
