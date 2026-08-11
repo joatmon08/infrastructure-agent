@@ -182,7 +182,7 @@ and register the custom secrets engine, create the following in HCP Terraform.
 - Go to "Variables".
 
 - Add the following workspace variables:
-    - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
+    - `tfc_organization` - Your Terraform Cloud organization name
     - `vault_token` (sensitive) - Copy the Vault root token from `secrets/vault-init.json`.
     - `client_agents` (HCL) - Map of client agents with their Kubernetes namespace and claims
 
@@ -269,7 +269,7 @@ Build the images for the helloworld agents. They deploy images to AWS ECR.
 - Go to "Variables".
 
 - Add the following workspace variable:
-    - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
+    - `tfc_organization` - Your Terraform Cloud organization name
 
 Note: Most variables have defaults in `terraform.auto.tfvars` and can be overridden if needed.
 
