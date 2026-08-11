@@ -9,188 +9,18 @@ resource "kubernetes_namespace_v1" "ai_system" {
 }
 
 ########################################################################
-# Generated credentials
+# ConfigMap — non-sensitive admin identity variables
 ########################################################################
 
-resource "random_password" "mcp_admin_password" {
-  length  = 16
-  special = false
-}
-
-resource "random_password" "mcp_jwt_secret_key" {
-  length  = 64
-  special = false
-}
-
-resource "random_password" "mcp_auth_encryption_secret" {
-  length  = 32
-  special = false
-}
-
-resource "random_password" "mcp_postgres_password" {
-  length  = 16
-  special = false
-}
-
-########################################################################
-# Kubernetes Secrets
-########################################################################
-
-resource "kubernetes_secret_v1" "postgres" {
+resource "kubernetes_config_map_v1" "identity" {
   metadata {
-    name      = "mcp-postgres"
+    name      = "mcp-context-forge-identity"
     namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
   }
 
   data = {
-    POSTGRES_USER     = "mcpuser"
-    POSTGRES_PASSWORD = random_password.mcp_postgres_password.result
-    POSTGRES_DB       = "postgresdb"
-  }
-}
-
-resource "kubernetes_secret_v1" "app" {
-  metadata {
-    name      = "mcp-context-forge"
-    namespace = kubernetes_namespace_v1.ai_system.metadata[0].name
-  }
-
-  data = {
-    # ── Admin & auth ──────────────────────────────────────────────────
     PLATFORM_ADMIN_EMAIL     = var.mcp_admin_email
-    PLATFORM_ADMIN_PASSWORD  = random_password.mcp_admin_password.result
     PLATFORM_ADMIN_FULL_NAME = "Platform Administrator"
-    DEFAULT_USER_PASSWORD    = random_password.mcp_admin_password.result
-
-    JWT_SECRET_KEY           = random_password.mcp_jwt_secret_key.result
-    JWT_ALGORITHM            = "HS256"
-    JWT_AUDIENCE             = "mcpgateway-api"
-    JWT_ISSUER               = "mcpgateway"
-    TOKEN_EXPIRY             = "1440"
-    REQUIRE_TOKEN_EXPIRATION = "true"
-    REQUIRE_JTI              = "true"
-    REQUIRE_USER_IN_DB       = "false"
-
-    AUTH_ENCRYPTION_SECRET       = random_password.mcp_auth_encryption_secret.result
-    AUTH_REQUIRED                = "true"
-    MCP_REQUIRE_AUTH             = "true"
-    ALLOW_UNAUTHENTICATED_ADMIN  = "false"
-    TRUST_PROXY_AUTH_DANGEROUSLY = "false"
-    PUBLIC_REGISTRATION_ENABLED  = "false"
-
-    BASIC_AUTH_USER      = "admin"
-    BASIC_AUTH_PASSWORD  = random_password.mcp_admin_password.result
-    API_ALLOW_BASIC_AUTH = "false"
-
-    # ── Email-based auth ──────────────────────────────────────────────
-    EMAIL_AUTH_ENABLED = "true"
-    PROTECT_ALL_ADMINS = "true"
-    SMTP_ENABLED       = "false"
-
-    # ── Password policy (relaxed for dev/demo) ────────────────────────
-    REQUIRE_STRONG_SECRETS                       = "false"
-    PASSWORD_MIN_LENGTH                          = "8"
-    MIN_PASSWORD_LENGTH                          = "8"
-    MIN_SECRET_LENGTH                            = "16"
-    PASSWORD_REQUIRE_UPPERCASE                   = "false"
-    PASSWORD_REQUIRE_LOWERCASE                   = "false"
-    PASSWORD_REQUIRE_NUMBERS                     = "false"
-    PASSWORD_REQUIRE_SPECIAL                     = "false"
-    PASSWORD_POLICY_ENABLED                      = "false"
-    PASSWORD_CHANGE_ENFORCEMENT_ENABLED          = "false"
-    ADMIN_REQUIRE_PASSWORD_CHANGE_ON_BOOTSTRAP   = "false"
-    DETECT_DEFAULT_PASSWORD_ON_LOGIN             = "false"
-    REQUIRE_PASSWORD_CHANGE_FOR_DEFAULT_PASSWORD = "false"
-    PASSWORD_PREVENT_REUSE                       = "false"
-    PASSWORD_MAX_AGE_DAYS                        = "0"
-    MAX_FAILED_LOGIN_ATTEMPTS                    = "10"
-    ACCOUNT_LOCKOUT_DURATION_MINUTES             = "5"
-    FAILED_LOGIN_MIN_RESPONSE_MS                 = "250"
-    ACCOUNT_LOCKOUT_NOTIFICATION_ENABLED         = "false"
-    PASSWORD_RESET_ENABLED                       = "true"
-    PASSWORD_RESET_TOKEN_EXPIRY_MINUTES          = "60"
-    PASSWORD_RESET_RATE_LIMIT                    = "5"
-    PASSWORD_RESET_RATE_WINDOW_MINUTES           = "15"
-    PASSWORD_RESET_INVALIDATE_SESSIONS           = "true"
-    PASSWORD_RESET_MIN_RESPONSE_MS               = "250"
-
-    # ── Argon2id (password hashing) ───────────────────────────────────
-    ARGON2ID_TIME_COST   = "3"
-    ARGON2ID_MEMORY_COST = "65536"
-    ARGON2ID_PARALLELISM = "1"
-
-    # ── MCP client auth ───────────────────────────────────────────────
-    MCP_CLIENT_AUTH_ENABLED = "true"
-    TRUST_PROXY_AUTH        = "false"
-    PROXY_USER_HEADER       = "X-Authenticated-User"
-
-    # ── API token tracking ────────────────────────────────────────────
-    TOKEN_USAGE_LOGGING_ENABLED             = "true"
-    TOKEN_LAST_USED_UPDATE_INTERVAL_MINUTES = "5"
-
-    # ── SSRF blocklists (always enforced) ────────────────────────────
-    SSRF_BLOCKED_NETWORKS = jsonencode(["169.254.169.254/32", "169.254.169.123/32", "fd00::1/128", "169.254.0.0/16", "fe80::/10"])
-    SSRF_BLOCKED_HOSTS    = jsonencode(["metadata.google.internal", "metadata.internal"])
-
-    # ── OAuth / DCR ───────────────────────────────────────────────────
-    OAUTH_REQUEST_TIMEOUT                      = "30"
-    OAUTH_MAX_RETRIES                          = "3"
-    DCR_ENABLED                                = "true"
-    DCR_AUTO_REGISTER_ON_MISSING_CREDENTIALS   = "true"
-    DCR_DEFAULT_SCOPES                         = jsonencode(["mcp:read"])
-    DCR_ALLOWED_ISSUERS                        = "[]"
-    DCR_TOKEN_ENDPOINT_AUTH_METHOD             = "client_secret_basic"
-    DCR_METADATA_CACHE_TTL                     = "3600"
-    DCR_CLIENT_NAME_TEMPLATE                   = "ContextForge ({gateway_name})"
-    DCR_REQUEST_REFRESH_TOKEN_WHEN_UNSUPPORTED = "false"
-    OAUTH_DISCOVERY_ENABLED                    = "true"
-    OAUTH_PREFERRED_CODE_CHALLENGE_METHOD      = "S256"
-
-    # ── JWT advanced ──────────────────────────────────────────────────
-    JWT_AUDIENCE_VERIFICATION   = "true"
-    JWT_ISSUER_VERIFICATION     = "true"
-    JWT_PRIVATE_KEY_PATH        = ""
-    JWT_PUBLIC_KEY_PATH         = ""
-    EMBED_ENVIRONMENT_IN_TOKENS = "false"
-    VALIDATE_TOKEN_ENVIRONMENT  = "false"
-
-    # ── SSO (all disabled) ────────────────────────────────────────────
-    SSO_ENABLED            = "false"
-    SSO_GITHUB_ENABLED     = "false"
-    SSO_GOOGLE_ENABLED     = "false"
-    SSO_IBM_VERIFY_ENABLED = "false"
-    SSO_OKTA_ENABLED       = "false"
-    SSO_KEYCLOAK_ENABLED   = "false"
-    SSO_ENTRA_ENABLED      = "false"
-    SSO_GENERIC_ENABLED    = "false"
-    SSO_ADFS_ENABLED       = "false"
-
-    # ── Default roles ─────────────────────────────────────────────────
-    DEFAULT_ADMIN_ROLE       = "platform_admin"
-    DEFAULT_USER_ROLE        = "platform_viewer"
-    DEFAULT_TEAM_OWNER_ROLE  = "team_admin"
-    DEFAULT_TEAM_MEMBER_ROLE = "viewer"
-
-    # ── Personal teams ────────────────────────────────────────────────
-    AUTO_CREATE_PERSONAL_TEAMS             = "true"
-    PERSONAL_TEAM_PREFIX                   = ""
-    MAX_TEAMS_PER_USER                     = "50"
-    MAX_MEMBERS_PER_TEAM                   = "100"
-    INVITATION_EXPIRY_DAYS                 = "7"
-    REQUIRE_EMAIL_VERIFICATION_FOR_INVITES = "true"
-    ALLOW_TEAM_CREATION                    = "true"
-    ALLOW_TEAM_JOIN_REQUESTS               = "true"
-    ALLOW_TEAM_INVITATIONS                 = "true"
-
-    # ── Ed25519 (disabled) ────────────────────────────────────────────
-    ENABLE_ED25519_SIGNING = "false"
-
-    # ── Docs ──────────────────────────────────────────────────────────
-    DOCS_ALLOW_BASIC_AUTH = "false"
-
-    # ── Bootstrap roles ───────────────────────────────────────────────
-    MCPGATEWAY_BOOTSTRAP_ROLES_IN_DB_ENABLED = "false"
-    MCPGATEWAY_BOOTSTRAP_ROLES_IN_DB_FILE    = "additional_roles_in_db.json"
   }
 }
 
@@ -498,7 +328,7 @@ resource "kubernetes_deployment_v1" "postgres" {
 
           env_from {
             secret_ref {
-              name = kubernetes_secret_v1.postgres.metadata[0].name
+              name = kubernetes_manifest.vault_secret_mcp_postgres.manifest.spec.destination.name
             }
           }
 
@@ -728,6 +558,8 @@ resource "kubernetes_deployment_v1" "mcp_context_forge" {
       }
 
       spec {
+        service_account_name = kubernetes_service_account_v1.mcp_context_forge.metadata[0].name
+
         container {
           name  = "mcp-context-forge"
           image = "ghcr.io/ibm/mcp-context-forge:v1.0.6"
@@ -740,19 +572,30 @@ resource "kubernetes_deployment_v1" "mcp_context_forge" {
 
           env_from {
             config_map_ref {
+              name = kubernetes_config_map_v1.identity.metadata[0].name
+            }
+          }
+
+          env_from {
+            config_map_ref {
               name = kubernetes_config_map_v1.app.metadata[0].name
             }
           }
 
           env_from {
             secret_ref {
-              name = kubernetes_secret_v1.app.metadata[0].name
+              name = kubernetes_manifest.vault_secret_mcp_app.manifest.spec.destination.name
             }
           }
 
           env {
-            name  = "DATABASE_URL"
-            value = "postgresql+psycopg://${kubernetes_secret_v1.postgres.data["POSTGRES_USER"]}:${random_password.mcp_postgres_password.result}@${kubernetes_service_v1.postgres.metadata[0].name}:5432/${kubernetes_secret_v1.postgres.data["POSTGRES_DB"]}"
+            name = "DATABASE_URL"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_manifest.vault_secret_mcp_database_url.manifest.spec.destination.name
+                key  = "DATABASE_URL"
+              }
+            }
           }
 
           env {
@@ -812,6 +655,9 @@ resource "kubernetes_deployment_v1" "mcp_context_forge" {
   depends_on = [
     kubernetes_deployment_v1.postgres,
     kubernetes_deployment_v1.redis,
+    kubernetes_manifest.vault_secret_mcp_postgres,
+    kubernetes_manifest.vault_secret_mcp_app,
+    kubernetes_manifest.vault_secret_mcp_database_url,
   ]
 }
 

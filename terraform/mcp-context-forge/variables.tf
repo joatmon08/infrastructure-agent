@@ -43,3 +43,15 @@ variable "kubernetes_namespace" {
   type        = string
   default     = "ai-system"
 }
+
+variable "tfc_kubernetes_workspace" {
+  description = "TFC kubernetes workspace name"
+  type        = string
+  default     = "txc-kubernetes"
+}
+
+variable "vault_token" {
+  description = "Vault root token"
+  type        = string
+  sensitive   = true
+}
