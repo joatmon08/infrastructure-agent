@@ -3,7 +3,7 @@
 This example repository includes demo code for:
 
 - Agents using [Agent2Agent protocol](https://a2a-protocol.org/latest/) and [HashiCorp Vault](https://developer.hashicorp.com/vault/docs/secrets/identity/oidc-provider) as an OIDC provider on Kubernetes
-- [LangFlow](https://www.langflow.org/), OpenSearch, Ollama (with Granite 4), and [MCP Context Forge](https://github.com/IBM/mcp-context-forge) deployed on AWS EKS
+- [MCP Context Forge](https://github.com/IBM/mcp-context-forge) deployed on AWS EKS
 
 ## Prerequisites
 
@@ -17,29 +17,33 @@ Log into HCP Terraform.
 
 #### Overview of Required Workspaces
 
-This project requires **four workspaces** to be created in HCP Terraform under the `infrastructure-agent` project:
+This project requires **five workspaces** to be created in HCP Terraform under the `txc-2026-agent-identity` project:
 
-1. **`base`** - Deploys base AWS infrastructure (EKS cluster, ECR repositories, VPC, KMS)
+1. **`txc-base`** - Deploys base AWS infrastructure (EKS cluster, ECR repositories, VPC, KMS)
    - Working Directory: `terraform/base`
-   - Shares state with: `kubernetes`, `vault`, `helloworld`
+   - Shares state with: `txc-kubernetes`, `txc-vault`, `txc-helloworld`
 
-2. **`kubernetes`** - Deploys Kubernetes resources and Vault OIDC configuration
+2. **`txc-kubernetes`** - Deploys Kubernetes resources and Vault OIDC configuration
    - Working Directory: `terraform/kubernetes`
-   - Shares state with: `vault`, `helloworld`
-   - Depends on: `base`
+   - Shares state with: `txc-vault`, `txc-helloworld`
+   - Depends on: `txc-base`
 
-3. **`vault`** - Configures Vault authentication and authorization
+3. **`txc-vault`** - Configures Vault authentication and authorization
    - Working Directory: `terraform/vault`
-   - Shares state with: `helloworld`
-   - Depends on: `base`, `kubernetes`
+   - Shares state with: `txc-helloworld`
+   - Depends on: `txc-base`, `txc-kubernetes`
 
-4. **`helloworld`** - Deploys the agent applications
+4. **`txc-helloworld`** - Deploys the agent applications
    - Working Directory: `terraform/helloworld`
-   - Depends on: `base`, `kubernetes`, `vault`
+   - Depends on: `txc-base`, `txc-kubernetes`, `txc-vault`
+
+5. **`txc-mcp-context-forge`** - Deploys MCP Context Forge gateway, PostgreSQL, Redis
+   - Working Directory: `terraform/mcp-context-forge`
+   - Depends on: `txc-base`
 
 #### Create Project
 
-- Create a new project called `infrastructure-agent`. It groups the workspaces related to this repository.
+- Create a new project called `txc-2026-agent-identity`. It groups the workspaces related to this repository.
 
 #### Configure Organization Variables
 
@@ -49,7 +53,7 @@ This project requires **four workspaces** to be created in HCP Terraform under t
 
 - Create an organization variable set.
 
-- Apply to the `infrastructure-agent` project (or all workspaces).
+- Apply to the `txc-2026-agent-identity` project (or all workspaces).
 
 - Add the following variables:
     - `aws_region`
@@ -65,9 +69,9 @@ create the following in HCP Terraform.
 
 The base workspace also provisions a GPU EKS managed node group. The GPU node group uses an EC2 launch template so the EKS worker node security group from the Kubernetes module is attached to GPU instances, allowing outbound connectivity through the expected node networking path.
 
-- Create a workspace called `base`.
+- Create a workspace called `txc-base`.
 
-- Set the project to `infrastructure-agent`.
+- Set the project to `txc-2026-agent-identity`.
 
 - Go to "Settings".
 
@@ -76,9 +80,9 @@ The base workspace also provisions a GPU EKS managed node group. The GPU node gr
 - Select "Share with specific workspaces".
 
 - Add the following workspaces:
-    - `kubernetes`
-    - `vault`
-    - `helloworld`
+    - `txc-kubernetes`
+    - `txc-vault`
+    - `txc-helloworld`
 
 - Go to "Version Control".
 
@@ -94,16 +98,16 @@ The base workspace also provisions a GPU EKS managed node group. The GPU node gr
 
 Run a plan and apply.
 
-If you need to adopt pre-existing AWS resources into the `base` workspace state, add temporary `import` blocks in [`terraform/base/imports.tf`](terraform/base/imports.tf) and run a plan/apply once to complete the import. Remove those `import` blocks immediately after the import succeeds. Leaving them in place can cause later runs to attempt resource creation before the imported state is available, which is especially problematic for pre-existing CloudWatch log groups such as `/aws/vpc/infra-agent` and `/aws/eks/infra-agent/cluster`.
+If you need to adopt pre-existing AWS resources into the `base` workspace state, add temporary `import` blocks in [`terraform/base/imports.tf`](terraform/base/imports.tf) and run a plan/apply once to complete the import. Remove those `import` blocks immediately after the import succeeds. Leaving them in place can cause later runs to attempt resource creation before the imported state is available, which is especially problematic for pre-existing CloudWatch log groups such as `/aws/vpc/txc-ai` and `/aws/eks/txc-ai/cluster`.
 
 ### Deploy components onto Kubernetes
 
 To deploy the Vault cluster, ingress endpoints, and
 load balancers to the Kubernetes cluster, create the following in HCP Terraform.
 
-- Create a workspace called `kubernetes`.
+- Create a workspace called `txc-kubernetes`.
 
-- Set the project to `infrastructure-agent`.
+- Set the project to `txc-2026-agent-identity`.
 
 - Go to "Settings".
 
@@ -112,8 +116,8 @@ load balancers to the Kubernetes cluster, create the following in HCP Terraform.
 - Select "Share with specific workspaces".
 
 - Add the following workspaces:
-    - `vault`
-    - `helloworld`
+    - `txc-vault`
+    - `txc-helloworld`
 
 - Go to "Version Control".
 
@@ -139,7 +143,7 @@ Run a plan and apply.
 
 Vault needs to be initialized before you configure it.
 
-- Configure `kubectl` to use the EKS cluster with `aws eks update-kubeconfig --region us-east-1 --name infra-agent`.
+- Configure `kubectl` to use the EKS cluster with `aws eks update-kubeconfig --region us-east-1 --name txc-ai`.
 
 - Run `bash scripts/vault-init.sh`
 
@@ -150,9 +154,9 @@ This should store the Vault root token and unseal keys in `secrets/vault-init.js
 To configure the Vault cluster as an OIDC provider, identity secrets engine,
 and register the custom secrets engine, create the following in HCP Terraform.
 
-- Create a workspace called `vault`.
+- Create a workspace called `txc-vault`.
 
-- Set the project to `infrastructure-agent`.
+- Set the project to `txc-2026-agent-identity`.
 
 - Go to "Settings".
 
@@ -161,7 +165,7 @@ and register the custom secrets engine, create the following in HCP Terraform.
 - Select "Share with specific workspaces".
 
 - Add the following workspace:
-    - `helloworld`
+    - `txc-helloworld`
 
 - Go to "Version Control".
 
@@ -209,14 +213,14 @@ The test suite has two mark groups:
 ## MCP Context Forge
 
 MCP Context Forge is deployed as native Kubernetes resources via Terraform in the
-`mcp-context-forge` workspace (`terraform/mcp-context-forge/`). It runs in the
+`txc-mcp-context-forge` workspace (`terraform/mcp-context-forge/`). It runs in the
 `ai-system` namespace and includes PostgreSQL 17, Redis, and the gateway itself
 exposed via an AWS ALB ingress.
 
-Apply the workspace after `base` is deployed:
+Apply the workspace after `txc-base` is deployed:
 
 ```bash
-tfctl run start mcp-context-forge --message="Deploy MCP Context Forge - Approved with IBM Bob"
+tfctl run start txc-mcp-context-forge --message="Deploy MCP Context Forge - Approved with IBM Bob"
 ```
 
 ## Agent2Agent with Vault as OIDC provider
@@ -246,9 +250,9 @@ Build the images for the helloworld agents. They deploy images to AWS ECR.
 
 ### Deploy the agents to Kubernetes
 
-- Create a workspace called `helloworld`.
+- Create a workspace called `txc-helloworld`.
 
-- Set the project to `infrastructure-agent`.
+- Set the project to `txc-2026-agent-identity`.
 
 - Go to "Version Control".
 
@@ -380,50 +384,3 @@ for accessing the wrong agent server.
 Note that if you want to have nested delegation (e.g., `second-client` calls on behalf of `test-client`),
 you can use the delegated access token from `test-client` as the subject token for `second-client`'s request.
 This generates a new delegated access token for `second-client` on behalf of `test-client`.
-
-## RAG + SLM
-
-This demo also includes an example of using RAG with a small language model (SLM).
-
-- Ollama + Granite
-- OpenSearch
-- LangFlow
-
-### Build the agent images
-
-Build the images for langflow and Ollama. Deploy images to AWS ECR.
-
-- Run `build-langflow.sh` to automatically build and push to the account ECR repositories.
-
-    ```bash
-    bash build-langflow.sh
-    ```
-
-### Deploy the components to Kubernetes
-
-- Create a workspace called `rag`.
-
-- Set the project to `infrastructure-agent`.
-
-- Go to "Version Control".
-
-- Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
-
-- Update "Terraform Working Directory" to `terraform/rag`.
-
-- Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
-
-- Update the "Syntax" to "Patterns".
-
-- Add the pattern `terraform/rag/**/*`.
-
-- Go to "Variables".
-
-- Add the following workspace variable:
-    - `tfc_organization` - Your Terraform Cloud organization name (e.g., `rosemary-production`)
-
-Note: Most variables have defaults in `terraform.auto.tfvars` and can be overridden if needed.
-
-Run a plan and apply.
-
-This will deploy Ollama, Langflow, and OpenSearch, with Ollama on a GPU-backed instance.
