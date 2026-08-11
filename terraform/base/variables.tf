@@ -76,7 +76,7 @@ variable "node_group_max_size" {
 variable "node_group_desired_size" {
   description = "Desired size of node group"
   type        = number
-  default     = 3
+  default     = 4
 }
 
 variable "node_group_instance_types" {
