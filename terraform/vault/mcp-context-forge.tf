@@ -19,8 +19,8 @@ ephemeral "random_password" "mcp_postgres_password" {
 }
 
 ephemeral "random_password" "mcp_admin_password" {
-  length  = 16
-  special = false
+  length  = 32
+  special = true
 }
 
 ephemeral "random_password" "mcp_jwt_secret_key" {
@@ -56,7 +56,7 @@ resource "vault_kv_secret_v2" "mcp_app" {
     JWT_SECRET_KEY          = ephemeral.random_password.mcp_jwt_secret_key.result
     AUTH_ENCRYPTION_SECRET  = ephemeral.random_password.mcp_auth_encryption_secret.result
   })
-  data_json_wo_version = 1
+  data_json_wo_version = 2
 }
 
 resource "vault_kv_secret_v2" "mcp_database_url" {
