@@ -657,6 +657,16 @@ resource "kubernetes_deployment_v1" "mcp_context_forge" {
               drop = ["ALL"]
             }
           }
+
+          volume_mount {
+            name       = "tmp-volume"
+            mount_path = "/tmp"
+          }
+        }
+
+        volume {
+          name = "tmp-volume"
+          empty_dir {}
         }
       }
     }
