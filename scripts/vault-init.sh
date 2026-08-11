@@ -7,10 +7,6 @@ export VAULT_ADDR=$(cd terraform/kubernetes && terraform output -raw vault_endpo
 export VAULT_TOKEN=$(cat secrets/vault-init.json | jq -r .root_token)
 export VAULT_SKIP_VERIFY=true
 
-echo 'export VAULT_ADDR=$(cd terraform/kubernetes && terraform output -raw vault_endpoint)
-export VAULT_TOKEN=$(cat secrets/vault-init.json | jq -r .root_token)
-export VAULT_SKIP_VERIFY=true' > secrets.env
-
 vault audit enable file file_path=stdout
 
 SHA256=$(kubectl exec -n vault vault-0 -- sha256sum /vault/plugins/vault-plugin-secrets-oauth-token-exchange | cut -d ' ' -f1)   
