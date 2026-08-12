@@ -189,6 +189,16 @@ and register the custom secrets engine, create the following in HCP Terraform.
     - `tfc_organization` - Your Terraform Cloud organization name
     - `vault_token` (sensitive) - Copy the Vault root token from `secrets/vault-init.json`.
     - `client_agents` (HCL) - Map of client agents with their Kubernetes namespace and claims
+    - `mcp_context_forge_jwt_secret` (sensitive) - JWT signing secret for MCP Context Forge (≥32 bytes)
+    - `mcp_context_forge_auth_encryption_secret` (sensitive) - Encryption secret for stored credentials (≥32 bytes)
+
+Generate both secrets before applying:
+
+```bash
+python3 -c 'import secrets; print(secrets.token_urlsafe(32))'
+```
+
+Run the command twice — once for each variable. Each value must be unique.
 
 Run a plan and apply.
 
@@ -224,6 +234,7 @@ exposed via an AWS ALB ingress.
 Create the `txc-mcp-context-forge` workspace and add the following variables:
 
 - `tfc_organization` - Your Terraform Cloud organization name
+- `vault_token` (sensitive) - Vault root token from initialization
 - `mcp_admin_email` (optional) - Admin email address (defaults to `admin@example.com`)
 - `inbound_cidrs_for_lbs` (HCL, optional) - CIDR blocks for ALB access (defaults to `["0.0.0.0/0"]`)
 
@@ -237,6 +248,27 @@ Once applied, retrieve the gateway URL:
 
 ```bash
 tfctl workspace output txc-mcp-context-forge mcp_context_forge_url
+```
+
+### Vault secrets for MCP Context Forge
+
+The Terraform deployment explicitly disables SSO with `SSO_ENABLED=false`, so the admin UI should use the local email/password sign-in flow backed by Vault-managed credentials.
+
+The `txc-vault` workspace generates and stores all MCP Context Forge credentials in Vault KV v2 under the `mcp-context-forge/` mount. These are synced to Kubernetes by the Vault Secrets Operator in the `ai-system` namespace.
+
+| Vault path | Kubernetes secret | Contents |
+|---|---|---|
+| `mcp-context-forge/data/postgres` | `mcp-postgres` | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` |
+| `mcp-context-forge/data/app` | `mcp-context-forge` | `PLATFORM_ADMIN_PASSWORD`, `DEFAULT_USER_PASSWORD`, `BASIC_AUTH_PASSWORD`, `JWT_SECRET_KEY`, `AUTH_ENCRYPTION_SECRET` |
+| `mcp-context-forge/data/database-url` | `mcp-database-url` | `DATABASE_URL` |
+
+`PLATFORM_ADMIN_PASSWORD`, `DEFAULT_USER_PASSWORD`, and `BASIC_AUTH_PASSWORD` are generated as separate Vault values.
+
+Retrieve the admin password after deployment:
+
+```bash
+source secrets.env
+vault kv get -field=PLATFORM_ADMIN_PASSWORD mcp-context-forge/app
 ```
 
 ## Agent2Agent with Vault as OIDC provider
@@ -327,7 +359,7 @@ and clients that can act on behalf of `end-user`.
 Use the "Login" button, which redirects you
 to Vault as an OIDC provider.
 
-Log into Vault using the `end-user` username and password.
+Log into Vault using the `end-user` username and password. The credentials are stored in Vault KV v2 at `credentials/data/end-user`:
 
 ```shell
 source secrets.env
