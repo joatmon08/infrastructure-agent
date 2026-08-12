@@ -1,16 +1,13 @@
-resource "kubernetes_namespace_v1" "summarizer" {
+data "kubernetes_namespace_v1" "summarizer" {
   metadata {
-    name = local.summarizer_namespace
-    labels = {
-      app = local.summarizer_agent_name
-    }
+    name = data.terraform_remote_state.kubernetes.outputs.summarizer_namespace
   }
 }
 
 resource "kubernetes_service_account_v1" "summarizer_client" {
   metadata {
     name      = local.summarizer_client
-    namespace = kubernetes_namespace_v1.summarizer.metadata[0].name
+    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
     labels = {
       app = local.summarizer_client
     }
@@ -20,14 +17,14 @@ resource "kubernetes_service_account_v1" "summarizer_client" {
 data "kubernetes_ingress_v1" "summarizer_agent" {
   metadata {
     name      = local.summarizer_agent_name
-    namespace = kubernetes_namespace_v1.summarizer.metadata[0].name
+    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
   }
 }
 
 resource "kubernetes_config_map_v1" "summarizer_agent" {
   metadata {
     name      = local.summarizer_agent_name
-    namespace = kubernetes_namespace_v1.summarizer.metadata[0].name
+    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
   }
 
   data = {
@@ -41,7 +38,7 @@ resource "kubernetes_config_map_v1" "summarizer_agent" {
 resource "kubernetes_service_v1" "summarizer_agent" {
   metadata {
     name      = local.summarizer_agent_name
-    namespace = kubernetes_namespace_v1.summarizer.metadata[0].name
+    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
     labels = {
       app = local.summarizer_agent_name
     }
@@ -66,7 +63,7 @@ resource "kubernetes_service_v1" "summarizer_agent" {
 resource "kubernetes_ingress_v1" "summarizer_agent" {
   metadata {
     name      = local.summarizer_agent_name
-    namespace = kubernetes_namespace_v1.summarizer.metadata[0].name
+    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
     annotations = {
       "kubernetes.io/ingress.class"                = "alb"
       "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
@@ -98,7 +95,7 @@ resource "kubernetes_ingress_v1" "summarizer_agent" {
 resource "kubernetes_deployment_v1" "summarizer_agent" {
   metadata {
     name      = local.summarizer_agent_name
-    namespace = kubernetes_namespace_v1.summarizer.metadata[0].name
+    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
     labels = {
       app = local.summarizer_agent_name
     }

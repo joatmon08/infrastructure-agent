@@ -38,6 +38,12 @@ variable "tfc_vault_workspace" {
   default     = "txc-vault"
 }
 
+variable "tfc_kubernetes_workspace" {
+  type        = string
+  description = "TFC Kubernetes workspace name"
+  default     = "txc-kubernetes"
+}
+
 variable "summarizer_agent_image" {
   type        = string
   description = "Container image for the summarizer agent"
