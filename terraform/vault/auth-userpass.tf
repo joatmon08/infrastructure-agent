@@ -23,7 +23,7 @@ resource "vault_kv_secret_v2" "end_user_password" {
     username = local.end_user
     password = ephemeral.random_password.end_user.result
   })
-  data_json_wo_version = 1
+  data_json_wo_version = 2
 }
 
 ephemeral "vault_generic_endpoint" "end_user" {
