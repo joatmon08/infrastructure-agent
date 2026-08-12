@@ -4,13 +4,17 @@ client_agents = {
     "claims" = {
       "scope" : "helloworld:read"
     }
-
   }
   "second-client" = {
     "k8s_namespace" = "default",
     "claims" = {
       "scope" : "helloworld:write"
     }
-
+  }
+  "summarizer-client" = {
+    "k8s_namespace" = "summarizer",
+    "claims" = {
+      "scope" : "summarizer:summarize"
+    }
   }
 }
