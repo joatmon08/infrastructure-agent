@@ -47,7 +47,7 @@ variable "tfc_kubernetes_workspace" {
 variable "summarizer_agent_image" {
   type        = string
   description = "Container image for the summarizer agent"
-  default     = "ghcr.io/joatmon08/summarizer:sha-4556db9"
+  default     = "ghcr.io/joatmon08/summarizer:sha-59769f6"
 }
 
 variable "inbound_cidrs_for_lbs" {
