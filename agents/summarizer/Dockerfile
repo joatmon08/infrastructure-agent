@@ -42,6 +42,8 @@ USER nonroot
 # Use `/app` as the working directory
 WORKDIR /app
 
+# Expose default port (change if needed)
 EXPOSE 9999
 
+# Run the agent
 CMD ["python", "__main__.py"]
