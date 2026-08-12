@@ -1,0 +1,14 @@
+[project]
+name = "summarizer"
+version = "0.1.0"
+description = "Summarizer agent that returns a one-sentence summary of any text using Ollama."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "a2a-sdk[http-server]>=0.3.22",
+    "httpx>=0.28.1",
+    "hvac>=2.4.0",
+    "pyjwt>=2.11.0",
+    "starlette>=0.52.1",
+    "uvicorn>=0.40.0",
+]
