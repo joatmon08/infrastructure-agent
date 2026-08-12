@@ -62,3 +62,8 @@ output "summarizer_namespace" {
   description = "Kubernetes namespace for the summarizer agent"
   value       = kubernetes_namespace_v1.summarizer.metadata[0].name
 }
+
+output "summarizer_agent_url" {
+  description = "URL to access the summarizer agent"
+  value       = length(kubernetes_ingress_v1.summarizer_agent.status) > 0 && length(kubernetes_ingress_v1.summarizer_agent.status[0].load_balancer) > 0 && length(kubernetes_ingress_v1.summarizer_agent.status[0].load_balancer[0].ingress) > 0 ? "http://${kubernetes_ingress_v1.summarizer_agent.status[0].load_balancer[0].ingress[0].hostname}" : "pending"
+}
