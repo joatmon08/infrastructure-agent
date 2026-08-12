@@ -30,7 +30,7 @@ ephemeral "random_password" "mcp_default_user_password" {
 
 ephemeral "random_password" "mcp_basic_auth_password" {
   length  = 24
-  special = true
+  special = false
 }
 
 resource "vault_kv_secret_v2" "mcp_postgres" {
@@ -42,7 +42,7 @@ resource "vault_kv_secret_v2" "mcp_postgres" {
     POSTGRES_PASSWORD = ephemeral.random_password.mcp_postgres_password.result
     POSTGRES_DB       = "postgresdb"
   })
-  data_json_wo_version = 1
+  data_json_wo_version = 2
 }
 
 resource "vault_kv_secret_v2" "mcp_app" {
@@ -57,7 +57,7 @@ resource "vault_kv_secret_v2" "mcp_app" {
     AUTH_ENCRYPTION_SECRET  = var.mcp_context_forge_auth_encryption_secret
   })
 
-  data_json_wo_version = 4
+  data_json_wo_version = 5
 }
 
 resource "vault_kv_secret_v2" "mcp_database_url" {
@@ -67,7 +67,7 @@ resource "vault_kv_secret_v2" "mcp_database_url" {
   data_json_wo = jsonencode({
     DATABASE_URL = "postgresql+psycopg://mcpuser:${ephemeral.random_password.mcp_postgres_password.result}@mcp-postgres.ai-system:5432/postgresdb"
   })
-  data_json_wo_version = 1
+  data_json_wo_version = 2
 }
 
 ########################################################################
