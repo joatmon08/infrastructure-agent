@@ -72,3 +72,9 @@ variable "vault_plugins" {
   }))
   default = []
 }
+
+variable "kubernetes_namespace_summarizer" {
+  type        = string
+  description = "Kubernetes namespace for the summarizer agent"
+  default     = "summarizer"
+}
