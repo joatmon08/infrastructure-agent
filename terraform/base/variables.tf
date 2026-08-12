@@ -91,3 +91,39 @@ variable "aws_load_balancer_controller_helm_chart_version" {
   default     = "3.5.0"
 }
 
+
+variable "gpu_instance_types" {
+  description = "Instance types for the GPU node group"
+  type        = list(string)
+  default     = ["g4dn.xlarge"]
+}
+
+variable "gpu_capacity_type" {
+  description = "Capacity type for GPU node group (ON_DEMAND or SPOT)"
+  type        = string
+  default     = "ON_DEMAND"
+}
+
+variable "gpu_desired_size" {
+  description = "Desired number of GPU nodes"
+  type        = number
+  default     = 1
+}
+
+variable "gpu_max_size" {
+  description = "Maximum number of GPU nodes"
+  type        = number
+  default     = 2
+}
+
+variable "gpu_min_size" {
+  description = "Minimum number of GPU nodes"
+  type        = number
+  default     = 1
+}
+
+variable "gpu_enable_taints" {
+  description = "Whether to taint GPU nodes with nvidia.com/gpu=true:NoSchedule"
+  type        = bool
+  default     = true
+}
