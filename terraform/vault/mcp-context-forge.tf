@@ -19,28 +19,33 @@ ephemeral "random_password" "mcp_postgres_password" {
 }
 
 ephemeral "random_password" "mcp_admin_password" {
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
+  override_special = "!$*-?"
 }
 
 ephemeral "random_password" "mcp_default_user_password" {
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
+  override_special = "!$*-?"
 }
 
 ephemeral "random_password" "mcp_basic_auth_password" {
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
+  override_special = "!$*-?"
 }
 
 ephemeral "random_password" "mcp_jwt_secret_key" {
-  length  = 64
-  special = false
+  length           = 64
+  special          = false
+  override_special = "!$*-?"
 }
 
 ephemeral "random_password" "mcp_auth_encryption_secret" {
-  length  = 32
-  special = false
+  length           = 32
+  special          = false
+  override_special = "!$*-?"
 }
 
 resource "vault_kv_secret_v2" "mcp_postgres" {
