@@ -14,13 +14,6 @@ resource "kubernetes_service_account_v1" "summarizer_client" {
   }
 }
 
-data "kubernetes_ingress_v1" "summarizer_agent" {
-  metadata {
-    name      = local.summarizer_agent_name
-    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
-  }
-}
-
 resource "kubernetes_config_map_v1" "summarizer_agent" {
   metadata {
     name      = local.summarizer_agent_name
@@ -28,7 +21,7 @@ resource "kubernetes_config_map_v1" "summarizer_agent" {
   }
 
   data = {
-    AGENT_URL          = "http://${data.kubernetes_ingress_v1.summarizer_agent.status[0].load_balancer[0].ingress[0].hostname}"
+    AGENT_URL          = data.terraform_remote_state.kubernetes.outputs.summarizer_agent_url
     OPENID_CONNECT_URL = data.terraform_remote_state.vault.outputs.token_exchange_openid_configuration_endpoint
     OLLAMA_URL         = "http://ollama.ollama.svc.cluster.local:11434"
     OLLAMA_MODEL       = var.ollama_model
@@ -56,38 +49,6 @@ resource "kubernetes_service_v1" "summarizer_agent" {
 
     selector = {
       app = local.summarizer_agent_name
-    }
-  }
-}
-
-resource "kubernetes_ingress_v1" "summarizer_agent" {
-  metadata {
-    name      = local.summarizer_agent_name
-    namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
-    annotations = {
-      "kubernetes.io/ingress.class"                = "alb"
-      "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
-      "alb.ingress.kubernetes.io/target-type"      = "ip"
-      "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
-    }
-  }
-
-  spec {
-    rule {
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = kubernetes_service_v1.summarizer_agent.metadata[0].name
-              port {
-                number = local.summarizer_agent_port
-              }
-            }
-          }
-        }
-      }
     }
   }
 }
