@@ -4,13 +4,10 @@ data "kubernetes_namespace_v1" "summarizer" {
   }
 }
 
-resource "kubernetes_service_account_v1" "summarizer_client" {
+data "kubernetes_service_account_v1" "summarizer_client" {
   metadata {
     name      = local.summarizer_client
     namespace = data.kubernetes_namespace_v1.summarizer.metadata[0].name
-    labels = {
-      app = local.summarizer_client
-    }
   }
 }
 
@@ -79,7 +76,7 @@ resource "kubernetes_deployment_v1" "summarizer_agent" {
       }
 
       spec {
-        service_account_name = kubernetes_service_account_v1.summarizer_client.metadata[0].name
+        service_account_name = data.kubernetes_service_account_v1.summarizer_client.metadata[0].name
 
         volume {
           name = "actor-token"
