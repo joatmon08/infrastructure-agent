@@ -19,33 +19,18 @@ ephemeral "random_password" "mcp_postgres_password" {
 }
 
 ephemeral "random_password" "mcp_admin_password" {
-  length           = 32
-  special          = true
-  override_special = "!$*-?"
+  length  = 24
+  special = false
 }
 
 ephemeral "random_password" "mcp_default_user_password" {
-  length           = 32
-  special          = true
-  override_special = "!$*-?"
+  length  = 24
+  special = false
 }
 
 ephemeral "random_password" "mcp_basic_auth_password" {
-  length           = 32
-  special          = true
-  override_special = "!$*-?"
-}
-
-ephemeral "random_password" "mcp_jwt_secret_key" {
-  length           = 64
-  special          = false
-  override_special = "!$*-?"
-}
-
-ephemeral "random_password" "mcp_auth_encryption_secret" {
-  length           = 32
-  special          = false
-  override_special = "!$*-?"
+  length  = 24
+  special = true
 }
 
 resource "vault_kv_secret_v2" "mcp_postgres" {
@@ -68,10 +53,11 @@ resource "vault_kv_secret_v2" "mcp_app" {
     PLATFORM_ADMIN_PASSWORD = ephemeral.random_password.mcp_admin_password.result
     DEFAULT_USER_PASSWORD   = ephemeral.random_password.mcp_default_user_password.result
     BASIC_AUTH_PASSWORD     = ephemeral.random_password.mcp_basic_auth_password.result
-    JWT_SECRET_KEY          = ephemeral.random_password.mcp_jwt_secret_key.result
-    AUTH_ENCRYPTION_SECRET  = ephemeral.random_password.mcp_auth_encryption_secret.result
+    JWT_SECRET_KEY          = var.mcp_context_forge_jwt_secret
+    AUTH_ENCRYPTION_SECRET  = var.mcp_context_forge_auth_encryption_secret
   })
-  data_json_wo_version = 3
+
+  data_json_wo_version = 4
 }
 
 resource "vault_kv_secret_v2" "mcp_database_url" {
