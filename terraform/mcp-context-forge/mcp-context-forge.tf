@@ -147,6 +147,9 @@ resource "kubernetes_config_map_v1" "app" {
     DEFAULT_ROOTS                        = "[]"
     ALLOWED_ROOTS                        = "[]"
 
+    EMAIL_AUTH_ENABLED                  = "true"
+    PASSWORD_CHANGE_ENFORCEMENT_ENABLED = "false"
+
     # ── SSRF protection ───────────────────────────────────────────────
     SSRF_PROTECTION_ENABLED     = "true"
     SSRF_ALLOW_LOCALHOST        = "false"
@@ -155,7 +158,7 @@ resource "kubernetes_config_map_v1" "app" {
     SSRF_DNS_FAIL_CLOSED        = "true"
 
     # ── Security & CORS ───────────────────────────────────────────────
-    ENVIRONMENT            = "production"
+    ENVIRONMENT            = "development"
     CORS_ENABLED           = "true"
     CORS_ALLOW_CREDENTIALS = "true"
     SKIP_SSL_VERIFY        = "false"
