@@ -57,3 +57,8 @@ output "vault_iam_role_name" {
   description = "IAM role name for the Vault service account"
   value       = aws_iam_role.vault.name
 }
+
+output "summarizer_namespace" {
+  description = "Kubernetes namespace for the summarizer agent"
+  value       = kubernetes_namespace_v1.summarizer.metadata[0].name
+}
