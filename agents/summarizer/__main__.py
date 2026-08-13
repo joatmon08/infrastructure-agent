@@ -27,34 +27,39 @@ logger = logging.getLogger(__name__)
 AGENT_URL = os.getenv("AGENT_URL", "http://localhost:9999")
 AGENT_HOST = os.getenv("AGENT_HOST", "127.0.0.1")
 AGENT_PORT = int(os.getenv("AGENT_PORT", "9999"))
+AUTH_ENABLED = os.getenv("AUTH_ENABLED", "true").lower() == "true"
 OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
 VERIFY_TLS = os.getenv("VERIFY_TLS", "false").lower() == "true"
 
 
 def build_agent_card() -> AgentCard:
-    security_schemes = {
-        "bearer": SecurityScheme(
-            http_auth_security_scheme=HTTPAuthSecurityScheme(
-                scheme="bearer",
-                bearer_format="JWT",
-                description="OAuth 2.0 access token with 'summarizer:summarize' scope",
-            )
-        )
-    }
-    security_requirements = [
-        {"schemes": {"bearer": {"list": ["summarizer:summarize"]}}}
-    ]
+    security_schemes = None
+    security_requirements = None
 
-    if OPENID_CONNECT_URL:
-        security_schemes["oauth"] = SecurityScheme(
-            open_id_connect_security_scheme=OpenIdConnectSecurityScheme(
-                description="Vault OIDC provider",
-                open_id_connect_url=OPENID_CONNECT_URL,
+    if AUTH_ENABLED:
+        security_schemes = {
+            "bearer": SecurityScheme(
+                http_auth_security_scheme=HTTPAuthSecurityScheme(
+                    scheme="bearer",
+                    bearer_format="JWT",
+                    description="OAuth 2.0 access token with 'summarizer:summarize' scope",
+                )
             )
-        )
-        security_requirements.append(
-            {"schemes": {"oauth": {"list": ["summarizer:summarize"]}}}
-        )
+        }
+        security_requirements = [
+            {"schemes": {"bearer": {"list": ["summarizer:summarize"]}}}
+        ]
+
+        if OPENID_CONNECT_URL:
+            security_schemes["oauth"] = SecurityScheme(
+                open_id_connect_security_scheme=OpenIdConnectSecurityScheme(
+                    description="Vault OIDC provider",
+                    open_id_connect_url=OPENID_CONNECT_URL,
+                )
+            )
+            security_requirements.append(
+                {"schemes": {"oauth": {"list": ["summarizer:summarize"]}}}
+            )
 
     skill = AgentSkill(
         id="summarize_text",
@@ -85,8 +90,8 @@ def build_agent_card() -> AgentCard:
 
 
 def build_app() -> Starlette:
-    if not OPENID_CONNECT_URL:
-        raise ValueError("OPENID_CONNECT_URL environment variable must be set")
+    if AUTH_ENABLED and not OPENID_CONNECT_URL:
+        raise ValueError("OPENID_CONNECT_URL environment variable must be set when AUTH_ENABLED=true")
 
     public_agent_card = build_agent_card()
     request_handler = DefaultRequestHandler(
@@ -101,13 +106,14 @@ def build_app() -> Starlette:
             *create_jsonrpc_routes(request_handler, "/"),
         ]
     )
-    app.add_middleware(
-        AuthMiddleware,
-        agent_card=public_agent_card,
-        public_paths=["/.well-known/agent-card.json"],
-        openid_connect_url=OPENID_CONNECT_URL,
-        verify_tls=VERIFY_TLS,
-    )
+    if AUTH_ENABLED:
+        app.add_middleware(
+            AuthMiddleware,
+            agent_card=public_agent_card,
+            public_paths=["/.well-known/agent-card.json"],
+            openid_connect_url=OPENID_CONNECT_URL,
+            verify_tls=VERIFY_TLS,
+        )
     return app
 
 

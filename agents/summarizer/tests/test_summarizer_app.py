@@ -25,10 +25,14 @@ def load_main_module():
     return module
 
 
-def load_summarizer_module():
-    os.environ["OPENID_CONNECT_URL"] = (
-        "https://vault.example.com/v1/sts/.well-known/openid-configuration"
-    )
+def load_summarizer_module(auth_enabled: bool = True):
+    os.environ["AUTH_ENABLED"] = "true" if auth_enabled else "false"
+    if auth_enabled:
+        os.environ["OPENID_CONNECT_URL"] = (
+            "https://vault.example.com/v1/sts/.well-known/openid-configuration"
+        )
+    else:
+        os.environ.pop("OPENID_CONNECT_URL", None)
     os.environ["VERIFY_TLS"] = "true"
     return load_main_module()
 
@@ -114,3 +118,33 @@ def test_send_message_uses_expected_prompt_and_returns_summary():
     task = payload["result"]["task"]
     assert task["status"]["state"] == "TASK_STATE_COMPLETED"
     assert task["status"]["message"]["parts"][0]["text"] == "Short summary."
+
+
+def test_build_app_succeeds_when_auth_disabled():
+    summarizer_module = load_summarizer_module(auth_enabled=False)
+
+    app = summarizer_module.build_app()
+
+    assert app is not None
+
+
+def test_agent_card_omits_security_when_auth_disabled():
+    summarizer_module = load_summarizer_module(auth_enabled=False)
+
+    agent_card = summarizer_module.build_agent_card()
+
+    assert len(agent_card.security_schemes) == 0
+    assert len(agent_card.security_requirements) == 0
+
+
+def test_build_app_requires_openid_connect_url_when_auth_enabled():
+    os.environ["AUTH_ENABLED"] = "true"
+    os.environ.pop("OPENID_CONNECT_URL", None)
+    os.environ["VERIFY_TLS"] = "true"
+    summarizer_module = load_main_module()
+
+    try:
+        summarizer_module.build_app()
+        raise AssertionError("build_app should require OPENID_CONNECT_URL when auth is enabled")
+    except ValueError as exc:
+        assert str(exc) == "OPENID_CONNECT_URL environment variable must be set when AUTH_ENABLED=true"

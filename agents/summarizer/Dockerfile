@@ -1,8 +1,5 @@
 FROM ghcr.io/astral-sh/uv:0.10-python3.14-alpine AS builder
 
-# Copy the project into the image
-COPY . /app
-
 # Disable development dependencies
 ENV UV_NO_DEV=1
 
@@ -13,11 +10,16 @@ ENV UV_PYTHON_INSTALL_DIR=/python
 ENV UV_PYTHON_PREFERENCE=only-managed
 
 WORKDIR /app
+
+# Copy lockfiles first to leverage build caching
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using the cache mount (no bind mounts needed)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project
+
 COPY . /app
+
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
