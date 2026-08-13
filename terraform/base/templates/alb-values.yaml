@@ -14,9 +14,5 @@ defaultLoadBalancerScheme: internet-facing
 
 ingressClassParams:
   spec:
-    inboundCIDRs:
-%{ for cidr in inbound_cidrs ~}
-      - ${cidr}
-%{ endfor ~}
     subnets:
       ids: ${subnet_ids}
