@@ -118,6 +118,12 @@ After the `txc-vault` workspace applies successfully, run the end-to-end tests t
 source secrets.env && uv run pytest
 ```
 
+To run only the summarizer end-to-end checks:
+
+```bash
+source secrets.env && uv run pytest tests/test_kubernetes_e2e.py -m summarizer
+```
+
 `secrets.env` must export:
 
 | Variable | Description |
@@ -128,7 +134,7 @@ source secrets.env && uv run pytest
 | `VAULT_SKIP_VERIFY` | Set to a non-empty value to skip TLS verification |
 | `SUMMARIZER_URL` | Base URL of the deployed summarizer agent |
 
-The tests cover:
+The tests cover. The `summarizer` mark currently uses a 120 second HTTP timeout to tolerate cold model startup after preload:
 
 - **`kubernetes` mark** — Vault server pods (3 replicas), Vault agent injector, and Vault Secrets Operator are all `Running`
 - **`vault` mark** — Vault is initialized, unsealed, and the `vault-plugin-secrets-oauth-token-exchange` plugin is registered
