@@ -717,7 +717,7 @@ resource "kubernetes_ingress_v1" "mcp_context_forge" {
     annotations = {
       "alb.ingress.kubernetes.io/scheme"                       = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"                  = "ip"
-      "alb.ingress.kubernetes.io/inbound-cidrs"                = join(",", var.inbound_cidrs_for_lbs, data.terraform_remote_state.base.outputs.vpc_cidr_block)
+      "alb.ingress.kubernetes.io/inbound-cidrs"                = join(",", [for s in var.inbound_cidrs_for_lbs : s], [data.terraform_remote_state.base.outputs.vpc_cidr_block])
       "alb.ingress.kubernetes.io/load-balancer-attributes"     = "idle_timeout.timeout_seconds=1800"
       "alb.ingress.kubernetes.io/success-codes"                = "200,201,404"
       "alb.ingress.kubernetes.io/tags"                         = "Environment=${var.environment},Project=${var.project_name},ManagedBy=Terraform"

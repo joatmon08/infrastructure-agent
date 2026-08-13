@@ -12,7 +12,7 @@ resource "kubernetes_ingress_v1" "summarizer_agent" {
       "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"      = "ip"
       "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
-      "alb.ingress.kubernetes.io/inbound-cidrs"    = join(",", [for s in var.inbound_cidrs_for_lbs : s], data.terraform_remote_state.base.outputs.vpc_cidr_block)
+      "alb.ingress.kubernetes.io/inbound-cidrs"    = join(",", [for s in var.inbound_cidrs_for_lbs : s], [data.terraform_remote_state.base.outputs.vpc_cidr_block])
       "alb.ingress.kubernetes.io/success-codes"    = "200,201,404"
       "alb.ingress.kubernetes.io/tags"             = "Environment=${var.environment},Project=${var.project_name},ManagedBy=Terraform"
     }
