@@ -76,6 +76,7 @@ The summarizer agent in [`agents/summarizer`](agents/summarizer) now supports bo
 - set `AUTH_ENABLED=true` with `OPENID_CONNECT_URL` to enforce Vault-backed JWT validation
 - set `AUTH_ENABLED=false` to disable auth for local integration and testing
 - the default bind host remains `127.0.0.1`; container runtimes must explicitly override it when binding on all interfaces is required
+- after deploying Ollama for the summarizer via Terraform, preload `llama3.2:3b` with [`scripts/ollama-init.sh`](scripts/ollama-init.sh)
 
 Its smoke and request-flow tests live in [`agents/summarizer/tests/test_summarizer_app.py`](agents/summarizer/tests/test_summarizer_app.py:1).
 
@@ -111,7 +112,7 @@ tfctl run start <workspace-name> --message="<message> - Approved with IBM Bob"
 
 ## End-to-End Tests
 
-After the `txc-vault` workspace applies successfully, run the end-to-end tests to verify the cluster and Vault configuration:
+After the `txc-vault` workspace applies successfully, run the end-to-end tests to verify the cluster, Vault configuration, and deployed summarizer agent. If the summarizer depends on Ollama, preload `llama3.2:3b` first with [`scripts/ollama-init.sh`](scripts/ollama-init.sh).
 
 ```bash
 source secrets.env && uv run pytest
@@ -125,11 +126,13 @@ source secrets.env && uv run pytest
 | `VAULT_ADDR` | Vault server URL |
 | `VAULT_TOKEN` | Vault root token |
 | `VAULT_SKIP_VERIFY` | Set to a non-empty value to skip TLS verification |
+| `SUMMARIZER_URL` | Base URL of the deployed summarizer agent |
 
 The tests cover:
 
 - **`kubernetes` mark** — Vault server pods (3 replicas), Vault agent injector, and Vault Secrets Operator are all `Running`
 - **`vault` mark** — Vault is initialized, unsealed, and the `vault-plugin-secrets-oauth-token-exchange` plugin is registered
+- **`summarizer` mark** — the summarizer agent card is served and its A2A JSON-RPC endpoint returns a completed summary task
 
 ## Vault Static Secrets
 

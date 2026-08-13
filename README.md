@@ -202,9 +202,22 @@ Run the command twice — once for each variable. Each value must be unique.
 
 Run a plan and apply.
 
+If you deploy the Ollama workspace for the summarizer agent, preload the `llama3.2:3b` model after Terraform finishes:
+
+```bash
+source .doormat && bash scripts/ollama-init.sh
+```
+
 ### Verify the deployment
 
-After the `vault` workspace applies successfully, run the end-to-end tests to verify the cluster and Vault configuration:
+Before running the repository test suite, sync the root development environment and activate the virtual environment:
+
+```bash
+uv sync --group dev
+source .venv/bin/activate
+```
+
+After the `vault` workspace applies successfully, run the end-to-end tests to verify the cluster, Vault configuration, and deployed summarizer agent:
 
 ```bash
 source secrets.env && uv run pytest
@@ -218,11 +231,13 @@ source secrets.env && uv run pytest
 | `VAULT_ADDR` | Vault server URL |
 | `VAULT_TOKEN` | Vault root token |
 | `VAULT_SKIP_VERIFY` | Set to a non-empty value to skip TLS verification |
+| `SUMMARIZER_URL` | Base URL of the deployed summarizer agent |
 
-The test suite has two mark groups:
+The test suite has three mark groups:
 
 - **`kubernetes`** — asserts that the GPU node, Vault server (3 replicas), Vault agent injector, and Vault Secrets Operator pods are all `Running`
 - **`vault`** — asserts that Vault is initialized, unsealed, and the `vault-plugin-secrets-oauth-token-exchange` plugin is registered
+- **`summarizer`** — asserts that the summarizer agent card is served and its A2A JSON-RPC endpoint returns a completed summary task
 
 ## MCP Context Forge
 
