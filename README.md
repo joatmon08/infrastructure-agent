@@ -217,27 +217,40 @@ uv sync --group dev
 source .venv/bin/activate
 ```
 
-After the `vault` workspace applies successfully, run the end-to-end tests to verify the cluster, Vault configuration, and deployed summarizer agent:
+After the `vault` workspace applies successfully, run the end-to-end tests to verify the cluster, Vault configuration, and deployed summarizer agent.
+
+Before running tests, source both the environment script and the secrets file:
 
 ```bash
-source secrets.env && uv run pytest
+source scripts/export-env.sh && source secrets.env && uv run pytest
 ```
+
+[`scripts/export-env.sh`](scripts/export-env.sh) derives non-credential variables automatically from live Terraform outputs and `kubectl`. [`secrets.env`](secrets.env) supplies credentials that cannot be derived automatically.
 
 To run only the summarizer end-to-end checks:
 
 ```bash
-source secrets.env && uv run pytest tests/test_kubernetes_e2e.py -m summarizer
+source scripts/export-env.sh && source secrets.env && uv run pytest tests/test_kubernetes_e2e.py -m summarizer
 ```
 
-`secrets.env` must export the following variables:
+#### Environment variables
 
-| Variable | Description |
+`scripts/export-env.sh` sets these automatically (no manual input required):
+
+| Variable | Source |
 |---|---|
-| `KUBERNETES_CONTEXT` | `kubectl` context name for the EKS cluster |
-| `VAULT_ADDR` | Vault server URL |
-| `VAULT_TOKEN` | Vault root token |
-| `VAULT_SKIP_VERIFY` | Set to a non-empty value to skip TLS verification |
-| `SUMMARIZER_URL` | Base URL of the deployed summarizer agent |
+| `VAULT_ADDR` | `terraform output -raw vault_endpoint` in `terraform/kubernetes` |
+| `VAULT_SKIP_VERIFY` | Hard-coded `true` |
+| `KUBERNETES_CONTEXT` | `kubectl config current-context` |
+| `MCPGATEWAY_URL` | `terraform output -raw mcp_context_forge_url` in `terraform/mcp-context-forge` |
+| `SUMMARIZER_URL` | `terraform output -raw summarizer_agent_url` in `terraform/summarizer` |
+
+`secrets.env` supplies these credentials and must be configured manually:
+
+| Variable | How to obtain |
+|---|---|
+| `VAULT_TOKEN` | Read automatically from `secrets/vault-init.json` by `secrets.env` |
+| `MCPGATEWAY_BEARER_TOKEN` | **Generate manually**: log into the MCP Context Forge admin UI → go to API Tokens → create a new token → paste the value into `secrets.env` |
 
 The test suite has three mark groups. The `summarizer` checks currently use a 120 second HTTP timeout to tolerate cold model startup after preload:
 
