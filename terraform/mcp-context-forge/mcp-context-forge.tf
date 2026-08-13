@@ -151,9 +151,9 @@ resource "kubernetes_config_map_v1" "app" {
     PASSWORD_CHANGE_ENFORCEMENT_ENABLED = "false"
 
     # ── SSRF protection ───────────────────────────────────────────────
-    SSRF_PROTECTION_ENABLED     = "true"
-    SSRF_ALLOW_LOCALHOST        = "false"
-    SSRF_ALLOW_PRIVATE_NETWORKS = "false"
+    SSRF_PROTECTION_ENABLED     = "false"
+    SSRF_ALLOW_LOCALHOST        = "true"
+    SSRF_ALLOW_PRIVATE_NETWORKS = "true"
     SSRF_ALLOWED_NETWORKS       = jsonencode(["10.0.0.0/16"])
     SSRF_DNS_FAIL_CLOSED        = "true"
 
