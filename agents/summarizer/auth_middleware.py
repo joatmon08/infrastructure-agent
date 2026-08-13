@@ -113,21 +113,22 @@ class OpenIDConfig:
 
 
 def get_scopes_from_agent_card(agent_card):
-    for sec_req in agent_card.security or []:
-        if not sec_req:
+    for sec_req in agent_card.security_requirements or []:
+        if not sec_req or not sec_req.schemes:
             break
 
-        for name, scopes in sec_req.items():
-            if agent_card.security_schemes == None:
-                raise NotImplementedError(f"No security scheme defined")
+        for name, scopes in sec_req.schemes.items():
+            if agent_card.security_schemes is None:
+                raise NotImplementedError("No security scheme defined")
 
-            if agent_card.security_schemes.get(name) == None:
+            sec_scheme_wrapper = agent_card.security_schemes.get(name)
+            if sec_scheme_wrapper is None:
                 raise NotImplementedError(f"No security scheme defined for {name}")
 
-            if agent_card.security_schemes.get(name).root == None:
+            scheme_name = sec_scheme_wrapper.WhichOneof("scheme")
+            sec_scheme = getattr(sec_scheme_wrapper, scheme_name) if scheme_name else None
+            if sec_scheme is None:
                 raise NotImplementedError(f"No security scheme defined for {name}")
-
-            sec_scheme = agent_card.security_schemes.get(name).root
 
             if not isinstance(sec_scheme, HTTPAuthSecurityScheme) and not isinstance(
                 sec_scheme, OpenIdConnectSecurityScheme
@@ -136,7 +137,7 @@ def get_scopes_from_agent_card(agent_card):
                     "Only HTTPAuthSecurityScheme, OpenIdConnectSecurityScheme are supported."
                 )
 
-            return scopes
+            return list(scopes.list)
 
 class AuthMiddleware(BaseHTTPMiddleware):
     def __init__(

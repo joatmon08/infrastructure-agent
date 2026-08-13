@@ -3,49 +3,58 @@ import os
 
 import uvicorn
 
-from a2a.server.apps import A2AStarletteApplication
+from starlette.applications import Starlette
 from a2a.server.request_handlers import DefaultRequestHandler
+from a2a.server.routes import create_agent_card_routes, create_jsonrpc_routes
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import (
     AgentCapabilities,
     AgentCard,
+    AgentInterface,
+    AgentProvider,
     AgentSkill,
     HTTPAuthSecurityScheme,
     OpenIdConnectSecurityScheme,
     SecurityScheme,
 )
-from agent_executor import SummarizerAgentExecutor  # type: ignore[import-untyped]
-from auth_middleware import AuthMiddleware
+from agent_executor import SummarizerAgent, SummarizerAgentExecutor  # type: ignore[import-untyped]
+import auth_middleware
+from auth_middleware import AuthMiddleware, OpenIDConfig
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 AGENT_URL = os.getenv("AGENT_URL", "http://localhost:9999")
+AGENT_HOST = os.getenv("AGENT_HOST", "127.0.0.1")
+AGENT_PORT = int(os.getenv("AGENT_PORT", "9999"))
 OPENID_CONNECT_URL = os.getenv("OPENID_CONNECT_URL")
 VERIFY_TLS = os.getenv("VERIFY_TLS", "false").lower() == "true"
 
-if __name__ == "__main__":
+
+def build_agent_card() -> AgentCard:
     security_schemes = {
         "bearer": SecurityScheme(
-            root=HTTPAuthSecurityScheme(
-                type="http",
+            http_auth_security_scheme=HTTPAuthSecurityScheme(
                 scheme="bearer",
                 bearer_format="JWT",
                 description="OAuth 2.0 access token with 'summarizer:summarize' scope",
             )
         )
     }
-    security = [{"bearer": ["summarizer:summarize"]}]
+    security_requirements = [
+        {"schemes": {"bearer": {"list": ["summarizer:summarize"]}}}
+    ]
 
     if OPENID_CONNECT_URL:
         security_schemes["oauth"] = SecurityScheme(
-            root=OpenIdConnectSecurityScheme(
+            open_id_connect_security_scheme=OpenIdConnectSecurityScheme(
                 description="Vault OIDC provider",
-                type="openIdConnect",
                 open_id_connect_url=OPENID_CONNECT_URL,
             )
         )
-        security.append({"oauth": ["summarizer:summarize"]})
+        security_requirements.append(
+            {"schemes": {"oauth": {"list": ["summarizer:summarize"]}}}
+        )
 
     skill = AgentSkill(
         id="summarize_text",
@@ -55,35 +64,43 @@ if __name__ == "__main__":
         examples=["Summarize this article: ...", "Give me a one-sentence summary of ..."],
     )
 
-    public_agent_card = AgentCard(
+    return AgentCard(
         name="summarizer-agent",
         description="Summarizes any text into one sentence using Ollama (llama3.2:3b).",
-        url=AGENT_URL,
+        supported_interfaces=[
+            AgentInterface(
+                url=AGENT_URL,
+                protocol_binding="jsonrpc",
+            )
+        ],
+        provider=AgentProvider(url=AGENT_URL),
         version="1.0.0",
         default_input_modes=["text"],
         default_output_modes=["text"],
         capabilities=AgentCapabilities(streaming=True),
         skills=[skill],
-        supports_authenticated_extended_card=True,
         security_schemes=security_schemes,
-        security=security,
+        security_requirements=security_requirements,
     )
 
-    request_handler = DefaultRequestHandler(
-        agent_executor=SummarizerAgentExecutor(),
-        task_store=InMemoryTaskStore(),
-    )
 
-    server = A2AStarletteApplication(
-        agent_card=public_agent_card,
-        http_handler=request_handler,
-    )
-
-    app = server.build()
-
+def build_app() -> Starlette:
     if not OPENID_CONNECT_URL:
         raise ValueError("OPENID_CONNECT_URL environment variable must be set")
 
+    public_agent_card = build_agent_card()
+    request_handler = DefaultRequestHandler(
+        agent_executor=SummarizerAgentExecutor(),
+        task_store=InMemoryTaskStore(),
+        agent_card=public_agent_card,
+    )
+
+    app = Starlette(
+        routes=[
+            *create_agent_card_routes(public_agent_card),
+            *create_jsonrpc_routes(request_handler, "/"),
+        ]
+    )
     app.add_middleware(
         AuthMiddleware,
         agent_card=public_agent_card,
@@ -91,5 +108,12 @@ if __name__ == "__main__":
         openid_connect_url=OPENID_CONNECT_URL,
         verify_tls=VERIFY_TLS,
     )
+    return app
 
-    uvicorn.run(app, host="0.0.0.0", port=9999)
+
+def main() -> None:
+    uvicorn.run(build_app(), host=AGENT_HOST, port=AGENT_PORT)
+
+
+if __name__ == "__main__":
+    main()

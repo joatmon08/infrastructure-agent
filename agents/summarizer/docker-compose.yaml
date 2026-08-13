@@ -1,0 +1,41 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_MODELS: /root/.ollama
+      OLLAMA_MODEL: llama3.2:3b
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  summarizer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: summarizer
+    depends_on:
+      ollama:
+        condition: service_healthy
+    ports:
+      - "9999:9999"
+    restart: unless-stopped
+    environment:
+      AGENT_HOST: 0.0.0.0
+      AGENT_PORT: 9999
+      AGENT_URL: http://localhost:9999
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2:3b
+      OPENID_CONNECT_URL: https://vault.example.com/v1/sts/.well-known/openid-configuration
+      VERIFY_TLS: "false"
+
+volumes:
+  ollama_data: {}
