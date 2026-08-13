@@ -165,11 +165,12 @@ resource "helm_release" "aws_load_balancer_controller" {
   version    = var.aws_load_balancer_controller_helm_chart_version
 
   values = [templatefile("${path.module}/templates/alb-values.yaml", {
-    cluster_name = module.eks.cluster_name
-    region       = var.aws_region
-    vpc_id       = module.vpc.vpc_id
-    role_arn     = module.aws_load_balancer_controller_irsa.arn
-    subnet_ids   = jsonencode(module.vpc.public_subnets)
+    cluster_name  = module.eks.cluster_name
+    region        = var.aws_region
+    vpc_id        = module.vpc.vpc_id
+    role_arn      = module.aws_load_balancer_controller_irsa.arn
+    subnet_ids    = jsonencode(module.vpc.public_subnets)
+    inbound_cidrs = concat([var.vpc_cidr], var.inbound_cidrs_for_lbs)
   })]
 
   depends_on = [
