@@ -140,6 +140,16 @@ resource "kubernetes_deployment_v1" "summarizer_agent" {
             value = var.verify_openid_config_tls
           }
 
+          env {
+            name  = "AGENT_HOST"
+            value = "0.0.0.0"
+          }
+
+          env {
+            name  = "AUTH_ENABLED"
+            value = tostring(var.summarizer_agent_auth_enabled)
+          }
+
           resources {
             requests = {
               memory = var.memory_request

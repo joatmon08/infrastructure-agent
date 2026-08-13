@@ -69,6 +69,16 @@ bash scripts/vault-init.sh
 
 This stores unseal keys and the root token in `secrets/vault-init.json` and registers the custom OAuth token-exchange plugin. The `vault_token` workspace variable in `txc-kubernetes` and `txc-vault` must be updated with the root token after initialization.
 
+## Agent Development Notes
+
+The summarizer agent in [`agents/summarizer`](agents/summarizer) now supports both authenticated and unauthenticated local startup:
+
+- set `AUTH_ENABLED=true` with `OPENID_CONNECT_URL` to enforce Vault-backed JWT validation
+- set `AUTH_ENABLED=false` to disable auth for local integration and testing
+- the default bind host remains `127.0.0.1`; container runtimes must explicitly override it when binding on all interfaces is required
+
+Its smoke and request-flow tests live in [`agents/summarizer/tests/test_summarizer_app.py`](agents/summarizer/tests/test_summarizer_app.py:1).
+
 ## GitHub Actions Workflows
 
 Two workflows in `.github/workflows/` build and push container images to GitHub Container Registry (GHCR). They are triggered by Git tags and `workflow_dispatch`.

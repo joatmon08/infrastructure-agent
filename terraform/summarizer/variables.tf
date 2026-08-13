@@ -47,7 +47,7 @@ variable "tfc_kubernetes_workspace" {
 variable "summarizer_agent_image" {
   type        = string
   description = "Container image for the summarizer agent"
-  default     = "ghcr.io/joatmon08/summarizer:sha-59769f6"
+  default     = "ghcr.io/joatmon08/summarizer:sha-9e70f00"
 }
 
 variable "inbound_cidrs_for_lbs" {
@@ -90,4 +90,10 @@ variable "ollama_model" {
   description = "Ollama model to use for summarization"
   type        = string
   default     = "llama3.2:3b"
+}
+
+variable "summarizer_agent_auth_enabled" {
+  description = "Authentication enabled for summarizer agent"
+  type        = bool
+  default     = false
 }
