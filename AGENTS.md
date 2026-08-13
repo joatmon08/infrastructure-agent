@@ -15,6 +15,15 @@ Workspaces must be deployed in this order due to state dependencies:
 3. **`txc-vault`** (`terraform/vault`) — Vault auth methods, OIDC provider, identity secrets engine, custom `vault-plugin-secrets-oauth-token-exchange` plugin; depends on `txc-base`, `txc-kubernetes`
 4. **`txc-helloworld`** (`terraform/helloworld`) — `helloworld-agent-server` and `test-client` Kubernetes deployments/services, Vault Secrets Operator CRDs (`VaultAuth`, `VaultDynamicSecret`) for secret injection; depends on `txc-base`, `txc-kubernetes`, `txc-vault`
 5. **`txc-mcp-context-forge`** (`terraform/mcp-context-forge`) — MCP Context Forge gateway, PostgreSQL 17, Redis in the `ai-system` namespace; depends on `txc-base`, `txc-kubernetes`
+6. **`txc-summarizer`** (`terraform/summarizer`) — summarizer agent deployment, Ollama inference server (GPU node), Vault Secrets Operator CRDs for actor-token injection; depends on `txc-base`, `txc-kubernetes`, `txc-vault`
+
+After both `txc-helloworld` and the summarizer workspace apply successfully, register the deployed agents with MCP Context Forge:
+
+```bash
+source scripts/export-env.sh && source secrets.env && bash scripts/mcp-context-forge-register-agents.sh
+```
+
+This registers `helloworld-server`, `test-client`, and `summarizer` as A2A agents in the gateway. `MCPGATEWAY_URL` is set automatically by `scripts/export-env.sh`; `MCPGATEWAY_BEARER_TOKEN` must be present in `secrets.env` (generate it from the MCP Context Forge admin UI → API Tokens).
 
 ## Required Workspace Variables
 
@@ -57,6 +66,24 @@ Run the command twice — once for `mcp_context_forge_jwt_secret` and once for `
 | `tfc_kubernetes_workspace` | string | no | TFC kubernetes workspace name (default: `txc-kubernetes`) |
 | `mcp_admin_email` | string | no | Admin email (default: `admin@example.com`) |
 | `vault_token` | string (sensitive) | yes | Vault root token from initialization |
+
+### `txc-summarizer`
+
+| Variable | Type | Required | Description |
+|---|---|---|---|
+| `tfc_organization` | string | yes | HCP Terraform organization name |
+| `tfc_base_workspace` | string | no | TFC base workspace name (default: `txc-base`) |
+| `tfc_vault_workspace` | string | no | TFC Vault workspace name (default: `txc-vault`) |
+| `tfc_kubernetes_workspace` | string | no | TFC Kubernetes workspace name (default: `txc-kubernetes`) |
+| `summarizer_agent_image` | string | no | Container image for the summarizer agent (default: `ghcr.io/joatmon08/summarizer:sha-9e70f00`) |
+| `summarizer_agent_auth_enabled` | bool | no | Enable Vault-backed JWT auth on the summarizer (default: `false`) |
+| `ollama_model` | string | no | Ollama model to preload (default: `llama3.2:3b`) |
+
+After the workspace applies, preload the Ollama model on the GPU node:
+
+```bash
+source .doormat && bash scripts/ollama-init.sh
+```
 
 ## Vault Initialization
 

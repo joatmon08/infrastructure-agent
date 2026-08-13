@@ -41,6 +41,10 @@ This project requires **five workspaces** to be created in HCP Terraform under t
    - Working Directory: `terraform/mcp-context-forge`
    - Depends on: `txc-base`
 
+6. **`txc-summarizer`** - Deploys the summarizer agent and Ollama inference server (GPU node)
+   - Working Directory: `terraform/summarizer`
+   - Depends on: `txc-base`, `txc-kubernetes`, `txc-vault`
+
 #### Create Project
 
 - Create a new project called `txc-2026-agent-identity`. It groups the workspaces related to this repository.
@@ -369,6 +373,59 @@ Run a plan and apply.
 
 This will deploy the Kubernetes deployment and service for the helloworld-agent-server.
 The agent will be accessible via the ingress created in the `kubernetes` workspace.
+
+### Deploy the summarizer agent
+
+- Create a workspace called `txc-summarizer`.
+
+- Set the project to `txc-2026-agent-identity`.
+
+- Go to "Version Control".
+
+- Connect the workspace to this repository (`joatmon08/infrastructure-agent`).
+
+- Update "Terraform Working Directory" to `terraform/summarizer`.
+
+- Under "Automatic Run triggering", set to "Only trigger when files in specified paths change".
+
+- Update the "Syntax" to "Patterns".
+
+- Add the pattern `terraform/summarizer/**/*`.
+
+- Go to "Settings" → "Remote state sharing" and share state from `txc-base`, `txc-kubernetes`, and `txc-vault` with this workspace (or ensure those workspaces share state with `txc-summarizer`).
+
+- Go to "Variables".
+
+- Add the following workspace variable:
+    - `tfc_organization` - Your Terraform Cloud organization name
+
+The following variables have defaults and can be overridden if needed:
+
+| Variable | Default | Description |
+|---|---|---|
+| `summarizer_agent_image` | `ghcr.io/joatmon08/summarizer:sha-9e70f00` | Container image for the summarizer agent |
+| `summarizer_agent_auth_enabled` | `false` | Enable Vault-backed JWT auth on the summarizer |
+| `ollama_model` | `llama3.2:3b` | Ollama model to preload |
+
+Run a plan and apply.
+
+After the workspace applies, preload the `llama3.2:3b` model on the GPU node:
+
+```bash
+source .doormat && bash scripts/ollama-init.sh
+```
+
+### Register agents with MCP Context Forge
+
+After both the `txc-helloworld` and summarizer workspaces apply successfully, register the deployed agents with MCP Context Forge so they are discoverable through the gateway.
+
+First, make sure `MCPGATEWAY_BEARER_TOKEN` is set in `secrets.env` (generate a token from the MCP Context Forge admin UI → API Tokens). Then run:
+
+```bash
+source scripts/export-env.sh && source secrets.env && bash scripts/mcp-context-forge-register-agents.sh
+```
+
+[`scripts/mcp-context-forge-register-agents.sh`](scripts/mcp-context-forge-register-agents.sh) reads the live Terraform outputs for `helloworld-agent-server`, `test-client`, and `summarizer` endpoint URLs and POSTs each as a public A2A agent to the gateway at `MCPGATEWAY_URL/a2a`.
 
 ### Try the agents
 
