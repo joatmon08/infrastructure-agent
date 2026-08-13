@@ -26,12 +26,18 @@ resource "vault_kv_secret_v2" "end_user_password" {
   data_json_wo_version = 2
 }
 
+ephemeral "vault_kv_secret_v2" "end_user_password" {
+  mount    = vault_mount.credentials.path
+  mount_id = vault_kv_secret_v2.end_user_password.id
+  name     = vault_kv_secret_v2.end_user_password.name
+}
+
 ephemeral "vault_generic_endpoint" "end_user" {
   path = "auth/${vault_auth_backend.userpass.path}/users/${local.end_user}"
   data_json = jsonencode({
     token_policies = [vault_policy.agent_oidc_authorize.name]
     token_ttl      = "1h"
-    password       = ephemeral.random_password.end_user.result
+    password       = tostring(ephemeral.vault_kv_secret_v2.end_user_password.data.password)
   })
 
   depends_on = [
