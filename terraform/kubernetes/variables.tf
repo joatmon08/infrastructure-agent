@@ -78,3 +78,9 @@ variable "kubernetes_namespace_summarizer" {
   description = "Kubernetes namespace for the summarizer agent"
   default     = "summarizer"
 }
+
+variable "allow_public_access_to_summarizer" {
+  type        = bool
+  description = "Allow public access to summarizer agent, required for MCP Context Forge testing"
+  default     = true
+}

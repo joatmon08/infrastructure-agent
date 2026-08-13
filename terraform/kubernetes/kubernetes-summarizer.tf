@@ -4,11 +4,6 @@ resource "kubernetes_namespace_v1" "summarizer" {
   }
 }
 
-data "aws_ip_ranges" "lbs" {
-  regions  = [var.aws_region]
-  services = ["ec2"]
-}
-
 resource "kubernetes_ingress_v1" "summarizer_agent" {
   metadata {
     name      = local.summarizer_agent_name
@@ -17,7 +12,7 @@ resource "kubernetes_ingress_v1" "summarizer_agent" {
       "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"      = "ip"
       "alb.ingress.kubernetes.io/healthcheck-path" = "/.well-known/agent-card.json"
-      "alb.ingress.kubernetes.io/inbound-cidrs"    = join(",", [for s in var.inbound_cidrs_for_lbs : s], [data.terraform_remote_state.base.outputs.vpc_cidr_block], data.aws_ip_ranges.lbs.cidr_blocks)
+      "alb.ingress.kubernetes.io/inbound-cidrs"    = var.allow_public_access_to_summarizer ? "0.0.0.0/0" : join(",", [for s in var.inbound_cidrs_for_lbs : s], [data.terraform_remote_state.base.outputs.vpc_cidr_block])
       "alb.ingress.kubernetes.io/success-codes"    = "200,201,404"
       "alb.ingress.kubernetes.io/tags"             = "Environment=${var.environment},Project=${var.project_name},ManagedBy=Terraform"
     }
