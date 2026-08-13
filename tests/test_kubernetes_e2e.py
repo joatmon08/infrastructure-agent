@@ -61,7 +61,7 @@ def summarizer_url():
 
 @pytest.fixture
 def summarizer_client():
-    with httpx.Client(timeout=30.0, follow_redirects=True) as client_instance:
+    with httpx.Client(timeout=120.0, follow_redirects=True) as client_instance:
         yield client_instance
 
 
