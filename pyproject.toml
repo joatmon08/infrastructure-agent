@@ -8,6 +8,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "hvac>=2.4.0",
     "kubernetes>=36.0.3",
     "pytest>=9.1.1",
@@ -17,6 +18,7 @@ dev = [
 markers = [
     "kubernetes",
     "vault",
+    "summarizer",
 ]
 filterwarnings = [
     "ignore:Unverified HTTPS request is being made.*:urllib3.exceptions.InsecureRequestWarning",
