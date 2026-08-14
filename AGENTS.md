@@ -172,7 +172,7 @@ source scripts/export-env.sh && source secrets.env && uv run pytest tests/test_k
 | Variable | Description |
 |---|---|
 | `VAULT_TOKEN` | Vault root token — read automatically from `secrets/vault-init.json` |
-| `MCPGATEWAY_BEARER_TOKEN` | MCP Context Forge API token — **must be generated manually** from the admin UI and pasted into `secrets.env` before running tests |
+| `MCPGATEWAY_BEARER_TOKEN` | MCP Context Forge API token — **must be generated manually** from the admin UI (see steps below) and pasted into `secrets.env` before running tests |
 
 The tests cover. The `summarizer` mark currently uses a 120 second HTTP timeout to tolerate cold model startup after preload:
 
@@ -216,6 +216,67 @@ These secrets are synced to Kubernetes in the `ai-system` namespace via Vault Se
 | `mcp-postgres` | `mcp-context-forge/data/postgres` |
 | `mcp-context-forge` | `mcp-context-forge/data/app` |
 | `mcp-database-url` | `mcp-context-forge/data/database-url` |
+
+## Bob MCP Integration
+
+Bob connects to the MCP Context Forge gateway as a remote MCP server, exposing all
+registered A2A agents as callable tools. No additional infrastructure is required —
+the gateway automatically bridges every A2A agent into an MCP tool at its `/mcp` endpoint.
+
+### How it works
+
+- Transport: `streamable-http` at `POST {MCPGATEWAY_URL}/mcp`
+- Auth: `Authorization: Bearer <MCPGATEWAY_BEARER_TOKEN>`
+- The gateway auto-exposes each registered A2A agent as a tool named `a2a-<agent-name>`
+- Tool `a2a-summarizer` accepts `{ "query": string }` and returns the summarized text
+
+### Configuration
+
+The gateway server entry lives in `.bob/mcp.json` under `"mcp-context-forge"`:
+
+```json
+"mcp-context-forge": {
+  "type": "streamable-http",
+  "url": "http://<MCPGATEWAY_URL>/mcp",
+  "headers": {
+    "Authorization": "Bearer <MCPGATEWAY_BEARER_TOKEN>"
+  },
+  "disabled": false
+}
+```
+
+The bearer token is an API token generated from the MCP Context Forge admin UI and stored
+in `secrets.env` as `MCPGATEWAY_BEARER_TOKEN`.
+
+### Generating the API token
+
+1. Get the gateway URL and admin password:
+   ```bash
+   source scripts/export-env.sh   # sets MCPGATEWAY_URL
+   source secrets.env             # sets VAULT_TOKEN
+   vault kv get -field=PLATFORM_ADMIN_PASSWORD mcp-context-forge/app
+   ```
+2. Open the admin UI at `$MCPGATEWAY_URL` in a browser and log in with:
+   - **Email:** the value of `mcp_admin_email` workspace variable (default: `admin@example.com`)
+   - **Password:** the value retrieved above
+3. Navigate to **Settings → API Tokens → Create Token**.
+4. Give the token a name (e.g. `bob`) and click **Create**.
+5. Copy the token value and paste it in two places:
+   - `secrets.env` — as `export MCPGATEWAY_BEARER_TOKEN="<token>"`
+   - `.bob/mcp.json` — as the `Authorization` header value in the `mcp-context-forge` entry
+
+### Rotating the bearer token
+
+When the token expires or is rotated, repeat the steps above and update both
+`secrets.env` and `.bob/mcp.json`, then reload Bob to pick up the new config.
+
+### Auth note
+
+The summarizer agent currently runs with `summarizer_agent_auth_enabled = false`
+(workspace variable in `txc-summarizer`), so the gateway bearer token is the only
+credential needed. If `summarizer_agent_auth_enabled` is set to `true`, the agent will
+require a Vault-issued JWT with `summarizer:summarize` scope — at that point a custom
+MCP server would be needed to handle the Vault token exchange before calling the gateway.
 
 ## Import Blocks
 

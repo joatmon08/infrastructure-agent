@@ -419,7 +419,7 @@ source .doormat && bash scripts/ollama-init.sh
 
 After both the `txc-helloworld` and summarizer workspaces apply successfully, register the deployed agents with MCP Context Forge so they are discoverable through the gateway.
 
-First, make sure `MCPGATEWAY_BEARER_TOKEN` is set in `secrets.env` (generate a token from the MCP Context Forge admin UI → API Tokens). Then run:
+First, make sure `MCPGATEWAY_BEARER_TOKEN` is set in `secrets.env`. See [Generating the MCP Context Forge API token](#generating-the-mcp-context-forge-api-token) below for step-by-step instructions. Then run:
 
 ```bash
 source scripts/export-env.sh && source secrets.env && bash scripts/mcp-context-forge-register-agents.sh
@@ -533,3 +533,99 @@ for accessing the wrong agent server.
 Note that if you want to have nested delegation (e.g., `second-client` calls on behalf of `test-client`),
 you can use the delegated access token from `test-client` as the subject token for `second-client`'s request.
 This generates a new delegated access token for `second-client` on behalf of `test-client`.
+
+## Agent Authentication and Authorization with Gateways
+
+This section covers how to generate the MCP Context Forge API token and how to call the
+summarizer agent through the gateway from Bob (or any MCP client).
+
+The gateway (`mcp-context-forge`) automatically exposes every registered A2A agent as an
+MCP tool at its `/mcp` endpoint. Bob connects to this endpoint as a remote MCP server,
+which means the summarizer agent becomes directly callable from within Bob without any
+additional code.
+
+### Generating the MCP Context Forge API token
+
+An API token authenticates MCP clients (including Bob) to the gateway. Tokens are
+generated from the admin UI and must be stored in `secrets.env` and `.bob/mcp.json`.
+
+1. Get the gateway URL and admin password from Vault:
+
+   ```bash
+   source scripts/export-env.sh   # sets MCPGATEWAY_URL
+   source secrets.env             # sets VAULT_TOKEN
+   vault kv get -field=PLATFORM_ADMIN_PASSWORD mcp-context-forge/app
+   ```
+
+2. Open `$MCPGATEWAY_URL` in a browser. Log in with:
+   - **Email:** value of the `mcp_admin_email` workspace variable (default: `admin@example.com`)
+   - **Password:** value retrieved in the previous step
+
+3. Navigate to **Settings → API Tokens → Create Token**. Give it a name (e.g. `bob`) and click **Create**.
+
+4. Copy the token and update two files:
+
+   `secrets.env`:
+   ```bash
+   export MCPGATEWAY_BEARER_TOKEN="<token>"
+   ```
+
+   `.bob/mcp.json` — update the `Authorization` header in the `mcp-context-forge` entry:
+   ```json
+   "mcp-context-forge": {
+     "type": "streamable-http",
+     "url": "http://<MCPGATEWAY_URL>/mcp",
+     "headers": {
+       "Authorization": "Bearer <token>"
+     },
+     "disabled": false
+   }
+   ```
+
+5. Reload Bob to pick up the updated config.
+
+When the token expires, repeat these steps. Tokens do not auto-rotate — the gateway bearer
+token and the Vault JWT used for agent auth are independent credentials.
+
+### Calling the summarizer through Bob
+
+Once Bob is connected to the gateway, the `a2a-summarizer` tool is immediately available.
+The tool accepts a single `query` string and returns a one-sentence summary produced by the
+summarizer agent running Ollama (`llama3.2:3b`) on the EKS GPU node.
+
+Example prompt in Bob:
+
+```
+Use the a2a-summarizer tool to summarize the following:
+
+Vault's Identity secrets engine issues OIDC tokens scoped to a specific client. The
+vault-plugin-secrets-oauth-token-exchange plugin exchanges those identity tokens for
+scoped OAuth 2.0 Bearer tokens that carry a specific audience and scope claim. The
+summarizer agent validates incoming requests against Vault's JWKS endpoint to ensure
+the token was issued for the correct audience and scope before processing the request.
+```
+
+Bob will call the `a2a-summarizer` MCP tool, which the gateway proxies to
+`http://summarizer-agent.summarizer:9999` as an A2A JSON-RPC `SendMessage` request.
+The agent validates the request (if `summarizer_agent_auth_enabled = true`) and returns
+a completed task with a one-sentence summary.
+
+### Auth boundary
+
+The gateway acts as a routing and discovery layer only — it does not inspect or validate
+the summarizer's JWT. The trust boundary is as follows:
+
+```
+Bob  ──────────────────────────────────────────────────────────────────▶  Gateway
+     Authorization: Bearer <MCPGATEWAY_BEARER_TOKEN>   (gateway auth)
+
+Gateway  ──────────────────────────────────────────────────────────────▶  summarizer-agent
+         Authorization: Bearer <MCPGATEWAY_BEARER_TOKEN>   (passthrough)
+         (if summarizer_agent_auth_enabled=true, agent rejects non-Vault JWTs)
+```
+
+When `summarizer_agent_auth_enabled = false` (the default), the gateway bearer token
+passes through and the agent accepts any request. When set to `true`, the agent's
+`AuthMiddleware` validates the token against Vault's JWKS — at that point a Vault-issued
+JWT with `summarizer:summarize` scope is required, which would need to be obtained through
+a separate Vault token-exchange flow before calling the gateway.
